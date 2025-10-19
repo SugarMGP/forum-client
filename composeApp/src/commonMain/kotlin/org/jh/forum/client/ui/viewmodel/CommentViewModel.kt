@@ -1,0 +1,189 @@
+package org.jh.forum.client.ui.viewmodel
+
+import androidx.compose.runtime.Stable
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import org.jh.forum.client.data.model.CommentElement
+import org.jh.forum.client.data.model.PublishCommentRequest
+import org.jh.forum.client.di.AppModule
+
+@Stable
+class CommentViewModel : ViewModel() {
+    private val repository = AppModule.forumRepository
+
+    private val _comments = MutableStateFlow<List<CommentElement>>(emptyList())
+    val comments: StateFlow<List<CommentElement>> = _comments.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    private val _currentPage = MutableStateFlow(1)
+    val currentPage: StateFlow<Int> = _currentPage.asStateFlow()
+
+    private val _hasMore = MutableStateFlow(true)
+    val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
+
+    fun loadComments(postId: Long, reset: Boolean = false) {
+        if (reset) {
+            _currentPage.value = 1
+            _comments.value = emptyList()
+            _hasMore.value = true
+        }
+
+        if (!_hasMore.value || _isLoading.value) return
+
+        viewModelScope.launch {
+            _isLoading.value = true
+            _errorMessage.value = null
+
+            try {
+                val result = repository.getCommentList(
+                    page = _currentPage.value,
+                    pageSize = 20,
+                    id = postId,
+                    sortType = "hot",
+                    highlightCommentId = 0
+                )
+                _isLoading.value = false
+                if (result.code == 200 && result.data != null) {
+                    val response = result.data
+                    val newComments = if (reset) {
+                        response.list ?: emptyList()
+                    } else {
+                        _comments.value + (response.list ?: emptyList())
+                    }
+                    _comments.value = newComments
+                    _hasMore.value = response.page * response.pageSize < response.total
+                    if (_hasMore.value) _currentPage.value++
+                } else {
+                    _errorMessage.value = result.msg ?: "加载失败"
+                }
+            } catch (e: Exception) {
+                _isLoading.value = false
+                _errorMessage.value = e.message ?: "加载失败"
+            }
+        }
+    }
+
+    fun publishComment(postId: Long, content: String, picture: String? = null) {
+        viewModelScope.launch {
+            val request = PublishCommentRequest(
+                targetType = "post",
+                targetId = postId,
+                content = content,
+                picture = picture ?: ""
+            )
+
+            val result = repository.publishComment(request)
+            if (result.code == 200 && result.data != null) {
+                loadComments(postId, true) // 重新加载评论列表
+            } else {
+                _errorMessage.value = result.msg ?: "发布失败"
+            }
+        }
+    }
+
+    fun upvoteComment(commentId: Long) {
+        viewModelScope.launch {
+            val result = repository.upvoteComment(commentId)
+            if (result.code == 200 && result.data != null) {
+                // 更新评论点赞状态
+                val updatedComments = _comments.value.map { comment ->
+                    if (comment.commentId == commentId) {
+                        CommentElement(
+                            commentId = comment.commentId,
+                            publisherInfo = comment.publisherInfo,
+                            content = comment.content,
+                            pictures = comment.pictures,
+                            isPinned = comment.isPinned,
+                            isAuthor = comment.isAuthor,
+                            isDeleted = comment.isDeleted,
+                            createdAt = comment.createdAt,
+                            upvoteCount = if (result.data?.status == true) {
+                                comment.upvoteCount + 1
+                            } else {
+                                comment.upvoteCount - 1
+                            },
+                            replyCount = comment.replyCount,
+                            replies = comment.replies,
+                            isLiked = result.data?.status == true
+                        )
+                    } else {
+                        comment
+                    }
+                }
+                _comments.value = updatedComments
+            } else {
+                _errorMessage.value = result.msg ?: "点赞失败"
+            }
+        }
+    }
+
+    fun pinComment(commentId: Long) {
+        viewModelScope.launch {
+            val result = repository.pinComment(commentId)
+            if (result.code == 200 && result.data != null) {
+                // 更新评论置顶状态
+                val updatedComments = _comments.value.map { comment ->
+                    if (comment.commentId == commentId) {
+                        CommentElement(
+                            commentId = comment.commentId,
+                            publisherInfo = comment.publisherInfo,
+                            content = comment.content,
+                            pictures = comment.pictures,
+                            isPinned = result.data?.status == true,
+                            isAuthor = comment.isAuthor,
+                            isDeleted = comment.isDeleted,
+                            createdAt = comment.createdAt,
+                            upvoteCount = comment.upvoteCount,
+                            replyCount = comment.replyCount,
+                            replies = comment.replies,
+                            isLiked = comment.isLiked
+                        )
+                    } else {
+                        CommentElement(
+                            commentId = comment.commentId,
+                            publisherInfo = comment.publisherInfo,
+                            content = comment.content,
+                            pictures = comment.pictures,
+                            isPinned = false, // 取消其他评论的置顶状态
+                            isAuthor = comment.isAuthor,
+                            isDeleted = comment.isDeleted,
+                            createdAt = comment.createdAt,
+                            upvoteCount = comment.upvoteCount,
+                            replyCount = comment.replyCount,
+                            replies = comment.replies,
+                            isLiked = comment.isLiked
+                        )
+                    }
+                }
+                _comments.value = updatedComments
+            } else {
+                _errorMessage.value = result.msg ?: "置顶失败"
+            }
+        }
+    }
+
+    fun deleteComment(commentId: Long) {
+        viewModelScope.launch {
+            val result = repository.deleteComment(commentId)
+            if (result.code == 200) {
+                // 从列表中移除评论
+                _comments.value = _comments.value.filter { it.commentId != commentId }
+            } else {
+                _errorMessage.value = result.msg ?: "删除失败"
+            }
+        }
+    }
+
+    fun refresh(postId: Long) {
+        loadComments(postId, true)
+    }
+}

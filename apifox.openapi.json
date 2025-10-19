@@ -1,0 +1,2884 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "默认模块",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "用户"
+    },
+    {
+      "name": "帖子"
+    },
+    {
+      "name": "评论"
+    },
+    {
+      "name": "公告"
+    },
+    {
+      "name": "举报"
+    },
+    {
+      "name": "文件"
+    },
+    {
+      "name": "通知模块"
+    }
+  ],
+  "paths": {
+    "/api/user/profile": {
+      "get": {
+        "summary": "获取个人信息",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getProfile",
+        "tags": [
+          "用户"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultGetUserProfileResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      },
+      "put": {
+        "summary": "更新个人信息",
+        "deprecated": false,
+        "description": "",
+        "operationId": "updateMyProfile",
+        "tags": [
+          "用户"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserProfileRequest"
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultModerationResultResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/user/notice": {
+      "post": {
+        "summary": "修改消息设置",
+        "deprecated": false,
+        "description": "",
+        "operationId": "updateNoticeSettings",
+        "tags": [
+          "用户"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNoticeSettingsRequest"
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultVoid"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      },
+      "get": {
+        "summary": "获取消息设置",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getNoticeSettings",
+        "tags": [
+          "用户"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultGetNoticeSettingsResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/user/logout": {
+      "post": {
+        "summary": "用户退出登录",
+        "deprecated": false,
+        "description": "",
+        "operationId": "logout",
+        "tags": [
+          "用户"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultVoid"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/user/login": {
+      "post": {
+        "summary": "用户登录",
+        "deprecated": false,
+        "description": "",
+        "operationId": "login",
+        "tags": [
+          "用户"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultLoginResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/user/mute": {
+      "get": {
+        "summary": "检查禁言状态",
+        "deprecated": false,
+        "description": "",
+        "operationId": "checkMute",
+        "tags": [
+          "用户"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultCheckMuteResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/post/upvote": {
+      "post": {
+        "summary": "点赞帖子",
+        "deprecated": false,
+        "description": "",
+        "operationId": "upvotePost",
+        "tags": [
+          "帖子"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultUpvotePostResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/post/top": {
+      "post": {
+        "summary": "置顶帖子（个人主页）",
+        "deprecated": false,
+        "description": "",
+        "operationId": "topPost",
+        "tags": [
+          "帖子"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TopPostRequest"
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultVoid"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/post/create": {
+      "post": {
+        "summary": "创建帖子",
+        "deprecated": false,
+        "description": "",
+        "operationId": "createPost",
+        "tags": [
+          "帖子"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishPostRequest"
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultModerationResultResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/post/personal": {
+      "get": {
+        "summary": "获取个人帖子列表",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getPersonalPostList",
+        "tags": [
+          "帖子"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "maximum": 999,
+              "minimum": 1,
+              "type": "integer",
+              "description": "页码",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "每页数量（超过20自动限制到20）",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "description": "每页数量（超过20自动限制到20）",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "若是他人视角，则传他人用户ID；若是本人视角，则可以不传或者传本人ID",
+            "required": false,
+            "example": 0,
+            "schema": {
+              "type": "integer",
+              "description": "若是他人视角，则传他人用户ID；若是本人视角，则可以不传或者传本人ID",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultBaseListResponseGetPersonalPostListElement"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/post/list": {
+      "get": {
+        "summary": "获取帖子列表",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getPostList",
+        "tags": [
+          "帖子"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "maximum": 999,
+              "minimum": 1,
+              "type": "integer",
+              "description": "页码",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "每页数量（超过20自动限制到20）",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "description": "每页数量（超过20自动限制到20）",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "帖子板块",
+            "required": false,
+            "example": "",
+            "schema": {
+              "type": "string",
+              "description": "帖子板块",
+              "enum": [
+                "campus",
+                "emotion",
+                "study",
+                "contest",
+                "hobby",
+                "lost",
+                "secondhand"
+              ]
+            }
+          },
+          {
+            "name": "sortType",
+            "in": "query",
+            "description": "排序类型",
+            "required": false,
+            "example": "",
+            "schema": {
+              "type": "string",
+              "description": "排序类型",
+              "enum": [
+                "hot",
+                "new"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultBaseListResponseGetPostListElement"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/post/info": {
+      "get": {
+        "summary": "获取帖子信息",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getPostInfo",
+        "tags": [
+          "帖子"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultGetPostInfoResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/post/delete": {
+      "delete": {
+        "summary": "删除帖子",
+        "deprecated": false,
+        "description": "",
+        "operationId": "deletePost",
+        "tags": [
+          "帖子"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultVoid"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/comment/upvote": {
+      "post": {
+        "summary": "点赞评论/回复",
+        "deprecated": false,
+        "description": "",
+        "operationId": "upvoteComment",
+        "tags": [
+          "评论"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultUpvoteCommentResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/comment/publish": {
+      "post": {
+        "summary": "发布评论/回复",
+        "deprecated": false,
+        "description": "",
+        "operationId": "publishComment",
+        "tags": [
+          "评论"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishCommentRequest"
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultModerationResultResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/comment/pin": {
+      "post": {
+        "summary": "置顶评论/回复",
+        "deprecated": false,
+        "description": "    仅帖主设置\n    仅允许置顶楼主评论\n",
+        "operationId": "pinComment",
+        "tags": [
+          "评论"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultPinCommentResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/comment/reply/list": {
+      "get": {
+        "summary": "评论详情页获取回复",
+        "deprecated": false,
+        "description": "高亮回复会自动排序到第一页第一条（比置顶评论优先级更高）",
+        "operationId": "getReplyList",
+        "tags": [
+          "评论"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "maximum": 999,
+              "minimum": 1,
+              "type": "integer",
+              "description": "页码",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "每页数量（超过20自动限制到20）",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "description": "每页数量（超过20自动限制到20）",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "评论或回复ID（如果不是父评论则会自动跳转到父评论）",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "type": "integer",
+              "description": "评论或回复ID（如果不是父评论则会自动跳转到父评论）",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "highlightReplyId",
+            "in": "query",
+            "description": "高亮回复ID，无值即传0",
+            "required": false,
+            "example": 0,
+            "schema": {
+              "type": "integer",
+              "description": "高亮回复ID，无值即传0",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultGetCommentReplyListResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/comment/personal": {
+      "get": {
+        "summary": "获取个人评论",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getPersonalComment",
+        "tags": [
+          "评论"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "maximum": 999,
+              "minimum": 1,
+              "type": "integer",
+              "description": "页码",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "每页数量（超过20自动限制到20）",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "description": "每页数量（超过20自动限制到20）",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultBaseListResponsePersonalCommentListElement"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/comment/list": {
+      "get": {
+        "summary": "获取评论",
+        "deprecated": false,
+        "description": "    高亮评论会自动排序到第一页第一条（比置顶评论优先级更高）\n    每条评论自动获取最热的两条回复\n",
+        "operationId": "getCommentList",
+        "tags": [
+          "评论"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "maximum": 999,
+              "minimum": 1,
+              "type": "integer",
+              "description": "页码",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "每页数量（超过20自动限制到20）",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "description": "每页数量（超过20自动限制到20）",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "帖子ID",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "type": "integer",
+              "description": "帖子ID",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "sortType",
+            "in": "query",
+            "description": "排序方式，hot: 按最热，time: 按时间",
+            "required": false,
+            "example": "",
+            "schema": {
+              "type": "string",
+              "description": "排序方式，hot: 按最热，time: 按时间"
+            }
+          },
+          {
+            "name": "highlightCommentId",
+            "in": "query",
+            "description": "高亮评论ID，无值即传0",
+            "required": false,
+            "example": 0,
+            "schema": {
+              "type": "integer",
+              "description": "高亮评论ID，无值即传0",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultBaseListResponseCommentElement"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/comment/remove": {
+      "delete": {
+        "summary": "删除评论/回复",
+        "deprecated": false,
+        "description": "仅发布人可删\n级联删除",
+        "operationId": "deleteComment",
+        "tags": [
+          "评论"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultVoid"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/announcements/list": {
+      "get": {
+        "summary": "用户公告列表",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getAnnouncementList",
+        "tags": [
+          "公告"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "maximum": 999,
+              "minimum": 1,
+              "type": "integer",
+              "description": "页码",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "每页数量（超过20自动限制到20）",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "description": "每页数量（超过20自动限制到20）",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "类型筛选 (空则全部)",
+            "required": false,
+            "example": "",
+            "schema": {
+              "type": "string",
+              "description": "类型筛选 (空则全部)",
+              "enum": [
+                "scholastic",
+                "systematic"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultBaseListResponseGetAnnouncementListElement"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/report/user": {
+      "post": {
+        "summary": "举报用户",
+        "deprecated": false,
+        "description": "",
+        "operationId": "reportUser",
+        "tags": [
+          "举报"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportUserRequest"
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultVoid"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/report/content": {
+      "post": {
+        "summary": "举报帖子/评论",
+        "deprecated": false,
+        "description": "",
+        "operationId": "reportContent",
+        "tags": [
+          "举报"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportContentRequest"
+              },
+              "example": ""
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultVoid"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/file/picture": {
+      "post": {
+        "summary": "上传图片",
+        "deprecated": false,
+        "description": "",
+        "operationId": "uploadPicture",
+        "tags": [
+          "文件"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "picture": {
+                    "type": "string",
+                    "format": "binary",
+                    "example": ""
+                  }
+                },
+                "required": [
+                  "picture"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultUploadResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/notices/unread": {
+      "get": {
+        "summary": "检查未读消息",
+        "deprecated": false,
+        "description": "",
+        "operationId": "checkUnreadNotices",
+        "tags": [
+          "通知模块"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultUnreadCheckResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/notices/list": {
+      "get": {
+        "summary": "查询通知历史",
+        "deprecated": false,
+        "description": "",
+        "operationId": "getNoticeHistory",
+        "tags": [
+          "通知模块"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "maximum": 999,
+              "minimum": 1,
+              "type": "integer",
+              "description": "页码",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "每页数量（超过20自动限制到20）",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "description": "每页数量（超过20自动限制到20）",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "通知类型（0-全部 1-赞 2-收藏 3-评论/At）",
+            "required": true,
+            "example": 0,
+            "schema": {
+              "type": "integer",
+              "description": "通知类型（0-全部 1-赞 2-收藏 3-评论/At）",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjaxResultBaseListResponseGetNoticeListElement"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UpdateUserProfileRequest": {
+        "required": [
+          "avatar",
+          "birthdayVisible",
+          "collegeId",
+          "email",
+          "gender",
+          "nickname",
+          "profile",
+          "realnameVisible",
+          "signature",
+          "studentIdVisible"
+        ],
+        "type": "object",
+        "properties": {
+          "avatar": {
+            "type": "string",
+            "description": "用户头像URL"
+          },
+          "nickname": {
+            "maxLength": 12,
+            "minLength": 0,
+            "type": "string",
+            "description": "用户昵称"
+          },
+          "signature": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string",
+            "description": "用户个性签名"
+          },
+          "gender": {
+            "type": "string",
+            "description": "用户性别",
+            "enum": [
+              "female",
+              "male",
+              "unknown"
+            ]
+          },
+          "profile": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "description": "用户简介"
+          },
+          "email": {
+            "maxLength": 40,
+            "minLength": 0,
+            "type": "string",
+            "description": "用户邮箱"
+          },
+          "collegeId": {
+            "type": "string",
+            "description": "学院代号"
+          },
+          "birthday": {
+            "type": "string",
+            "description": "生日",
+            "format": "date"
+          },
+          "birthdayVisible": {
+            "type": "boolean",
+            "description": "生日是否可见"
+          },
+          "realnameVisible": {
+            "type": "boolean",
+            "description": "真实姓名是否可见"
+          },
+          "studentIdVisible": {
+            "type": "boolean",
+            "description": "学号是否可见"
+          }
+        }
+      },
+      "AjaxResultModerationResultResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ModerationResultResponse"
+          }
+        }
+      },
+      "Label": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "标签名称"
+          },
+          "keywords": {
+            "type": "string",
+            "description": "关键词列表，用逗号分隔（可能为 null）"
+          }
+        },
+        "description": "风险标签列表"
+      },
+      "ModerationResultResponse": {
+        "type": "object",
+        "properties": {
+          "pass": {
+            "type": "boolean",
+            "description": "审核是否通过"
+          },
+          "labels": {
+            "type": "array",
+            "description": "风险标签列表",
+            "items": {
+              "$ref": "#/components/schemas/Label"
+            }
+          },
+          "requestId": {
+            "type": "string",
+            "description": "审核请求ID（可用来追溯记录）"
+          }
+        }
+      },
+      "AjaxResultVoid": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {}
+          }
+        }
+      },
+      "UpdateNoticeSettingsRequest": {
+        "required": [
+          "commentNotice",
+          "upvoteNotice"
+        ],
+        "type": "object",
+        "properties": {
+          "upvoteNotice": {
+            "type": "boolean",
+            "description": "点赞消息开关"
+          },
+          "commentNotice": {
+            "type": "boolean",
+            "description": "评论消息开关"
+          }
+        }
+      },
+      "LoginRequest": {
+        "required": [
+          "password",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "用户名"
+          },
+          "password": {
+            "type": "string",
+            "description": "密码"
+          }
+        }
+      },
+      "AjaxResultLoginResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/LoginResponse"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "userType": {
+            "type": "string",
+            "description": "用户类型",
+            "enum": [
+              "student",
+              "admin",
+              "super_admin"
+            ]
+          },
+          "userInfo": {
+            "$ref": "#/components/schemas/OauthUserInfoElement"
+          }
+        }
+      },
+      "OauthUserInfoElement": {
+        "type": "object",
+        "properties": {
+          "gender": {
+            "type": "string",
+            "description": "性别",
+            "enum": [
+              "female",
+              "male",
+              "unknown"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "姓名"
+          },
+          "studentId": {
+            "type": "string",
+            "description": "学号"
+          },
+          "studentType": {
+            "type": "string",
+            "description": "学生类型(本科生,研究生)"
+          }
+        },
+        "description": "统一学生信息"
+      },
+      "ReportUserRequest": {
+        "required": [
+          "pictures",
+          "reason",
+          "type",
+          "userId"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "举报类型 other-其他 speech_violation-言论违规 personal_info_violation-个人信息违规",
+            "enum": [
+              "other",
+              "pornography",
+              "cyberbullying",
+              "content_infringement",
+              "illegal_activity",
+              "politics_related",
+              "troll_behavior",
+              "rumor_spreading",
+              "speech_violation",
+              "personal_info_violation"
+            ]
+          },
+          "reason": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "description": "举报原因"
+          },
+          "userId": {
+            "type": "integer",
+            "description": "被举报的用户ID",
+            "format": "int64"
+          },
+          "pictures": {
+            "maxItems": 9,
+            "minItems": 0,
+            "type": "array",
+            "description": "图片URL列表",
+            "items": {
+              "type": "string",
+              "description": "图片URL列表"
+            }
+          }
+        }
+      },
+      "ReportContentRequest": {
+        "required": [
+          "pictures",
+          "reason",
+          "target",
+          "targetId",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "举报对象类型",
+            "enum": [
+              "post",
+              "comment",
+              "user",
+              "report"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "description": "举报类型 other-其他 pornography-色情低俗 cyberbullying-网络暴力 content_infringement-内容侵权 illegal_activity-违法违规 politics_related-政治相关 troll_behavior-恶意引战 rumor_spreading-造谣传谣",
+            "enum": [
+              "other",
+              "pornography",
+              "cyberbullying",
+              "content_infringement",
+              "illegal_activity",
+              "politics_related",
+              "troll_behavior",
+              "rumor_spreading",
+              "speech_violation",
+              "personal_info_violation"
+            ]
+          },
+          "reason": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "description": "举报原因"
+          },
+          "targetId": {
+            "type": "integer",
+            "description": "被举报的帖子/评论ID",
+            "format": "int64"
+          },
+          "pictures": {
+            "maxItems": 9,
+            "minItems": 0,
+            "type": "array",
+            "description": "图片URL列表",
+            "items": {
+              "type": "string",
+              "description": "图片URL列表"
+            }
+          }
+        }
+      },
+      "AjaxResultUpvotePostResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UpvotePostResponse"
+          }
+        }
+      },
+      "UpvotePostResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "description": "点赞状态"
+          }
+        }
+      },
+      "TopPostRequest": {
+        "required": [
+          "id",
+          "topped"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "帖子ID",
+            "format": "int64"
+          },
+          "topped": {
+            "type": "boolean",
+            "description": "是否置顶"
+          }
+        }
+      },
+      "PublishPostRequest": {
+        "required": [
+          "category",
+          "content",
+          "pictures",
+          "title",
+          "topics"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string",
+            "description": "帖子标题"
+          },
+          "content": {
+            "maxLength": 1000,
+            "minLength": 0,
+            "type": "string",
+            "description": "帖子内容"
+          },
+          "category": {
+            "type": "string",
+            "description": "帖子板块",
+            "enum": [
+              "campus",
+              "emotion",
+              "study",
+              "contest",
+              "hobby",
+              "lost",
+              "secondhand"
+            ]
+          },
+          "topics": {
+            "maxItems": 10,
+            "minItems": 0,
+            "type": "array",
+            "description": "帖子话题列表",
+            "items": {
+              "type": "string",
+              "description": "帖子话题列表"
+            }
+          },
+          "pictures": {
+            "maxItems": 9,
+            "minItems": 0,
+            "type": "array",
+            "description": "要绑定的图片url列表",
+            "items": {
+              "type": "string",
+              "description": "要绑定的图片url列表"
+            }
+          }
+        }
+      },
+      "AjaxResultUploadResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UploadResponse"
+          }
+        }
+      },
+      "UploadResponse": {
+        "type": "object",
+        "properties": {
+          "pass": {
+            "type": "boolean",
+            "description": "上传是否成功"
+          },
+          "url": {
+            "type": "string",
+            "description": "文件URL"
+          }
+        }
+      },
+      "AjaxResultUpvoteCommentResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UpvoteCommentResponse"
+          }
+        }
+      },
+      "UpvoteCommentResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "description": "点赞状态"
+          }
+        }
+      },
+      "PublishCommentRequest": {
+        "required": [
+          "content",
+          "picture",
+          "targetId",
+          "targetType"
+        ],
+        "type": "object",
+        "properties": {
+          "targetType": {
+            "type": "string",
+            "description": "评论目标类型",
+            "enum": [
+              "post",
+              "comment"
+            ]
+          },
+          "targetId": {
+            "type": "integer",
+            "description": "目标ID",
+            "format": "int64"
+          },
+          "content": {
+            "maxLength": 400,
+            "minLength": 0,
+            "type": "string",
+            "description": "评论内容，禁止发空评论"
+          },
+          "picture": {
+            "type": "string",
+            "description": "评论图片Url，无即传空字符串"
+          }
+        }
+      },
+      "AjaxResultPinCommentResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PinCommentResponse"
+          }
+        }
+      },
+      "PinCommentResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "description": "置顶状态"
+          }
+        }
+      },
+      "AjaxResultGetUserProfileResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetUserProfileResponse"
+          }
+        }
+      },
+      "GetUserProfileResponse": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "description": "用户Id",
+            "format": "int64"
+          },
+          "nickname": {
+            "type": "string",
+            "description": "用户昵称"
+          },
+          "avatar": {
+            "type": "string",
+            "description": "用户头像URL"
+          },
+          "signature": {
+            "type": "string",
+            "description": "用户个性签名"
+          },
+          "profile": {
+            "type": "string",
+            "description": "用户简介"
+          },
+          "email": {
+            "type": "string",
+            "description": "用户邮箱"
+          },
+          "gender": {
+            "type": "string",
+            "description": "用户性别",
+            "enum": [
+              "female",
+              "male",
+              "unknown"
+            ]
+          },
+          "background": {
+            "type": "string",
+            "description": "用户背景图URL"
+          },
+          "realnameVisible": {
+            "type": "boolean",
+            "description": "真实姓名是否可见"
+          },
+          "studentIdVisible": {
+            "type": "boolean",
+            "description": "学号是否可见"
+          },
+          "birthdayVisible": {
+            "type": "boolean",
+            "description": "生日是否可见"
+          },
+          "realname": {
+            "type": "string",
+            "description": "真实姓名（根据可见性展示，可为null）"
+          },
+          "studentId": {
+            "type": "string",
+            "description": "学号（根据可见性展示，可为null）"
+          },
+          "collegeId": {
+            "type": "string",
+            "description": "学院Id（根据可见性展示，可为null）"
+          },
+          "birthday": {
+            "type": "string",
+            "description": "生日（根据可见性展示，可为null）",
+            "format": "date"
+          }
+        }
+      },
+      "AjaxResultGetNoticeSettingsResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetNoticeSettingsResponse"
+          }
+        }
+      },
+      "GetNoticeSettingsResponse": {
+        "type": "object",
+        "properties": {
+          "upvoteNotice": {
+            "type": "boolean",
+            "description": "点赞提醒开关"
+          },
+          "commentNotice": {
+            "type": "boolean",
+            "description": "评论提醒开关"
+          }
+        }
+      },
+      "AjaxResultCheckMuteResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CheckMuteResponse"
+          }
+        }
+      },
+      "CheckMuteResponse": {
+        "type": "object",
+        "properties": {
+          "mutedUntil": {
+            "type": "string",
+            "description": "禁言截止时间",
+            "format": "date-time"
+          }
+        }
+      },
+      "PictureInfoDTO": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "图片URL"
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "description": "缩略图URL"
+          }
+        },
+        "description": "举报图片列表"
+      },
+      "AjaxResultBaseListResponseGetPersonalPostListElement": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BaseListResponseGetPersonalPostListElement"
+          }
+        }
+      },
+      "BaseListResponseGetPersonalPostListElement": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "页码",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "每页数量",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "description": "总数",
+            "format": "int64"
+          },
+          "list": {
+            "type": "array",
+            "description": "列表",
+            "items": {
+              "$ref": "#/components/schemas/GetPersonalPostListElement"
+            }
+          }
+        }
+      },
+      "GetPersonalPostListElement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "帖子ID",
+            "format": "int64"
+          },
+          "category": {
+            "type": "string",
+            "description": "帖子板块",
+            "enum": [
+              "campus",
+              "emotion",
+              "study",
+              "contest",
+              "hobby",
+              "lost",
+              "secondhand"
+            ]
+          },
+          "topics": {
+            "type": "array",
+            "description": "帖子话题列表",
+            "items": {
+              "type": "string",
+              "description": "帖子话题列表"
+            }
+          },
+          "title": {
+            "type": "string",
+            "description": "帖子标题"
+          },
+          "content": {
+            "type": "string",
+            "description": "帖子内容（截200字）"
+          },
+          "likeCount": {
+            "type": "integer",
+            "description": "帖子点赞数",
+            "format": "int32"
+          },
+          "commentCount": {
+            "type": "integer",
+            "description": "帖子评论数",
+            "format": "int32"
+          },
+          "viewCount": {
+            "type": "integer",
+            "description": "帖子浏览数",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "发帖时间",
+            "format": "date-time"
+          },
+          "isLiked": {
+            "type": "boolean",
+            "description": "是否点赞"
+          },
+          "isTopped": {
+            "type": "boolean",
+            "description": "是否置顶（个人主页）"
+          },
+          "pictures": {
+            "type": "array",
+            "description": "帖子图片列表（前三个）",
+            "items": {
+              "$ref": "#/components/schemas/PictureInfoDTO"
+            }
+          },
+          "totalPictures": {
+            "type": "integer",
+            "description": "帖子图片总数",
+            "format": "int32"
+          }
+        },
+        "description": "列表"
+      },
+      "AjaxResultBaseListResponseGetPostListElement": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BaseListResponseGetPostListElement"
+          }
+        }
+      },
+      "BaseListResponseGetPostListElement": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "页码",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "每页数量",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "description": "总数",
+            "format": "int64"
+          },
+          "list": {
+            "type": "array",
+            "description": "列表",
+            "items": {
+              "$ref": "#/components/schemas/GetPostListElement"
+            }
+          }
+        }
+      },
+      "GetPostListElement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "帖子ID",
+            "format": "int64"
+          },
+          "publisherInfo": {
+            "$ref": "#/components/schemas/UserInfoDTO"
+          },
+          "category": {
+            "type": "string",
+            "description": "帖子板块",
+            "enum": [
+              "campus",
+              "emotion",
+              "study",
+              "contest",
+              "hobby",
+              "lost",
+              "secondhand"
+            ]
+          },
+          "topics": {
+            "type": "array",
+            "description": "帖子话题列表",
+            "items": {
+              "type": "string",
+              "description": "帖子话题列表"
+            }
+          },
+          "title": {
+            "type": "string",
+            "description": "帖子标题"
+          },
+          "content": {
+            "type": "string",
+            "description": "帖子内容（截200字）"
+          },
+          "likeCount": {
+            "type": "integer",
+            "description": "帖子点赞数",
+            "format": "int32"
+          },
+          "commentCount": {
+            "type": "integer",
+            "description": "帖子评论数",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "发帖时间",
+            "format": "date-time"
+          },
+          "isPinned": {
+            "type": "boolean",
+            "description": "是否置顶"
+          },
+          "pictures": {
+            "type": "array",
+            "description": "帖子图片列表（前三张）",
+            "items": {
+              "$ref": "#/components/schemas/PictureInfoDTO"
+            }
+          },
+          "totalPictures": {
+            "type": "integer",
+            "description": "帖子图片总数",
+            "format": "int32"
+          },
+          "isLiked": {
+            "type": "boolean",
+            "description": "是否已点赞"
+          }
+        },
+        "description": "列表"
+      },
+      "UserInfoDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "用户ID",
+            "format": "int64"
+          },
+          "nickname": {
+            "type": "string",
+            "description": "用户昵称"
+          },
+          "avatar": {
+            "type": "string",
+            "description": "用户头像"
+          }
+        },
+        "description": "发帖人信息"
+      },
+      "AjaxResultGetPostInfoResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetPostInfoResponse"
+          }
+        }
+      },
+      "GetPostInfoResponse": {
+        "type": "object",
+        "properties": {
+          "publisherInfo": {
+            "$ref": "#/components/schemas/UserInfoDTO"
+          },
+          "category": {
+            "type": "string",
+            "description": "帖子板块",
+            "enum": [
+              "campus",
+              "emotion",
+              "study",
+              "contest",
+              "hobby",
+              "lost",
+              "secondhand"
+            ]
+          },
+          "topics": {
+            "type": "array",
+            "description": "帖子话题列表",
+            "items": {
+              "type": "string",
+              "description": "帖子话题列表"
+            }
+          },
+          "title": {
+            "type": "string",
+            "description": "帖子标题"
+          },
+          "content": {
+            "type": "string",
+            "description": "帖子内容"
+          },
+          "likeCount": {
+            "type": "integer",
+            "description": "帖子点赞数",
+            "format": "int32"
+          },
+          "commentCount": {
+            "type": "integer",
+            "description": "帖子评论数",
+            "format": "int32"
+          },
+          "viewCount": {
+            "type": "integer",
+            "description": "帖子浏览数",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "发帖时间",
+            "format": "date-time"
+          },
+          "pictures": {
+            "type": "array",
+            "description": "帖子图片列表",
+            "items": {
+              "$ref": "#/components/schemas/PictureInfoDTO"
+            }
+          },
+          "isLiked": {
+            "type": "boolean",
+            "description": "是否已点赞"
+          }
+        }
+      },
+      "AjaxResultUnreadCheckResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UnreadCheckResponse"
+          }
+        }
+      },
+      "UnreadCheckResponse": {
+        "type": "object",
+        "properties": {
+          "unreadNoticeCount": {
+            "type": "integer",
+            "description": "未读通知数",
+            "format": "int32"
+          },
+          "unreadAnnouncementCount": {
+            "type": "integer",
+            "description": "未读公告数",
+            "format": "int32"
+          }
+        }
+      },
+      "AjaxResultBaseListResponseGetNoticeListElement": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BaseListResponseGetNoticeListElement"
+          }
+        }
+      },
+      "BaseListResponseGetNoticeListElement": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "页码",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "每页数量",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "description": "总数",
+            "format": "int64"
+          },
+          "list": {
+            "type": "array",
+            "description": "列表",
+            "items": {
+              "$ref": "#/components/schemas/GetNoticeListElement"
+            }
+          }
+        }
+      },
+      "GetNoticeListElement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "通知ID",
+            "format": "int64"
+          },
+          "senderInfo": {
+            "$ref": "#/components/schemas/UserInfoDTO"
+          },
+          "type": {
+            "type": "string",
+            "description": "消息类型（赞/收藏/评论/at）",
+            "enum": [
+              "like",
+              "collect",
+              "comment",
+              "at"
+            ]
+          },
+          "positionType": {
+            "type": "string",
+            "description": "位置类型（帖子/评论/回复）",
+            "enum": [
+              "post",
+              "comment",
+              "reply"
+            ]
+          },
+          "postId": {
+            "type": "integer",
+            "description": "帖子ID",
+            "format": "int64"
+          },
+          "commentId": {
+            "type": "integer",
+            "description": "评论ID（空则为0）",
+            "format": "int64"
+          },
+          "replyId": {
+            "type": "integer",
+            "description": "回复ID（空则为0）",
+            "format": "int64"
+          },
+          "positionContent": {
+            "type": "string",
+            "description": "关联位置内容（截取60字）"
+          },
+          "newCommentId": {
+            "type": "integer",
+            "description": "产生的新评论ID（空则为0）",
+            "format": "int64"
+          },
+          "newCommentContent": {
+            "type": "string",
+            "description": "新评论内容（截取60字）"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "发送时间",
+            "format": "date-time"
+          },
+          "isLiked": {
+            "type": "boolean",
+            "description": "是否已赞（仅在comment类型中生效，其他情况下为null）"
+          },
+          "isRead": {
+            "type": "boolean",
+            "description": "是否已读（为false时高亮处理）"
+          }
+        },
+        "description": "列表"
+      },
+      "AjaxResultGetCommentReplyListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/GetCommentReplyListResponse"
+          }
+        }
+      },
+      "CommentInfoResponse": {
+        "type": "object",
+        "properties": {
+          "commentId": {
+            "type": "integer",
+            "description": "评论ID",
+            "format": "int64"
+          },
+          "publisherInfo": {
+            "$ref": "#/components/schemas/UserInfoDTO"
+          },
+          "content": {
+            "type": "string",
+            "description": "评论内容"
+          },
+          "pictures": {
+            "type": "array",
+            "description": "附件列表",
+            "items": {
+              "$ref": "#/components/schemas/PictureInfoDTO"
+            }
+          },
+          "isPinned": {
+            "type": "boolean",
+            "description": "是否置顶"
+          },
+          "isAuthor": {
+            "type": "boolean",
+            "description": "是否为帖主"
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "description": "是否被删除"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "创建时间",
+            "format": "date-time"
+          },
+          "upvoteCount": {
+            "type": "integer",
+            "description": "点赞数",
+            "format": "int32"
+          },
+          "replyCount": {
+            "type": "integer",
+            "description": "回复数",
+            "format": "int32"
+          },
+          "isLiked": {
+            "type": "boolean",
+            "description": "是否已点赞"
+          }
+        },
+        "description": "楼主评论"
+      },
+      "GetCommentReplyListResponse": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "页码",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "每页数量",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "description": "总数",
+            "format": "int64"
+          },
+          "list": {
+            "type": "array",
+            "description": "列表",
+            "items": {
+              "$ref": "#/components/schemas/ReplyElement"
+            }
+          },
+          "commentInfo": {
+            "$ref": "#/components/schemas/CommentInfoResponse"
+          }
+        }
+      },
+      "ReplyElement": {
+        "type": "object",
+        "properties": {
+          "replyId": {
+            "type": "integer",
+            "description": "回复ID",
+            "format": "int64"
+          },
+          "publisherInfo": {
+            "$ref": "#/components/schemas/UserInfoDTO"
+          },
+          "targetUser": {
+            "$ref": "#/components/schemas/UserInfoDTO"
+          },
+          "content": {
+            "type": "string",
+            "description": "回复内容"
+          },
+          "pictures": {
+            "type": "array",
+            "description": "图片列表",
+            "items": {
+              "$ref": "#/components/schemas/PictureInfoDTO"
+            }
+          },
+          "isPinned": {
+            "type": "boolean",
+            "description": "是否置顶"
+          },
+          "isAuthor": {
+            "type": "boolean",
+            "description": "是否为帖主"
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "description": "是否被删除"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "创建时间",
+            "format": "date-time"
+          },
+          "upvoteCount": {
+            "type": "integer",
+            "description": "点赞数",
+            "format": "int32"
+          },
+          "replyCount": {
+            "type": "integer",
+            "description": "回复数",
+            "format": "int32"
+          },
+          "isLiked": {
+            "type": "boolean",
+            "description": "是否已点赞"
+          }
+        },
+        "description": "列表"
+      },
+      "AjaxResultBaseListResponsePersonalCommentListElement": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BaseListResponsePersonalCommentListElement"
+          }
+        }
+      },
+      "BaseListResponsePersonalCommentListElement": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "页码",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "每页数量",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "description": "总数",
+            "format": "int64"
+          },
+          "list": {
+            "type": "array",
+            "description": "列表",
+            "items": {
+              "$ref": "#/components/schemas/PersonalCommentListElement"
+            }
+          }
+        }
+      },
+      "PersonalCommentListElement": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "integer",
+            "description": "帖子ID",
+            "format": "int64"
+          },
+          "commentId": {
+            "type": "integer",
+            "description": "评论ID",
+            "format": "int64"
+          },
+          "replyId": {
+            "type": "integer",
+            "description": "回复ID（若不为回复则该字段为0）",
+            "format": "int64"
+          },
+          "targetContent": {
+            "type": "string",
+            "description": "对象内容（如果有被回复评论则为被回复评论内容，反之则为被回复帖子内容，截取前60个字）"
+          },
+          "content": {
+            "type": "string",
+            "description": "评论内容（截200字）"
+          },
+          "pictures": {
+            "type": "array",
+            "description": "附件链接",
+            "items": {
+              "$ref": "#/components/schemas/PictureInfoDTO"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "发表时间",
+            "format": "date-time"
+          },
+          "isLiked": {
+            "type": "boolean",
+            "description": "是否点赞"
+          },
+          "upvoteCount": {
+            "type": "integer",
+            "description": "点赞数",
+            "format": "int32"
+          },
+          "replyCount": {
+            "type": "integer",
+            "description": "回复数",
+            "format": "int32"
+          }
+        },
+        "description": "列表"
+      },
+      "AjaxResultBaseListResponseCommentElement": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BaseListResponseCommentElement"
+          }
+        }
+      },
+      "BaseListResponseCommentElement": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "页码",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "每页数量",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "description": "总数",
+            "format": "int64"
+          },
+          "list": {
+            "type": "array",
+            "description": "列表",
+            "items": {
+              "$ref": "#/components/schemas/CommentElement"
+            }
+          }
+        }
+      },
+      "CommentElement": {
+        "type": "object",
+        "properties": {
+          "commentId": {
+            "type": "integer",
+            "description": "评论ID",
+            "format": "int64"
+          },
+          "publisherInfo": {
+            "$ref": "#/components/schemas/UserInfoDTO"
+          },
+          "content": {
+            "type": "string",
+            "description": "评论内容"
+          },
+          "pictures": {
+            "type": "array",
+            "description": "附件列表",
+            "items": {
+              "$ref": "#/components/schemas/PictureInfoDTO"
+            }
+          },
+          "isPinned": {
+            "type": "boolean",
+            "description": "是否置顶"
+          },
+          "isAuthor": {
+            "type": "boolean",
+            "description": "是否为帖主"
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "description": "是否被删除"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "创建时间",
+            "format": "date-time"
+          },
+          "upvoteCount": {
+            "type": "integer",
+            "description": "点赞数",
+            "format": "int32"
+          },
+          "replyCount": {
+            "type": "integer",
+            "description": "回复数",
+            "format": "int32"
+          },
+          "replies": {
+            "type": "array",
+            "description": "回复列表",
+            "items": {
+              "$ref": "#/components/schemas/ReplyElement"
+            }
+          },
+          "isLiked": {
+            "type": "boolean",
+            "description": "是否已点赞"
+          }
+        },
+        "description": "列表"
+      },
+      "AjaxResultBaseListResponseGetAnnouncementListElement": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BaseListResponseGetAnnouncementListElement"
+          }
+        }
+      },
+      "BaseListResponseGetAnnouncementListElement": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "页码",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "每页数量",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "description": "总数",
+            "format": "int64"
+          },
+          "list": {
+            "type": "array",
+            "description": "列表",
+            "items": {
+              "$ref": "#/components/schemas/GetAnnouncementListElement"
+            }
+          }
+        }
+      },
+      "GetAnnouncementListElement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "公告ID",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string",
+            "description": "公告标题"
+          },
+          "content": {
+            "type": "string",
+            "description": "公告内容"
+          },
+          "type": {
+            "type": "string",
+            "description": "类型",
+            "enum": [
+              "scholastic",
+              "systematic"
+            ]
+          },
+          "signatory": {
+            "type": "string",
+            "description": "（委托）发布人签名"
+          },
+          "publishedAt": {
+            "type": "string",
+            "description": "发布时间 yyyy-MM-dd'T'HH:mm:ss",
+            "format": "date-time"
+          },
+          "sticky": {
+            "type": "boolean",
+            "description": "是否置顶"
+          },
+          "isRead": {
+            "type": "boolean",
+            "description": "是否已读"
+          }
+        },
+        "description": "列表"
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}

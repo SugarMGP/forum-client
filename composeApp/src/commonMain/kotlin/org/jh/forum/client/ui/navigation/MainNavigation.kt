@@ -1,0 +1,188 @@
+package org.jh.forum.client.ui.navigation
+
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import org.jh.forum.client.data.repository.ForumRepository
+import org.jh.forum.client.di.AppModule
+import org.jh.forum.client.ui.screen.*
+import org.jh.forum.client.ui.theme.AppIcons
+
+sealed class BottomNavItem(
+    val route: String,
+    val title: String,
+    val icon: ImageVector
+) {
+    object Home : BottomNavItem("home", "主页", AppIcons.Home)
+    object Messages : BottomNavItem("messages", "消息", AppIcons.Message)
+    object Profile : BottomNavItem("profile", "我的", AppIcons.Person)
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveNavigationSuiteApi::class)
+@Composable
+fun MainNavigation(
+    repository: ForumRepository = AppModule.forumRepository,
+    onThemeChanged: (ThemeMode) -> Unit = { _ -> }
+) {
+    val authViewModel = AppModule.authViewModel
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+    var showThemeSettings by remember { mutableStateOf(false) }
+    var showNotificationSettings by remember { mutableStateOf(false) }
+    var currentTheme by remember { mutableStateOf(ThemeMode.SYSTEM) }
+
+    // 在组件初始化时检查用户登录状态
+    LaunchedEffect(Unit) {
+        authViewModel.checkAuthStatus()
+    }
+
+    // 监听登录状态变化，当退出登录时自动导航到登录页面
+    LaunchedEffect(authViewModel.isLoggedIn.collectAsState().value, currentDestination) {
+        // 确保currentDestination不为null，并且导航控制器已设置导航图
+        if (!authViewModel.isLoggedIn.value && currentDestination != null && currentDestination.route != "login") {
+            navController.navigate("login") {
+                popUpTo(0)
+            }
+        }
+    }
+
+    // 如果显示主题设置页面
+    if (showThemeSettings) {
+        ThemeSettingsScreen(
+            currentTheme = currentTheme,
+            onThemeChanged = { themeMode ->
+                currentTheme = themeMode
+                onThemeChanged(themeMode)
+            },
+            onNavigateBack = {
+                showThemeSettings = false
+            }
+        )
+    } else if (showNotificationSettings) {
+        NotificationSettingsScreen(
+            repository = repository,
+            onNavigateBack = {
+                showNotificationSettings = false
+            }
+        )
+    } else {
+        NavigationSuiteScaffold(
+            navigationSuiteItems = {
+                listOf(BottomNavItem.Home, BottomNavItem.Messages, BottomNavItem.Profile).forEach { it ->
+                    item(
+                        icon = { Icon(it.icon, contentDescription = it.title) },
+                        label = { Text(it.title) },
+                        selected = currentDestination?.route?.startsWith(it.route) == true,
+                        onClick = {
+                            navController.navigate(it.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                }
+            },
+            content = {
+                NavHost(
+                    navController = navController,
+                    startDestination = BottomNavItem.Home.route,
+                ) {
+                    composable(BottomNavItem.Home.route + "?refresh={refresh}") { backStackEntry ->
+                        val refresh = backStackEntry.savedStateHandle.get<String>("refresh")?.toBoolean() ?: false
+                        PostListScreen(
+                            onPostClick = { postId: Long ->
+                                // 导航到帖子详情页
+                                navController.navigate("post_detail/$postId")
+                            },
+                            onNavigateToCreatePost = {
+                                // 导航到发帖页面
+                                navController.navigate("create_post")
+                            },
+                            refresh = refresh
+                        )
+                    }
+
+                    composable(BottomNavItem.Messages.route) {
+                        MessagesScreen(repository = repository)
+                    }
+
+                    composable(BottomNavItem.Profile.route) {
+                        ProfileScreen(
+                            authViewModel = authViewModel,
+                            onNavigateToThemeSettings = { showThemeSettings = true },
+                            onNavigateToNotificationSettings = { showNotificationSettings = true },
+                            onNavigateToLogin = {
+                                navController.navigate("login")
+                            },
+                            onNavigateToPersonalPosts = {
+                                navController.navigate("personal_posts")
+                            }
+                        )
+                    }
+
+                    composable("personal_posts") {
+                        PersonalPostsScreen(
+                            repository = repository,
+                            onPostClick = { postId ->
+                                navController.navigate("post_detail/$postId")
+                            },
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+
+                    // 其他页面路由
+                    composable("login") {
+                        LoginScreen(
+                            onLoginSuccess = {
+                                navController.navigate(BottomNavItem.Home.route) {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+
+                    // 帖子详情页
+                    composable("post_detail/{postId}") {
+                        val postId = it.savedStateHandle.get<String>("postId")?.toLongOrNull() ?: 0L
+                        PostDetailScreen(
+                            postId = postId,
+                            viewModel = AppModule.postViewModel,
+                            commentViewModel = AppModule.commentViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+
+                    // 发帖页面
+                    composable("create_post") {
+                        CreatePostScreen(
+                            viewModel = AppModule.postViewModel,
+                            onBack = {
+                                navController.popBackStack()
+                            },
+                            onPostCreated = {
+                                navController.popBackStack()
+                            },
+                            onImagePickerClick = {}
+                        )
+                    }
+                }
+            }
+        )
+    }
+}
