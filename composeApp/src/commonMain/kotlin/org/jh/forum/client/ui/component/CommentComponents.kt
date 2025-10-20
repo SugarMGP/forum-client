@@ -205,20 +205,28 @@ fun CommentEditor(
 ) {
     var text by remember { mutableStateOf("") }
 
+    // 使用紧凑布局的评论编辑器
     Column(
-        modifier = modifier.padding(16.dp)
+        modifier = modifier
     ) {
+        // 更紧凑的输入框
         OutlinedTextField(
             value = text,
             onValueChange = { text = it },
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("写下你的评论...") },
-            maxLines = 5,
-            shape = MaterialTheme.shapes.medium
+            maxLines = 4, // 减少最大行数
+            shape = MaterialTheme.shapes.small,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            )
         )
 
-        Spacer(Modifier.height(12.dp))
+        // 缩小间距
+        Spacer(Modifier.height(8.dp))
 
+        // 更紧凑的发布按钮
         Button(
             onClick = {
                 if (text.isNotBlank()) {
@@ -228,7 +236,8 @@ fun CommentEditor(
             },
             enabled = text.isNotBlank(),
             modifier = Modifier.align(Alignment.End),
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.small,
+            contentPadding = ButtonDefaults.ButtonWithIconContentPadding
         ) {
             Text("发布")
         }

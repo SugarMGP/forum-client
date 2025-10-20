@@ -4,7 +4,6 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,8 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -61,6 +61,9 @@ fun PostDetailScreen(
         commentViewModel.loadComments(postId, true)
         listState.scrollToItem(0)
     }
+
+    // 控制评论弹窗显示的状态
+    var showCommentDialog by remember { mutableStateOf(false) }
 
     // 自动翻页逻辑：当最后可见项接近总数时触发加载下一页
     LaunchedEffect(listState, isCommentLoading, commentHasMore) {
@@ -201,28 +204,9 @@ fun PostDetailScreen(
                 }
             }
 
-            // 评论编辑器（放在列表底部）
+            // 底部空间，确保内容不被悬浮按钮遮挡
             item {
-                Spacer(modifier = Modifier.height(8.dp))
-                Surface(
-                    color = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 2.dp,
-                    shape = MaterialTheme.shapes.large,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .animateContentSize()
-                ) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-                        CommentEditor(
-                            onSubmit = { content -> commentViewModel.publishComment(postId, content) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                                .animateContentSize()
-                        )
-                    }
-                }
+                Spacer(modifier = Modifier.height(80.dp))
             }
 
             // 评论相关错误消息（如果有）
@@ -236,6 +220,98 @@ fun PostDetailScreen(
             if (errorMessage != null) {
                 item {
                     Snackbar(modifier = Modifier.padding(16.dp)) { Text(errorMessage ?: "") }
+                }
+            }
+        }
+
+        // 使用AnimatedContent实现按钮到评论编辑器的变形动画
+        Box(modifier = Modifier.fillMaxSize()) {
+            // 底部悬浮的评论组件
+            AnimatedContent(
+                targetState = showCommentDialog,
+                transitionSpec = {
+                    (
+                            scaleIn(
+                                initialScale = 0.9f,
+                                animationSpec = spring(dampingRatio = 0.6f),
+                                transformOrigin = TransformOrigin(0.5f, 1f)
+                            ) + fadeIn(animationSpec = spring(dampingRatio = 0.6f))
+                            ) togetherWith (
+                            scaleOut(
+                                targetScale = 0.9f,
+                                animationSpec = spring(dampingRatio = 0.6f),
+                                transformOrigin = TransformOrigin(0.5f, 1f)
+                            ) + fadeOut(animationSpec = spring(dampingRatio = 0.6f))
+                            )
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 48.dp, vertical = 16.dp)
+            ) {
+                if (it) {
+                    // 评论编辑器状态 - 小而美设计，与界面边框保持间隔
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .align(Alignment.BottomCenter),
+                        shadowElevation = 8.dp,
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Surface(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                            Column {
+                                // 顶部控制栏
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "发表评论",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    // 美化的关闭按钮
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                        modifier = Modifier.clickable { showCommentDialog = false }
+                                    ) {
+                                        Icon(
+                                            imageVector = AppIcons.Close,
+                                            contentDescription = "关闭",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+
+                                Spacer(Modifier.height(12.dp))
+
+                                // 评论编辑器
+                                CommentEditor(
+                                    onSubmit = { content ->
+                                        commentViewModel.publishComment(postId, content)
+                                        showCommentDialog = false
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // 悬浮按钮状态
+                    FloatingActionButton(
+                        onClick = { showCommentDialog = true },
+                        elevation = FloatingActionButtonDefaults.elevation(6.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Comment,
+                            contentDescription = "发表评论"
+                        )
+                    }
                 }
             }
         }
