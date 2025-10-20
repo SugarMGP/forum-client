@@ -84,7 +84,7 @@ class PostListViewModel : ViewModel() {
                     val updatedPosts = _posts.value.map { post ->
                         if (post.id == postId) {
                             val updatedLiked = result.data.status
-                            val updatedLikeCount = if (updatedLiked) post.likeCount + 1 else post.likeCount
+                            val updatedLikeCount = if (updatedLiked) post.likeCount + 1 else maxOf(0, post.likeCount - 1)
                             post.copy(
                                 likeCount = updatedLikeCount,
                                 isLiked = updatedLiked

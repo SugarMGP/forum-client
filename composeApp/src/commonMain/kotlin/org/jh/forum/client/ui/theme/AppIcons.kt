@@ -41,4 +41,5 @@ object AppIcons {
     val Share: ImageVector = Icons.Default.Share
     val FilterList: ImageVector = Icons.Default.FilterList
     val Close: ImageVector = Icons.Default.Close
+    val Eye : ImageVector = Icons.Default.RemoveRedEye
 }

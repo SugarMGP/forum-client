@@ -1,13 +1,16 @@
 package org.jh.forum.client.ui.screen
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -351,7 +354,8 @@ fun PostListScreen(
                     items(posts) {
                         PostItem(
                             post = it,
-                            onClick = { onPostClick(it.id) }
+                            onClick = { onPostClick(it.id) },
+                            onUpvoteClick = { it -> viewModel.upvotePost(it) }
                         )
                     }
 
@@ -384,12 +388,19 @@ fun PostListScreen(
 fun PostItem(
     post: GetPostListElement,
     onClick: () -> Unit,
+    onUpvoteClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium),
         onClick = onClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -408,7 +419,8 @@ fun PostItem(
                         contentDescription = "用户头像",
                         modifier = Modifier
                             .size(40.dp)
-                            .clip(CircleShape),
+                            .clip(CircleShape)
+                            .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), CircleShape),
                         contentScale = ContentScale.Crop
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -426,15 +438,49 @@ fun PostItem(
                     }
                 }
 
-                // 时间
-                Text(
-                    text = TimeUtils.formatTime(post.createdAt),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                // 右上角信息：时间、评论、浏览量
+                Column(
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text(
+                        text = TimeUtils.formatTime(post.createdAt),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 2.dp)
+                    ) {
+                        Icon(
+                            AppIcons.Comment,
+                            contentDescription = "评论",
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text(
+                            text = "${post.commentCount}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            AppIcons.Visibility,
+                            contentDescription = "浏览",
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text(
+                            text = "0", // GetPostListElement没有viewCount字段
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // 标题
             Text(
@@ -442,10 +488,11 @@ fun PostItem(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.animateContentSize()
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // 内容
             Text(
@@ -453,7 +500,8 @@ fun PostItem(
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.animateContentSize()
             )
 
             // 图片预览（如果有）
@@ -466,55 +514,51 @@ fun PostItem(
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // 底部信息
+            // 底部信息 - 优化的点赞按钮设计
             Row(
                 modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row {
+                // 左侧：简洁的点赞按钮
+                OutlinedButton(
+                    onClick = { onUpvoteClick(post.id) },
+                    modifier = Modifier.height(36.dp),
+                    shape = RoundedCornerShape(18.dp), // 圆角按钮
+                    border = BorderStroke(
+                        1.dp,
+                        if (post.isLiked) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.outline
+                        }
+                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (post.isLiked) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        containerColor = if (post.isLiked) {
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                        } else {
+                            MaterialTheme.colorScheme.surface
+                        }
+                    ),
+                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+                ) {
                     Icon(
                         AppIcons.ThumbUp,
                         contentDescription = "点赞",
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "${post.likeCount}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Row {
-                    Icon(
-                        AppIcons.Comment,
-                        contentDescription = "评论",
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${post.commentCount}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Row {
-                    Icon(
-                        AppIcons.Visibility,
-                        contentDescription = "浏览",
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "0", // GetPostListElement没有viewCount字段
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (post.isLiked) FontWeight.Bold else FontWeight.Normal
                     )
                 }
             }

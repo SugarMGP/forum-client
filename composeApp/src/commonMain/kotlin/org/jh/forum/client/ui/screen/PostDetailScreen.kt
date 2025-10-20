@@ -4,20 +4,30 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jh.forum.client.data.model.GetPostInfoResponse
+import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.ui.component.CommentEditor
 import org.jh.forum.client.ui.component.CommentItem
 import org.jh.forum.client.ui.theme.AppIcons
@@ -122,6 +132,10 @@ fun PostDetailScreen(
                             }
                         },
                         onShare = { /* 复制/分享逻辑 */ },
+                        onUserProfileClick = {
+                            // 处理点击用户头像/昵称的逻辑
+                            // 可以添加跳转到用户个人资料页面的功能
+                        },
                         modifier = Modifier.fillMaxWidth()
                     )
                 } ?: run {
@@ -282,13 +296,13 @@ fun PostContent(
     post: GetPostInfoResponse,
     onUpvote: () -> Unit,
     onShare: () -> Unit,
+    onUserProfileClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showShareMessage by remember { mutableStateOf(false) }
 
     // 动画状态
     var isLikeAnimating by remember { mutableStateOf(false) }
-    var isFavoriteAnimating by remember { mutableStateOf(false) }
 
     // 点赞动画
     val likeScale by animateFloatAsState(
@@ -300,155 +314,250 @@ fun PostContent(
         finishedListener = { isLikeAnimating = false }
     )
 
-    Column(
+    // 内容变化动画
+    val contentAlpha by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMedium)
+    )
+
+    Surface(
         modifier = modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
             .padding(16.dp)
+            .animateContentSize(),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 4.dp,
+        shape = RoundedCornerShape(16.dp)
     ) {
-        AnimatedVisibility(
-            visible = true,
-            enter = fadeIn() + expandVertically(),
-            modifier = Modifier.animateContentSize()
-        ) {
-            Column {
-                Text(
-                    text = post.title ?: "",
-                    style = MaterialTheme.typography.headlineMedium
-                )
-
-                Spacer(Modifier.height(8.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = post.publisherInfo.nickname ?: "",
-                        style = MaterialTheme.typography.titleSmall
+        Column {
+            // 作者信息区域
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .clickable { onUserProfileClick() },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // 用户头像
+                    AsyncImage(
+                        model = post.publisherInfo.avatar ?: "",
+                        contentDescription = "用户头像",
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
                     )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = post.publisherInfo.nickname ?: "未知用户",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Medium
+                        )
+                        // 显示帖子板块
+                        if (post.category.isNotEmpty()) {
+                            Text(
+                                text = PostCategory.getDisplayName(post.category),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                    }
+                }
+                // 右侧显示时间和浏览量
+                Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = TimeUtils.formatTime(post.createdAt),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Eye,
+                            contentDescription = "浏览量",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = "${post.viewCount}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 2.dp)
+                        )
+                    }
                 }
             }
-        }
 
-        Spacer(Modifier.height(16.dp))
-
-        Surface(
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            tonalElevation = 1.dp,
-            shape = MaterialTheme.shapes.medium,
-            modifier = Modifier
-                .fillMaxWidth()
-                .animateContentSize()
-        ) {
-            Text(
-                text = post.content ?: "",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // 图片显示
-        if (post.pictures.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(12.dp))
-            ImageGrid(
-                images = post.pictures.map { it.url },
-                totalPictures = post.pictures.size,
-                onClick = { /* 可以添加点击放大功能 */ }
-            )
-        }
-
-        AnimatedVisibility(
-            visible = post.topics.isNotEmpty(),
-            enter = fadeIn() + expandHorizontally(),
-            exit = fadeOut() + shrinkHorizontally()
-        ) {
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                tonalElevation = 1.dp,
-                shape = MaterialTheme.shapes.medium
+            // 帖子标题和内容
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .alpha(contentAlpha)
             ) {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    modifier = Modifier.fillMaxWidth()
+                Text(
+                    text = post.title ?: "",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                // 帖子内容
+                Text(
+                    text = post.content ?: "",
+                    style = MaterialTheme.typography.bodyLarge,
+                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.2f,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                // 图片显示
+                if (post.pictures.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    ImageGrid(
+                        images = post.pictures.map { it.url },
+                        totalPictures = post.pictures.size,
+                        onClick = { /* 可以添加点击放大功能 */ }
+                    )
+                }
+
+                // 话题标签
+                AnimatedVisibility(
+                    visible = post.topics.isNotEmpty(),
+                    enter = fadeIn() + expandHorizontally(),
+                    exit = fadeOut() + shrinkHorizontally()
                 ) {
-                    items(post.topics) { tag ->
-                        FilterChip(
-                            selected = false,
-                            onClick = { },
-                            label = { Text(tag) }
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        tonalElevation = 1.dp,
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    ) {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(post.topics) { tag ->
+                                FilterChip(
+                                    selected = false,
+                                    onClick = { },
+                                    label = { Text(tag) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 帖子统计信息已移至用户信息区域右侧，此处移除重复显示
+
+            // 底部操作按钮
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp, horizontal = 8.dp)
+            ) {
+                // 点赞按钮
+                OutlinedButton(
+                    onClick = {
+                        isLikeAnimating = true
+                        onUpvote()
+                    },
+                    modifier = Modifier
+                        .height(36.dp)
+                        .clip(RoundedCornerShape(18.dp)),
+                    shape = RoundedCornerShape(18.dp),
+                    border = ButtonDefaults.outlinedButtonBorder().copy(
+                        width = if (post.isLiked) 1.dp else 1.dp
+                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (post.isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.ThumbUp,
+                            contentDescription = "点赞",
+                            modifier = Modifier
+                                .size(16.dp)
+                                .scale(likeScale)
+                        )
+                        Text(
+                            text = "${post.likeCount}",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
+                }
+
+                // 分享按钮
+                OutlinedButton(
+                    onClick = {
+                        showShareMessage = true
+                        onShare()
+                    },
+                    modifier = Modifier
+                        .height(36.dp)
+                        .clip(RoundedCornerShape(18.dp)),
+                    shape = RoundedCornerShape(18.dp),
+                    border = ButtonDefaults.outlinedButtonBorder().copy(width = 1.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Share,
+                            contentDescription = "分享",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "分享",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 4.dp)
                         )
                     }
                 }
             }
         }
+    }
 
-        Spacer(Modifier.height(16.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            modifier = Modifier.fillMaxWidth()
+    // 分享提示
+    AnimatedVisibility(
+        visible = showShareMessage,
+        enter = fadeIn() + expandVertically(),
+        exit = fadeOut() + shrinkVertically(),
+        modifier = Modifier
+            .padding(16.dp)
+    ) {
+        Snackbar(
+            modifier = Modifier.padding(16.dp)
         ) {
-            IconButton(
-                onClick = {
-                    isLikeAnimating = true
-                    onUpvote()
-                }
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = AppIcons.ThumbUp,
-                        contentDescription = "点赞",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.scale(likeScale)
-                    )
-                    Text(text = "${post.likeCount}")
-                }
-            }
+            Text("链接已复制到剪贴板")
+        }
+    }
 
-            IconButton(
-                onClick = {
-                    showShareMessage = true
-                    onShare()
-                }
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = AppIcons.Share,
-                        contentDescription = "分享"
-                    )
-                    Text(
-                        text = "分享",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-
-            AnimatedVisibility(
-                visible = showShareMessage,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                Snackbar(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text("链接已复制到剪贴板")
-                }
-            }
-
-            if (showShareMessage) {
-                LaunchedEffect(true) {
-                    kotlinx.coroutines.delay(2000)
-                    showShareMessage = false
-                }
-            }
+    if (showShareMessage) {
+        LaunchedEffect(true) {
+            kotlinx.coroutines.delay(2000)
+            showShareMessage = false
         }
     }
 }
