@@ -52,12 +52,6 @@ class PostViewModel : ViewModel() {
         }
     }
 
-    // 注意：目前ForumRepository中没有favoritePost方法，该功能暂不可用
-    fun favoritePost(postId: Long, onResult: (Boolean) -> Unit = {}) {
-        _errorMessage.value = "收藏功能暂不可用"
-        onResult(false)
-    }
-
     fun deletePost(postId: Long) {
         viewModelScope.launch {
             try {

@@ -5,10 +5,10 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,9 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jh.forum.client.data.model.GetPostInfoResponse
 import org.jh.forum.client.ui.component.CommentEditor
-import org.jh.forum.client.ui.component.CommentList
+import org.jh.forum.client.ui.component.CommentItem
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.viewmodel.CommentViewModel
 import org.jh.forum.client.ui.viewmodel.PostViewModel
@@ -36,10 +37,43 @@ fun PostDetailScreen(
     val errorMessage by viewModel.errorMessage.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    val comments by commentViewModel.comments.collectAsState()
+    val isCommentLoading by commentViewModel.isLoading.collectAsState()
+    val commentHasMore by commentViewModel.hasMore.collectAsState()
+    val commentError by commentViewModel.errorMessage.collectAsState()
+
+    val listState = rememberLazyListState()
+
     LaunchedEffect(postId) {
         viewModel.getPost(postId) { result ->
             post = result
         }
+        commentViewModel.loadComments(postId, true)
+        listState.scrollToItem(0)
+    }
+
+    // 自动翻页逻辑：当最后可见项接近总数时触发加载下一页
+    LaunchedEffect(listState, isCommentLoading, commentHasMore) {
+        snapshotFlow {
+            val layout = listState.layoutInfo
+            val visible = layout.visibleItemsInfo
+            val lastVisibleIndex = visible.lastOrNull()?.index ?: -1
+            val totalCount = layout.totalItemsCount
+            Triple(lastVisibleIndex, totalCount, visible.size)
+        }
+            // 减少频繁触发：只在值发生变化时继续
+            .distinctUntilChanged()
+            .collect { (lastVisible, totalCount, visibleSize) ->
+                if (!commentHasMore || isCommentLoading) return@collect
+                if (totalCount <= 0) return@collect
+
+                // 当最后可见项索引接近总项数（比如还剩 3 个 item）时触发加载
+                val threshold = 3
+                if (lastVisible >= totalCount - 1 - threshold) {
+                    // 调用加载下一页（你的 viewModel 应该负责分页状态）
+                    commentViewModel.loadComments(postId)
+                }
+            }
     }
 
     LaunchedEffect(errorMessage) {
@@ -56,86 +90,138 @@ fun PostDetailScreen(
                 title = { Text("帖子详情") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(AppIcons.ArrowBack, contentDescription = "返回")
-                    }
-                },
-                actions = {
-                    post?.let { currentPost ->
-                        // actions intentionally left empty; ownership-based actions handled elsewhere
+                        Icon(
+                            imageVector = AppIcons.ArrowBack,
+                            contentDescription = "返回"
+                        )
                     }
                 }
             )
-        }
+        },
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
-        Column(
+        LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            post?.let { currentPost ->
-                var localPost by remember { mutableStateOf(currentPost) }
+            item {
+                post?.let { currentPost ->
+                    var localPost by remember { mutableStateOf(currentPost) }
+                    PostContent(
+                        post = localPost,
+                        onUpvote = {
+                            viewModel.upvotePost(postId) { isLiked ->
+                                localPost = localPost.copy(
+                                    isLiked = isLiked,
+                                    likeCount = if (isLiked) localPost.likeCount + 1 else localPost.likeCount - 1
+                                )
+                            }
+                        },
+                        onShare = { /* 复制/分享逻辑 */ },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } ?: run {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
 
-                PostContent(
-                    post = localPost,
-                    onUpvote = {
-                        viewModel.upvotePost(postId) { isLiked ->
-                            localPost = localPost.copy(
-                                isLiked = isLiked,
-                                likeCount = if (isLiked) localPost.likeCount + 1
-                                else localPost.likeCount - 1
-                            )
-                        }
-                    },
-                    onFavorite = {
-                        // favorite functionality is not available; show placeholder behavior
-                        viewModel.favoritePost(postId) { /* no-op */ }
-                    },
-                    onShare = {
-                    },
-                    modifier = Modifier.weight(1f)
-                )
+            // 评论标题（作为单独 item，显示评论总数）
+            item {
+                post?.let {
+                    Text(
+                        text = "评论（${it.commentCount}）",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
+            }
 
-                // 评论部分，降低权重以避免遮挡过多帖子内容
+            // 如果没有评论且不在加载中，显示占位
+            if (comments.isEmpty() && !isCommentLoading) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("暂无评论")
+                    }
+                }
+            }
+
+            // 正式渲染每条评论
+            if (comments.isNotEmpty()) {
+                items(comments) { comment ->
+                    CommentItem(
+                        comment = comment,
+                        onUpvote = { commentViewModel.upvoteComment(comment.commentId) },
+                        onPin = if (true) {
+                            { commentViewModel.pinComment(comment.commentId) }
+                        } else null,
+                        onDelete = if (comment.isAuthor) {
+                            { commentViewModel.deleteComment(comment.commentId) }
+                        } else null,
+                        onUserProfileClick = {
+                            comment.publisherInfo.id?.let { userId ->
+                                // 这里可以添加跳转到用户个人资料页面的逻辑
+                                // 例如：navController.navigate("userProfile/$userId")
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                    HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+                }
+            }
+
+            // 评论编辑器（放在列表底部）
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
                 Surface(
                     color = MaterialTheme.colorScheme.surface,
                     tonalElevation = 2.dp,
                     shape = MaterialTheme.shapes.large,
                     modifier = Modifier
-                        .weight(1f)
+                        .fillMaxWidth()
                         .animateContentSize()
                 ) {
-                    Column {
-                        CommentList(
-                            viewModel = commentViewModel,
-                            postId = postId,
-                            isAuthor = false,
-                            modifier = Modifier.weight(1f)
-                        )
-
+                    Column(modifier = Modifier.fillMaxWidth()) {
                         HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-
                         CommentEditor(
-                            onSubmit = { content ->
-                                commentViewModel.publishComment(postId, content)
-                            },
-                            modifier = Modifier.animateContentSize()
+                            onSubmit = { content -> commentViewModel.publishComment(postId, content) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                                .animateContentSize()
                         )
                     }
                 }
-            } ?: run {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+            }
+
+            // 评论相关错误消息（如果有）
+            if (commentError != null) {
+                item {
+                    Snackbar(modifier = Modifier.padding(16.dp)) { Text(commentError ?: "") }
                 }
             }
 
-            errorMessage?.let { message ->
-                Snackbar(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(message)
+            // 全局 error（来自 viewModel）
+            if (errorMessage != null) {
+                item {
+                    Snackbar(modifier = Modifier.padding(16.dp)) { Text(errorMessage ?: "") }
                 }
             }
         }
@@ -195,7 +281,6 @@ fun PostDetailScreen(
 fun PostContent(
     post: GetPostInfoResponse,
     onUpvote: () -> Unit,
-    onFavorite: () -> Unit,
     onShare: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -225,12 +310,10 @@ fun PostContent(
         ),
         finishedListener = { isFavoriteAnimating = false }
     )
-    val scrollState = rememberScrollState()
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
         AnimatedVisibility(
@@ -338,23 +421,6 @@ fun PostContent(
                         modifier = Modifier.scale(likeScale)
                     )
                     Text(text = "${post.likeCount}")
-                }
-            }
-
-            IconButton(
-                onClick = {
-                    isFavoriteAnimating = true
-                    onFavorite()
-                }
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = AppIcons.Favorite,
-                        contentDescription = "收藏",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.scale(favoriteScale)
-                    )
-                    // 收藏数量/动画暂不实现
                 }
             }
 

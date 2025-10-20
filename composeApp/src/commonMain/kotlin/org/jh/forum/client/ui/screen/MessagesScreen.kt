@@ -1,6 +1,5 @@
 package org.jh.forum.client.ui.screen
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,7 +38,6 @@ fun MessagesScreen(
 
     // UI状态
     var selectedNoticeType by remember { mutableStateOf(0) } // 0:全部, 1:点赞, 2:收藏, 3:评论和@
-    var showTabs by remember { mutableStateOf(false) }
     var selectedType by remember { mutableStateOf(0) } // 0:互动, 1:公告
     var selectedAnnouncementType by remember { mutableStateOf(0) } // 0:全部, 1:学校公告, 2:系统公告
 
@@ -133,71 +131,59 @@ fun MessagesScreen(
                                 )
                             }
                         }
-                    },
-                    actions = {
-                        IconButton(onClick = { showTabs = !showTabs }) {
-                            Icon(AppIcons.FilterList, contentDescription = "筛选")
-                        }
                     }
                 )
 
-                // 选项卡 - 点击筛选按钮后同时显示或消失
-                AnimatedVisibility(
-                    visible = showTabs,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { -20 }),
-                    exit = fadeOut() + slideOutVertically(targetOffsetY = { -20 })
-                ) {
-                    Column {
-                        // 第一层：互动/公告选项卡
-                        Surface(modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    // 第一层：互动/公告选项卡
+                    Surface(modifier = Modifier.fillMaxWidth()) {
+                        SecondaryScrollableTabRow(
+                            selectedTabIndex = selectedType,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            listOf("互动", "公告").forEachIndexed { index, title ->
+                                Tab(
+                                    selected = selectedType == index,
+                                    onClick = {
+                                        selectedType = index
+                                        // 切换时重置选中的子类型
+                                        if (index == 0) selectedNoticeType = 0
+                                    },
+                                    text = { Text(title) }
+                                )
+                            }
+                        }
+                    }
+
+                    // 第二层：子类型选项卡
+                    Surface(modifier = Modifier.fillMaxWidth()) {
+                        // 根据选中的类型显示对应的子选项卡
+                        if (selectedType == 0) {
+                            // 互动子类型选项卡
                             SecondaryScrollableTabRow(
-                                selectedTabIndex = selectedType,
+                                selectedTabIndex = selectedNoticeType,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                listOf("互动", "公告").forEachIndexed { index, title ->
+                                listOf("全部", "点赞", "收藏", "评论和@").forEachIndexed { index, title ->
                                     Tab(
-                                        selected = selectedType == index,
-                                        onClick = {
-                                            selectedType = index
-                                            // 切换时重置选中的子类型
-                                            if (index == 0) selectedNoticeType = 0
-                                        },
+                                        selected = selectedNoticeType == index,
+                                        onClick = { selectedNoticeType = index },
                                         text = { Text(title) }
                                     )
                                 }
                             }
-                        }
-
-                        // 第二层：子类型选项卡
-                        Surface(modifier = Modifier.fillMaxWidth()) {
-                            // 根据选中的类型显示对应的子选项卡
-                            if (selectedType == 0) {
-                                // 互动子类型选项卡
-                                SecondaryScrollableTabRow(
-                                    selectedTabIndex = selectedNoticeType,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    listOf("全部", "点赞", "收藏", "评论和@").forEachIndexed { index, title ->
-                                        Tab(
-                                            selected = selectedNoticeType == index,
-                                            onClick = { selectedNoticeType = index },
-                                            text = { Text(title) }
-                                        )
-                                    }
-                                }
-                            } else {
-                                // 公告子类型选项卡
-                                SecondaryScrollableTabRow(
-                                    selectedTabIndex = selectedAnnouncementType,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    listOf("全部", "学校公告", "系统公告").forEachIndexed { index, title ->
-                                        Tab(
-                                            selected = selectedAnnouncementType == index,
-                                            onClick = { selectedAnnouncementType = index },
-                                            text = { Text(title) }
-                                        )
-                                    }
+                        } else {
+                            // 公告子类型选项卡
+                            SecondaryScrollableTabRow(
+                                selectedTabIndex = selectedAnnouncementType,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                listOf("全部", "学校公告", "系统公告").forEachIndexed { index, title ->
+                                    Tab(
+                                        selected = selectedAnnouncementType == index,
+                                        onClick = { selectedAnnouncementType = index },
+                                        text = { Text(title) }
+                                    )
                                 }
                             }
                         }
