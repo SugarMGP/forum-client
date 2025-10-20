@@ -69,10 +69,6 @@ class PostViewModel : ViewModel() {
         _errorMessage.value = null
     }
 
-    fun getShareUrl(postId: Long): String {
-        return "https://forum.example.com/post/$postId"
-    }
-
     fun createPost(
         title: String,
         content: String,

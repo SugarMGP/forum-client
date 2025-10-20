@@ -284,7 +284,6 @@ fun PostContent(
     onShare: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val clipboard = LocalClipboard.current
     var showShareMessage by remember { mutableStateOf(false) }
 
     // 动画状态
@@ -299,16 +298,6 @@ fun PostContent(
             stiffness = Spring.StiffnessLow
         ),
         finishedListener = { isLikeAnimating = false }
-    )
-
-    // 收藏动画
-    val favoriteScale by animateFloatAsState(
-        targetValue = if (isFavoriteAnimating) 1.2f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        finishedListener = { isFavoriteAnimating = false }
     )
 
     Column(

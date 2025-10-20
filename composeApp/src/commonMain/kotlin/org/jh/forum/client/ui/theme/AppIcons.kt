@@ -12,7 +12,6 @@ object AppIcons {
     val DarkMode: ImageVector = Icons.Default.DarkMode
     val Refresh: ImageVector = Icons.Default.Refresh
     val Category: ImageVector = Icons.Default.Category
-    val Sort: ImageVector = Icons.AutoMirrored.Filled.Sort
     val AccountCircle: ImageVector = Icons.Default.AccountCircle
     val Add: ImageVector = Icons.Default.Add
     val Inbox: ImageVector = Icons.Default.Inbox
@@ -22,14 +21,11 @@ object AppIcons {
     val Home: ImageVector = Icons.Default.Home
     val Message: ImageVector = Icons.AutoMirrored.Filled.Message
     val Person: ImageVector = Icons.Default.Person
-    val DoneAll: ImageVector = Icons.Default.DoneAll
     val Notifications: ImageVector = Icons.Default.Notifications
     val Reply: ImageVector = Icons.AutoMirrored.Filled.Reply
     val Favorite: ImageVector = Icons.Default.Favorite
-    val AlternateEmail: ImageVector = Icons.Default.AlternateEmail
     val Article: ImageVector = Icons.AutoMirrored.Filled.Article
     val Edit: ImageVector = Icons.Default.Edit
-    val History: ImageVector = Icons.Default.History
     val KeyboardArrowRight: ImageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight
     val Lock: ImageVector = Icons.Default.Lock
     val Logout: ImageVector = Icons.AutoMirrored.Filled.Logout
@@ -41,10 +37,8 @@ object AppIcons {
     val SportsEsports: ImageVector = Icons.Default.SportsEsports
     val Search: ImageVector = Icons.Default.Search
     val Shop: ImageVector = Icons.Default.Shop
-    val AllInclusive: ImageVector = Icons.Default.AllInclusive
     val Delete: ImageVector = Icons.Default.Delete
     val Share: ImageVector = Icons.Default.Share
     val FilterList: ImageVector = Icons.Default.FilterList
-    val BookMark: ImageVector = Icons.Default.Bookmark
     val Close: ImageVector = Icons.Default.Close
 }

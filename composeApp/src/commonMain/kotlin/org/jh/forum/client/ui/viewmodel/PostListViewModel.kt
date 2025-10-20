@@ -7,14 +7,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.jh.forum.client.data.model.GetPostListElement
+import org.jh.forum.client.data.model.SortType
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
-
-// 排序类型枚举
-enum class SortType {
-    HOT,
-    NEWEST
-}
 
 class PostListViewModel : ViewModel() {
     private val repository: ForumRepository = AppModule.forumRepository
@@ -85,27 +80,13 @@ class PostListViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val result = repository.upvotePost(postId)
-                if (result.code == 0 && result.data != null) {
-                    // 更新本地帖子状态
+                if (result.code == 200 && result.data != null) {
                     val updatedPosts = _posts.value.map { post ->
                         if (post.id == postId) {
-                            // 创建一个新的对象来更新状态，因为GetPostListElement可能是不可变的
                             val updatedLiked = result.data.status
                             val updatedLikeCount = if (updatedLiked) post.likeCount + 1 else post.likeCount
-                            // 创建一个新的对象，复制所有属性并更新需要改变的属性
-                            GetPostListElement(
-                                id = post.id,
-                                publisherInfo = post.publisherInfo,
-                                category = post.category,
-                                topics = post.topics,
-                                title = post.title,
-                                content = post.content,
+                            post.copy(
                                 likeCount = updatedLikeCount,
-                                commentCount = post.commentCount,
-                                createdAt = post.createdAt,
-                                isPinned = post.isPinned,
-                                pictures = post.pictures,
-                                totalPictures = post.totalPictures,
                                 isLiked = updatedLiked
                             )
                         } else {

@@ -55,9 +55,9 @@ class CommentViewModel : ViewModel() {
                 if (result.code == 200 && result.data != null) {
                     val response = result.data
                     val newComments = if (reset) {
-                        response.list ?: emptyList()
+                        response.list
                     } else {
-                        _comments.value + (response.list ?: emptyList())
+                        _comments.value + response.list
                     }
                     _comments.value = newComments
                     _hasMore.value = response.page * response.pageSize < response.total
@@ -113,7 +113,7 @@ class CommentViewModel : ViewModel() {
                             },
                             replyCount = comment.replyCount,
                             replies = comment.replies,
-                            isLiked = result.data?.status == true
+                            isLiked = result.data.status
                         )
                     } else {
                         comment
@@ -138,7 +138,7 @@ class CommentViewModel : ViewModel() {
                             publisherInfo = comment.publisherInfo,
                             content = comment.content,
                             pictures = comment.pictures,
-                            isPinned = result.data?.status == true,
+                            isPinned = result.data.status,
                             isAuthor = comment.isAuthor,
                             isDeleted = comment.isDeleted,
                             createdAt = comment.createdAt,
@@ -181,9 +181,5 @@ class CommentViewModel : ViewModel() {
                 _errorMessage.value = result.msg ?: "删除失败"
             }
         }
-    }
-
-    fun refresh(postId: Long) {
-        loadComments(postId, true)
     }
 }

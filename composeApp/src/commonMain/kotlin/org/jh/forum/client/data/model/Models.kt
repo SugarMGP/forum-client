@@ -360,3 +360,8 @@ enum class PostCategory(val value: String, val displayName: String) {
         }
     }
 }
+
+enum class SortType {
+    HOT,
+    NEWEST
+}

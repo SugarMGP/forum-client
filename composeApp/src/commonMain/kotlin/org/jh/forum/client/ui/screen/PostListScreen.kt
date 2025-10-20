@@ -21,9 +21,9 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.GetPostListElement
 import org.jh.forum.client.data.model.PostCategory
+import org.jh.forum.client.data.model.SortType
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.theme.AppIcons
-import org.jh.forum.client.ui.viewmodel.SortType
 import org.jh.forum.client.util.TimeUtils
 import kotlin.enums.EnumEntries
 
@@ -31,8 +31,7 @@ import kotlin.enums.EnumEntries
 fun ImageGrid(
     images: List<String?>,
     totalPictures: Int = images.size,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit
 ) {
     // 最多显示9张图片
     val displayImages = images.take(9)
