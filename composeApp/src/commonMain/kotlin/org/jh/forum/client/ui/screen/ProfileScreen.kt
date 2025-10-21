@@ -55,24 +55,31 @@ fun ProfileScreen(
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+                        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationMedium),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
                         ),
-                        shape = MaterialTheme.shapes.medium
+                        shape = MaterialTheme.shapes.large
                     ) {
                         Column(
                             modifier = Modifier.padding(Dimensions.spaceLarge),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             // 用户头像
-                            AsyncImage(
-                                model = userProfile?.avatar,
-                                contentDescription = "用户头像",
-                                modifier = Modifier
-                                    .size(Dimensions.avatarExtraLarge)
-                                    .clip(CircleShape)
-                            )
+                            Surface(
+                                shape = CircleShape,
+                                shadowElevation = Dimensions.elevationSmall,
+                                color = MaterialTheme.colorScheme.surface
+                            ) {
+                                AsyncImage(
+                                    model = userProfile?.avatar,
+                                    contentDescription = "用户头像",
+                                    modifier = Modifier
+                                        .size(Dimensions.avatarExtraLarge)
+                                        .padding(Dimensions.spaceExtraSmall)
+                                        .clip(CircleShape)
+                                )
+                            }
 
                             Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
@@ -80,7 +87,7 @@ fun ProfileScreen(
                             Text(
                                 text = userProfile?.nickname ?: "",
                                 style = MaterialTheme.typography.headlineSmall,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
 
                             Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
@@ -90,7 +97,36 @@ fun ProfileScreen(
                                 Text(
                                     text = signature,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                )
+                            }
+                            
+                            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
+                            
+                            // 用户统计信息
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                UserStatItem(
+                                    label = "获赞",
+                                    value = userProfile?.likeCount?.toString() ?: "0"
+                                )
+                                VerticalDivider(
+                                    modifier = Modifier.height(Dimensions.spaceExtraLarge),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
+                                )
+                                UserStatItem(
+                                    label = "帖子",
+                                    value = userProfile?.postCount?.toString() ?: "0"
+                                )
+                                VerticalDivider(
+                                    modifier = Modifier.height(Dimensions.spaceExtraLarge),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
+                                )
+                                UserStatItem(
+                                    label = "关注",
+                                    value = userProfile?.followCount?.toString() ?: "0"
                                 )
                             }
                         }
@@ -105,7 +141,7 @@ fun ProfileScreen(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant
                         ),
-                        shape = MaterialTheme.shapes.medium
+                        shape = MaterialTheme.shapes.large
                     ) {
                         Column {
                             ProfileMenuItem(
@@ -113,7 +149,10 @@ fun ProfileScreen(
                                 title = "我的帖子",
                                 onClick = onNavigateToPersonalPosts
                             )
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = Dimensions.spaceMedium),
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
                             ProfileMenuItem(
                                 icon = AppIcons.Notifications,
                                 title = "通知设置",
@@ -131,7 +170,7 @@ fun ProfileScreen(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant
                         ),
-                        shape = MaterialTheme.shapes.medium
+                        shape = MaterialTheme.shapes.large
                     ) {
                         Column {
                             ProfileMenuItem(
@@ -139,13 +178,19 @@ fun ProfileScreen(
                                 title = "编辑资料",
                                 onClick = { /* 导航到编辑资料 */ }
                             )
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = Dimensions.spaceMedium),
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
                             ProfileMenuItem(
                                 icon = AppIcons.Lock,
                                 title = "修改密码",
                                 onClick = { /* 导航到修改密码 */ }
                             )
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = Dimensions.spaceMedium),
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
                             ProfileMenuItem(
                                 icon = AppIcons.Settings,
                                 title = "主题设置",
@@ -159,11 +204,11 @@ fun ProfileScreen(
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+                        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationMedium),
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.errorContainer
                         ),
-                        shape = MaterialTheme.shapes.medium
+                        shape = MaterialTheme.shapes.large
                     ) {
                         ProfileMenuItem(
                             icon = AppIcons.Logout,
@@ -228,18 +273,26 @@ fun ProfileMenuItem(
             .padding(Dimensions.spaceMedium),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            icon,
-            contentDescription = title,
-            tint = textColor,
-            modifier = Modifier.size(Dimensions.iconMedium)
-        )
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+            modifier = Modifier.size(40.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    icon,
+                    contentDescription = title,
+                    tint = textColor,
+                    modifier = Modifier.size(Dimensions.iconMedium)
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.width(Dimensions.spaceMedium))
 
         Text(
             text = title,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.titleMedium,
             color = textColor,
             modifier = Modifier.weight(1f)
         )
@@ -247,8 +300,31 @@ fun ProfileMenuItem(
         Icon(
             AppIcons.KeyboardArrowRight,
             contentDescription = "箭头",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.size(Dimensions.iconMedium)
+        )
+    }
+}
+
+@Composable
+private fun UserStatItem(
+    label: String,
+    value: String
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
         )
     }
 }

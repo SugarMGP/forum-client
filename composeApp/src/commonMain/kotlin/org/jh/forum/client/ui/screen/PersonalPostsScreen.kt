@@ -192,15 +192,34 @@ fun PersonalPostItem(
     Card(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationMedium),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.large
     ) {
         Column(
             modifier = Modifier.padding(Dimensions.spaceMedium)
         ) {
+            // 话题标签（如果有）
+            post.topicName?.let { topicName ->
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
+                ) {
+                    Text(
+                        text = "# $topicName",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(
+                            horizontal = Dimensions.spaceSmall,
+                            vertical = Dimensions.spaceExtraSmall
+                        )
+                    )
+                }
+            }
+            
             // 标题
             post.title?.let {
                 Text(
@@ -211,7 +230,7 @@ fun PersonalPostItem(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
 
             // 内容
             post.content?.let {
@@ -226,117 +245,138 @@ fun PersonalPostItem(
 
             // 图片预览（如果有）
             if (post.pictures.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
                 ) {
                     post.pictures.take(3).forEach { picture ->
-                        AsyncImage(
-                            model = picture.url,
-                            contentDescription = "帖子图片",
+                        Surface(
+                            shape = MaterialTheme.shapes.small,
                             modifier = Modifier
-                                .size(60.dp)
+                                .size(72.dp)
                                 .weight(1f)
-                        )
+                        ) {
+                            AsyncImage(
+                                model = picture.url,
+                                contentDescription = "帖子图片",
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                     if (post.totalPictures > 3) {
-                        Box(
+                        Surface(
+                            shape = MaterialTheme.shapes.small,
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                             modifier = Modifier
-                                .size(60.dp)
-                                .weight(1f),
-                            contentAlignment = Alignment.Center
+                                .size(72.dp)
+                                .weight(1f)
                         ) {
-                            Text(
-                                text = "+${post.totalPictures - 3}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Box(
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "+${post.totalPictures - 3}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
             // 统计信息
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
                 ) {
                     // 点赞数
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            if (post.isLiked) AppIcons.Favorite else AppIcons.Favorite,
-                            contentDescription = "点赞",
-                            modifier = Modifier.size(16.dp),
-                            tint = if (post.isLiked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${post.likeCount}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    PostStatChip(
+                        icon = if (post.isLiked) AppIcons.Favorite else AppIcons.FavoriteBorder,
+                        count = post.likeCount,
+                        tint = if (post.isLiked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
                     // 评论数
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            AppIcons.Comment,
-                            contentDescription = "评论",
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${post.commentCount}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    PostStatChip(
+                        icon = AppIcons.Comment,
+                        count = post.commentCount,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
                     // 浏览数
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            AppIcons.Visibility,
-                            contentDescription = "浏览",
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${post.viewCount}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    PostStatChip(
+                        icon = AppIcons.Visibility,
+                        count = post.viewCount,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
                 // 时间
                 Text(
                     text = post.createdAt.substring(0, 10), // 只显示日期部分
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
+                // 时间
+                Text(
+                    text = post.createdAt.substring(0, 10), // 只显示日期部分
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
             // 置顶标识
             if (post.isTopped) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Badge {
-                    Text("置顶")
+                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                ) {
+                    Text(
+                        text = "置顶",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.padding(
+                            horizontal = Dimensions.spaceSmall,
+                            vertical = Dimensions.spaceExtraSmall
+                        )
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PostStatChip(
+    icon: ImageVector,
+    count: Int,
+    tint: androidx.compose.ui.graphics.Color
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            modifier = Modifier.size(Dimensions.iconSmall),
+            tint = tint
+        )
+        Text(
+            text = count.toString(),
+            style = MaterialTheme.typography.labelMedium,
+            color = tint
+        )
     }
 }
