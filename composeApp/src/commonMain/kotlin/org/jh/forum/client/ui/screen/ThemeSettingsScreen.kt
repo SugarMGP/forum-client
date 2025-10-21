@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jh.forum.client.ui.theme.AppIcons
+import org.jh.forum.client.ui.theme.Dimensions
 
 enum class ThemeMode {
     SYSTEM, LIGHT, DARK
@@ -37,7 +38,11 @@ fun ThemeSettingsScreen(
                             contentDescription = "返回"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
     ) { paddingValues ->
@@ -46,8 +51,8 @@ fun ThemeSettingsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(Dimensions.spaceMedium),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
         ) {
             ThemeMode.entries.forEach { themeMode ->
                 ThemeOption(
@@ -74,27 +79,28 @@ fun ThemeSettingsScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+                shape = MaterialTheme.shapes.medium
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.padding(Dimensions.spaceMedium),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                 ) {
                     Text(
                         text = "关于动态颜色",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium
                     )
 
                     Text(
                         text = "本应用支持动态取色，会根据您的壁纸自动调整主题色。如果您的设备不支持此功能，将使用默认的紫色主题。",
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -118,49 +124,51 @@ fun ThemeOption(
             containerColor = if (isSelected) {
                 MaterialTheme.colorScheme.primaryContainer
             } else {
-                MaterialTheme.colorScheme.surface
+                MaterialTheme.colorScheme.surfaceVariant
             }
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isSelected) 2.dp else 1.dp
-        )
+            defaultElevation = if (isSelected) Dimensions.elevationMedium else Dimensions.elevationSmall
+        ),
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(Dimensions.spaceMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
+                    MaterialTheme.colorScheme.onPrimaryContainer
                 } else {
-                    MaterialTheme.colorScheme.onSurface
+                    MaterialTheme.colorScheme.onSurfaceVariant
                 },
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(Dimensions.iconMedium)
             )
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(Dimensions.spaceMedium))
 
             Column(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = title,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
+                    style = MaterialTheme.typography.titleMedium,
                     color = if (isSelected) {
                         MaterialTheme.colorScheme.onPrimaryContainer
                     } else {
-                        MaterialTheme.colorScheme.onSurface
+                        MaterialTheme.colorScheme.onSurfaceVariant
                     }
                 )
 
+                Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
+
                 Text(
                     text = description,
-                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = if (isSelected) {
                         MaterialTheme.colorScheme.onPrimaryContainer
                     } else {
