@@ -121,10 +121,10 @@ fun MessagesScreen(
                             Text("消息")
                             // 底栏红点逻辑：如果两个数不都为0则显示红点
                             if (unreadNoticeCount > 0 || unreadAnnouncementCount > 0) {
-                                Spacer(modifier = Modifier.width(8.dp))
+                                Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                                 Box(
                                     modifier = Modifier
-                                        .size(8.dp)
+                                        .size(Dimensions.spaceSmall)
                                         .background(
                                             color = MaterialTheme.colorScheme.error,
                                             shape = CircleShape
@@ -132,7 +132,11 @@ fun MessagesScreen(
                                 )
                             }
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
 
                 Column {
@@ -300,8 +304,8 @@ fun MessagesScreen(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        contentPadding = PaddingValues(Dimensions.spaceMedium),
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                     ) {
                         items(messages) {
                             MessageItem(message = it)
@@ -314,8 +318,8 @@ fun MessagesScreen(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        contentPadding = PaddingValues(Dimensions.spaceMedium),
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                     ) {
                         items(announcements) {
                             AnnouncementItem(announcement = it)
@@ -332,17 +336,21 @@ fun MessagesScreen(
 fun MessageItem(message: GetNoticeListElement) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(Dimensions.spaceMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 发送者头像
             Box(
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(Dimensions.avatarLarge),
                 contentAlignment = Alignment.Center
             ) {
                 // 所有类型消息都使用用户头像
@@ -350,13 +358,13 @@ fun MessageItem(message: GetNoticeListElement) {
                     model = message.senderInfo.avatar,
                     contentDescription = message.senderInfo.nickname ?: "用户头像",
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(Dimensions.avatarLarge)
                         .clip(CircleShape),
                     contentScale = ContentScale.Crop
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(Dimensions.spaceMedium))
 
             // 消息内容
             Column(
@@ -376,7 +384,7 @@ fun MessageItem(message: GetNoticeListElement) {
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(Dimensions.spaceExtraSmall))
                         Text(
                             text = getActionText(message),
                             style = MaterialTheme.typography.bodyMedium,
@@ -392,10 +400,10 @@ fun MessageItem(message: GetNoticeListElement) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         if (!message.isRead) {
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                             Box(
                                 modifier = Modifier
-                                    .size(8.dp)
+                                    .size(Dimensions.spaceSmall)
                                     .background(
                                         color = MaterialTheme.colorScheme.primary,
                                         shape = CircleShape
@@ -405,7 +413,7 @@ fun MessageItem(message: GetNoticeListElement) {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
 
                 // 根据消息类型显示不同内容
                 if (message.type == "comment" && message.newCommentId != null && message.newCommentContent != null) {
@@ -479,17 +487,21 @@ private fun getActionText(message: GetNoticeListElement): String {
 fun AnnouncementItem(announcement: GetAnnouncementListElement) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(Dimensions.spaceMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 公告图标
             Box(
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(Dimensions.avatarLarge),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -499,7 +511,7 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(Dimensions.spaceMedium))
 
             // 公告内容
             Column(
@@ -522,7 +534,7 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                     if (!announcement.isRead) {
                         Box(
                             modifier = Modifier
-                                .size(8.dp)
+                                .size(Dimensions.spaceSmall)
                                 .background(
                                     color = MaterialTheme.colorScheme.primary,
                                     shape = CircleShape
@@ -531,7 +543,7 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
 
                 Text(
                     text = announcement.content,

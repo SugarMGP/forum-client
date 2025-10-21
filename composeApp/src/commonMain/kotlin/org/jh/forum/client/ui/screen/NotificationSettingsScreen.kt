@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import org.jh.forum.client.data.model.UpdateNoticeSettingsRequest
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.ui.theme.AppIcons
+import org.jh.forum.client.ui.theme.Dimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,7 +59,11 @@ fun NotificationSettingsScreen(
                             contentDescription = "返回"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
     ) { paddingValues ->
@@ -67,8 +72,8 @@ fun NotificationSettingsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(Dimensions.spaceMedium),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
         ) {
             if (isLoading) {
                 Box(
@@ -99,7 +104,11 @@ fun NotificationSettingsScreen(
             } else {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    shape = MaterialTheme.shapes.medium
                 ) {
                     Column {
                         Row(
