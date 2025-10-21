@@ -37,6 +37,30 @@ in your IDE’s toolbar or run it directly from the terminal:
   .\gradlew.bat :composeApp:run
   ```
 
+### Automated Release Process
+
+This project includes a GitHub Actions workflow that automatically builds and releases packages for all platforms when you push a new tag.
+
+**To create a new release:**
+
+1. Create and push a new tag (must start with 'v'):
+   ```shell
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+
+2. The workflow will automatically:
+   - Build Android APK (release version)
+   - Build Linux DEB package
+   - Build macOS DMG package
+   - Build Windows MSI installer
+   - Create a GitHub Release with all packages attached
+   - Generate release notes automatically
+
+3. Check the "Actions" tab in GitHub to monitor the build progress
+
+4. Once complete, find your release under the "Releases" section with all platform packages ready for download
+
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
