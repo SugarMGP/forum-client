@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -460,7 +461,8 @@ fun PostContent(
                     Column {
                         Text(
                             text = post.publisherInfo.nickname ?: "未知用户",
-                            style = MaterialTheme.typography.titleSmall
+                            style = MaterialTheme.typography.titleSmall,
+                                    overflow = TextOverflow.Ellipsis
                         )
                         // 显示帖子板块
                         if (post.category.isNotEmpty()) {

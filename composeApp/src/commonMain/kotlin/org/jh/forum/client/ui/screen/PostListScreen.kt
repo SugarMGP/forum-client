@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -358,6 +359,7 @@ fun PostListScreen(
                         PostItem(
                             post = it,
                             onClick = { onPostClick(it.id) },
+                            onUserClick = { userId -> onUserClick(userId) },
                             onUpvoteClick = { it -> viewModel.upvotePost(it) }
                         )
                     }
@@ -417,7 +419,9 @@ fun PostItem(
                 // 用户头像和名称 - 改为可点击
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { 
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable {
                         post.publisherInfo.id?.let { onUserClick(it) }
                     }
                 ) {
@@ -433,7 +437,9 @@ fun PostItem(
                     Column {
                         Text(
                             text = post.publisherInfo.nickname ?: "",
-                            style = MaterialTheme.typography.titleSmall
+                            style = MaterialTheme.typography.titleSmall,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1
                         )
                         Text(
                             text = getCategoryDisplayName(post.category),
@@ -442,6 +448,8 @@ fun PostItem(
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.width(Dimensions.spaceExtraSmall))
 
                 // 右上角信息：时间、评论、浏览量
                 Column(
@@ -465,19 +473,6 @@ fun PostItem(
                         Spacer(modifier = Modifier.width(Dimensions.spaceExtraSmall))
                         Text(
                             text = "${post.commentCount}",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-                        Icon(
-                            AppIcons.Visibility,
-                            contentDescription = "浏览",
-                            modifier = Modifier.size(Dimensions.iconSmall),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(Dimensions.spaceExtraSmall))
-                        Text(
-                            text = "0", // GetPostListElement没有viewCount字段
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

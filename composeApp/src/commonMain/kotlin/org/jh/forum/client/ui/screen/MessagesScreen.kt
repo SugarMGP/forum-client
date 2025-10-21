@@ -455,41 +455,38 @@ fun MessageItem(
             if (message.type == "comment" && message.newCommentContent != null) {
                 Text(
                     text = message.newCommentContent,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = Dimensions.spaceExtraSmall),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(vertical = Dimensions.spaceSmall),
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
+                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
             }
 
             // Original content (quote style with minimal design)
-            // Original content (quote style with minimal design)
-            if (message.content != null && message.content.isNotBlank()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(2.dp)
-                            .height(36.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.outlineVariant,
-                                shape = MaterialTheme.shapes.extraSmall
-                            )
-                    )
-                    
-                    Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-                    
-                    Text(
-                        text = message.content,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .height(36.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            shape = MaterialTheme.shapes.extraSmall
+                        )
+                )
+
+                Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+
+                Text(
+                    text = message.positionContent ?: "内容不存在",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f).align(Alignment.CenterVertically)
+                )
             }
         }
     }
@@ -513,7 +510,7 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         shape = MaterialTheme.shapes.medium
     ) {
@@ -521,7 +518,7 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(Dimensions.spaceMedium),
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
             // Icon
             Icon(

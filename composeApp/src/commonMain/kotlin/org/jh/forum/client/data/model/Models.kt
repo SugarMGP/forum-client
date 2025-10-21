@@ -168,10 +168,7 @@ data class GetNoticeListElement(
     val newCommentContent: String? = null,
     val updatedAt: String = "",
     val isLiked: Boolean? = null,
-    val isRead: Boolean = true,
-    val title: String = "",
-    val content: String = "",
-    val createdAt: String = ""
+    val isRead: Boolean = true
 )
 
 @Serializable
