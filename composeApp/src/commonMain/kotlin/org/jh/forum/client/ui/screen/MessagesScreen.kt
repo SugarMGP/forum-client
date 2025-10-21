@@ -376,26 +376,22 @@ fun MessageItem(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationMedium),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
         colors = CardDefaults.cardColors(
-            containerColor = if (!message.isRead) {
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            }
+            containerColor = MaterialTheme.colorScheme.surface
         ),
-        shape = MaterialTheme.shapes.large
+        shape = MaterialTheme.shapes.medium
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(Dimensions.spaceMedium)
         ) {
-            // Header: Avatar + Name + Time + Unread badge
+            // Header: Avatar + Name + Action + Time
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
                 // Avatar and user info
                 Row(
@@ -406,38 +402,29 @@ fun MessageItem(
                             message.senderInfo.id?.let { onUserClick(it) }
                         }
                 ) {
-                    Surface(
-                        shape = CircleShape,
-                        shadowElevation = Dimensions.elevationSmall,
-                        color = MaterialTheme.colorScheme.surface
-                    ) {
-                        AsyncImage(
-                            model = message.senderInfo.avatar,
-                            contentDescription = "用户头像",
-                            modifier = Modifier
-                                .size(Dimensions.avatarLarge)
-                                .padding(Dimensions.spaceExtraSmall)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                    AsyncImage(
+                        model = message.senderInfo.avatar,
+                        contentDescription = "用户头像",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
 
                     Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
 
                     Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = message.senderInfo.nickname ?: "用户",
-                                style = MaterialTheme.typography.titleSmall,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+                        Text(
+                            text = message.senderInfo.nickname ?: "用户",
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                         
                         Text(
                             text = getActionText(message),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -456,7 +443,7 @@ fun MessageItem(
                         Surface(
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(8.dp)
+                            modifier = Modifier.size(6.dp)
                         ) {}
                     }
                 }
@@ -466,37 +453,44 @@ fun MessageItem(
 
             // Comment content (if it's a comment message)
             if (message.type == "comment" && message.newCommentContent != null) {
-                Surface(
-                    color = MaterialTheme.colorScheme.surface,
-                    shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = message.newCommentContent,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(Dimensions.spaceSmall),
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                Text(
+                    text = message.newCommentContent,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = Dimensions.spaceExtraSmall),
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
             }
 
-            // Original content (quote style)
-            Surface(
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                shape = MaterialTheme.shapes.small,
+            // Original content (quote style with minimal design)
+            Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    modifier = Modifier.padding(Dimensions.spaceSmall)
-                ) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .width(3.dp)
-                            .height(40.dp)
-                    ) {}
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .height(36.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            shape = MaterialTheme.shapes.extraSmall
+                        )
+                )
+                
+                Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                
+                Text(
+                    text = message.title ?: "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
                     
                     Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                     
@@ -532,7 +526,7 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = MaterialTheme.shapes.medium
     ) {
@@ -540,23 +534,19 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(Dimensions.spaceMedium),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
-            // 公告图标
-            Box(
-                modifier = Modifier.size(Dimensions.avatarLarge),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    AppIcons.Notifications,
-                    contentDescription = "公告",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
+            // Icon
+            Icon(
+                AppIcons.Notifications,
+                contentDescription = "公告",
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
 
-            Spacer(modifier = Modifier.width(Dimensions.spaceMedium))
+            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
 
-            // 公告内容
+            // Content
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -567,25 +557,29 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                 ) {
                     Text(
                         text = announcement.title,
-                        style = if (!announcement.isRead) {
-                            MaterialTheme.typography.titleMedium
-                        } else {
-                            MaterialTheme.typography.bodyLarge
-                        },
+                        style = MaterialTheme.typography.titleSmall,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
 
-                    // 未读标记（圆点）
-                    if (!announcement.isRead) {
-                        Box(
-                            modifier = Modifier
-                                .size(Dimensions.spaceSmall)
-                                .background(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    shape = CircleShape
-                                )
+                    // Time and unread indicator
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                    ) {
+                        Text(
+                            text = TimeUtils.formatTime(announcement.publishedAt),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        if (!announcement.isRead) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(6.dp)
+                            ) {}
+                        }
                     }
                 }
 
@@ -597,14 +591,6 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = TimeUtils.formatTime(announcement.publishedAt),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

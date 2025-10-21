@@ -88,35 +88,49 @@ fun UserProfileScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                // Tabs
-                PrimaryTabRow(
-                    selectedTabIndex = selectedTab,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Tab(
-                        selected = selectedTab == 0,
-                        onClick = { selectedTab = 0 },
-                        text = { Text("帖子") }
-                    )
-                    Tab(
-                        selected = selectedTab == 1,
-                        onClick = { selectedTab = 1 },
-                        text = { Text("评论") }
-                    )
-                }
+                // User Info Card at top
+                UserInfoCard(
+                    userProfile = userProfile,
+                    modifier = Modifier.padding(Dimensions.spaceMedium)
+                )
 
-                // Tab Content with user info header inside
-                when (selectedTab) {
-                    0 -> UserPostsTab(
+                // Tabs below user info
+                if (isCurrentUser) {
+                    // Show both tabs for current user
+                    PrimaryTabRow(
+                        selectedTabIndex = selectedTab,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Tab(
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            text = { Text("帖子") }
+                        )
+                        Tab(
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 },
+                            text = { Text("评论") }
+                        )
+                    }
+
+                    // Tab Content
+                    when (selectedTab) {
+                        0 -> UserPostsTab(
+                            userId = userId,
+                            repository = repository,
+                            onPostClick = onPostClick
+                        )
+                        1 -> UserCommentsTab(
+                            userId = userId,
+                            repository = repository
+                        )
+                    }
+                } else {
+                    // Only show posts tab for other users
+                    UserPostsTab(
                         userId = userId,
                         repository = repository,
-                        userProfile = userProfile,
                         onPostClick = onPostClick
-                    )
-                    1 -> UserCommentsTab(
-                        userId = userId,
-                        repository = repository,
-                        userProfile = userProfile
                     )
                 }
             }
@@ -128,7 +142,6 @@ fun UserProfileScreen(
 fun UserPostsTab(
     userId: Long,
     repository: ForumRepository,
-    userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?,
     onPostClick: (Long) -> Unit
 ) {
     var posts by remember { mutableStateOf<List<GetPersonalPostListElement>>(emptyList()) }
@@ -163,11 +176,6 @@ fun UserPostsTab(
         contentPadding = PaddingValues(Dimensions.spaceMedium),
         verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
     ) {
-        // User Info Card Header
-        item {
-            UserInfoCard(userProfile = userProfile)
-        }
-
         items(posts, key = { it.id }) { post ->
             PersonalPostCard(post = post, onClick = { onPostClick(post.id) })
         }
@@ -360,8 +368,7 @@ fun PostStatChip(
 @Composable
 fun UserCommentsTab(
     userId: Long,
-    repository: ForumRepository,
-    userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?
+    repository: ForumRepository
 ) {
     val listState = rememberLazyListState()
     
@@ -371,11 +378,6 @@ fun UserCommentsTab(
         contentPadding = PaddingValues(Dimensions.spaceMedium),
         verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
     ) {
-        // User Info Card Header
-        item {
-            UserInfoCard(userProfile = userProfile)
-        }
-        
         // Placeholder for comments
         item {
             Box(
@@ -396,21 +398,24 @@ fun UserCommentsTab(
 
 @Composable
 fun UserInfoCard(
-    userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?
+    userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         shape = MaterialTheme.shapes.large
     ) {
-        Column(
-            modifier = Modifier.padding(Dimensions.spaceLarge),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Dimensions.spaceMedium),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar
+            // Avatar on the left
             Surface(
                 shape = CircleShape,
                 shadowElevation = Dimensions.elevationSmall,
@@ -420,32 +425,65 @@ fun UserInfoCard(
                     model = userProfile?.avatar,
                     contentDescription = "用户头像",
                     modifier = Modifier
-                        .size(Dimensions.avatarExtraLarge)
+                        .size(72.dp)
                         .padding(Dimensions.spaceExtraSmall)
                         .clip(CircleShape)
                 )
             }
 
-            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
+            Spacer(modifier = Modifier.width(Dimensions.spaceMedium))
 
-            // Username
-            Text(
-                text = userProfile?.nickname ?: "",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-
-            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-
-            // Signature
-            userProfile?.signature?.let { signature ->
+            // Info on the right
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                // Username
                 Text(
-                    text = signature,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    text = userProfile?.nickname ?: "",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
+
+                Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
+
+                // Signature
+                userProfile?.signature?.let { signature ->
+                    Text(
+                        text = signature,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                }
+
+                // Stats row
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
+                ) {
+                    UserStatItem(label = "获赞", value = userProfile?.likesCount ?: 0)
+                    UserStatItem(label = "帖子", value = userProfile?.postsCount ?: 0)
+                    UserStatItem(label = "关注", value = userProfile?.followingCount ?: 0)
+                }
             }
         }
+    }
+}
+
+@Composable
+fun UserStatItem(label: String, value: Int) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value.toString(),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
