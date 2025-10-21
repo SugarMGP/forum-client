@@ -88,63 +88,6 @@ fun UserProfileScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                // User Info Card
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Dimensions.spaceMedium),
-                    elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    shape = MaterialTheme.shapes.large
-                ) {
-                    Column(
-                        modifier = Modifier.padding(Dimensions.spaceLarge),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // Avatar
-                        Surface(
-                            shape = CircleShape,
-                            shadowElevation = Dimensions.elevationSmall,
-                            color = MaterialTheme.colorScheme.surface
-                        ) {
-                            AsyncImage(
-                                model = userProfile?.avatar,
-                                contentDescription = "用户头像",
-                                modifier = Modifier
-                                    .size(Dimensions.avatarExtraLarge)
-                                    .padding(Dimensions.spaceExtraSmall)
-                                    .clip(CircleShape)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-
-                        // Username
-                        Text(
-                            text = userProfile?.nickname ?: "",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-
-                        Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-
-                        // Signature
-                        userProfile?.signature?.let { signature ->
-                            Text(
-                                text = signature,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                            )
-                        }
-
-                        // User Stats (Optional - if we have stats in the API)
-                        // Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-                        // Row(...) { /* Stats */ }
-                    }
-                }
-
                 // Tabs
                 PrimaryTabRow(
                     selectedTabIndex = selectedTab,
@@ -162,16 +105,18 @@ fun UserProfileScreen(
                     )
                 }
 
-                // Tab Content
+                // Tab Content with user info header inside
                 when (selectedTab) {
                     0 -> UserPostsTab(
                         userId = userId,
                         repository = repository,
+                        userProfile = userProfile,
                         onPostClick = onPostClick
                     )
                     1 -> UserCommentsTab(
                         userId = userId,
-                        repository = repository
+                        repository = repository,
+                        userProfile = userProfile
                     )
                 }
             }
@@ -183,6 +128,7 @@ fun UserProfileScreen(
 fun UserPostsTab(
     userId: Long,
     repository: ForumRepository,
+    userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?,
     onPostClick: (Long) -> Unit
 ) {
     var posts by remember { mutableStateOf<List<GetPersonalPostListElement>>(emptyList()) }
@@ -217,6 +163,11 @@ fun UserPostsTab(
         contentPadding = PaddingValues(Dimensions.spaceMedium),
         verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
     ) {
+        // User Info Card Header
+        item {
+            UserInfoCard(userProfile = userProfile)
+        }
+
         items(posts, key = { it.id }) { post ->
             PersonalPostCard(post = post, onClick = { onPostClick(post.id) })
         }
@@ -409,19 +360,92 @@ fun PostStatChip(
 @Composable
 fun UserCommentsTab(
     userId: Long,
-    repository: ForumRepository
+    repository: ForumRepository,
+    userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?
 ) {
-    // Placeholder for comments tab
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(Dimensions.spaceExtraLarge),
-        contentAlignment = Alignment.Center
+    val listState = rememberLazyListState()
+    
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        state = listState,
+        contentPadding = PaddingValues(Dimensions.spaceMedium),
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
     ) {
-        Text(
-            "评论功能开发中...",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        // User Info Card Header
+        item {
+            UserInfoCard(userProfile = userProfile)
+        }
+        
+        // Placeholder for comments
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Dimensions.spaceExtraLarge),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "评论功能开发中...",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
+
+@Composable
+fun UserInfoCard(
+    userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        shape = MaterialTheme.shapes.large
+    ) {
+        Column(
+            modifier = Modifier.padding(Dimensions.spaceLarge),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Avatar
+            Surface(
+                shape = CircleShape,
+                shadowElevation = Dimensions.elevationSmall,
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                AsyncImage(
+                    model = userProfile?.avatar,
+                    contentDescription = "用户头像",
+                    modifier = Modifier
+                        .size(Dimensions.avatarExtraLarge)
+                        .padding(Dimensions.spaceExtraSmall)
+                        .clip(CircleShape)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
+
+            // Username
+            Text(
+                text = userProfile?.nickname ?: "",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+
+            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+
+            // Signature
+            userProfile?.signature?.let { signature ->
+                Text(
+                    text = signature,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
+            }
+        }
+    }
+}
+

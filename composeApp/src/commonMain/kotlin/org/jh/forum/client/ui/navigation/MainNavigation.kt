@@ -130,7 +130,12 @@ fun MainNavigation(
                     }
 
                     composable(BottomNavItem.Messages.route) {
-                        MessagesScreen(repository = repository)
+                        MessagesScreen(
+                            repository = repository,
+                            onUserClick = { userId ->
+                                navController.navigate("user_profile/$userId")
+                            }
+                        )
                     }
 
                     composable(BottomNavItem.Profile.route) {
@@ -196,7 +201,10 @@ fun MainNavigation(
                             postId = postId,
                             viewModel = AppModule.postViewModel,
                             commentViewModel = AppModule.commentViewModel,
-                            onBack = { navController.popBackStack() }
+                            onBack = { navController.popBackStack() },
+                            onUserClick = { userId ->
+                                navController.navigate("user_profile/$userId")
+                            }
                         )
                     }
 

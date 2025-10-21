@@ -42,7 +42,8 @@ fun PostDetailScreen(
     postId: Long,
     viewModel: PostViewModel,
     commentViewModel: CommentViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onUserClick: (Long) -> Unit = {}
 ) {
     var post by remember { mutableStateOf<GetPostInfoResponse?>(null) }
     val errorMessage by viewModel.errorMessage.collectAsState()
@@ -141,8 +142,9 @@ fun PostDetailScreen(
                         },
                         onShare = { /* 复制/分享逻辑 */ },
                         onUserProfileClick = {
-                            // 处理点击用户头像/昵称的逻辑
-                            // 可以添加跳转到用户个人资料页面的功能
+                            localPost.publisherInfo.id?.let { userId ->
+                                onUserClick(userId)
+                            }
                         },
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -199,11 +201,8 @@ fun PostDetailScreen(
                         onDelete = if (comment.isAuthor) {
                             { commentViewModel.deleteComment(comment.commentId) }
                         } else null,
-                        onUserProfileClick = {
-                            comment.publisherInfo.id?.let { userId ->
-                                // 这里可以添加跳转到用户个人资料页面的逻辑
-                                // 例如：navController.navigate("userProfile/$userId")
-                            }
+                        onUserProfileClick = { userId ->
+                            onUserClick(userId)
                         },
                         modifier = Modifier.fillMaxWidth()
                     )
