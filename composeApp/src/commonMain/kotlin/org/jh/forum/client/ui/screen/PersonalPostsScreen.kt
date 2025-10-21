@@ -202,58 +202,24 @@ fun PersonalPostItem(
         Column(
             modifier = Modifier.padding(Dimensions.spaceMedium)
         ) {
-            // 头部：话题标签和置顶标识
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 话题标签（如果有）
-                if (post.topics.isNotEmpty()) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
-                    ) {
-                        post.topics.take(2).forEach { topicName ->
-                            Surface(
-                                shape = MaterialTheme.shapes.small,
-                                color = MaterialTheme.colorScheme.secondaryContainer
-                            ) {
-                                Text(
-                                    text = "# $topicName",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.padding(
-                                        horizontal = Dimensions.spaceSmall,
-                                        vertical = Dimensions.spaceExtraSmall
-                                    )
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    Spacer(modifier = Modifier.width(0.dp))
-                }
-                
-                // 置顶标识
-                if (post.isTopped) {
-                    Surface(
-                        shape = MaterialTheme.shapes.small,
-                        color = MaterialTheme.colorScheme.tertiaryContainer
-                    ) {
-                        Text(
-                            text = "置顶",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer,
-                            modifier = Modifier.padding(
-                                horizontal = Dimensions.spaceSmall,
-                                vertical = Dimensions.spaceExtraSmall
-                            )
+            // 置顶标识（如果有）
+            if (post.isTopped) {
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.tertiaryContainer
+                ) {
+                    Text(
+                        text = "置顶",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.padding(
+                            horizontal = Dimensions.spaceSmall,
+                            vertical = Dimensions.spaceExtraSmall
                         )
-                    }
+                    )
                 }
+                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
             }
-            
-            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
 
             // 标题
             post.title?.let {
@@ -286,6 +252,32 @@ fun PersonalPostItem(
                     totalPictures = post.totalPictures,
                     onClick = onClick
                 )
+            }
+
+            // 话题标签（在内容下方）
+            if (post.topics.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    post.topics.take(2).forEach { topicName ->
+                        Surface(
+                            shape = MaterialTheme.shapes.small,
+                            color = MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            Text(
+                                text = "# $topicName",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(
+                                    horizontal = Dimensions.spaceSmall - 2.dp,
+                                    vertical = 2.dp
+                                )
+                            )
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
