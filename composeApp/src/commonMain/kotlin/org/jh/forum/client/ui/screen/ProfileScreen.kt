@@ -100,35 +100,6 @@ fun ProfileScreen(
                                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                                 )
                             }
-                            
-                            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-                            
-                            // 用户统计信息
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly
-                            ) {
-                                UserStatItem(
-                                    label = "获赞",
-                                    value = userProfile?.likeCount?.toString() ?: "0"
-                                )
-                                VerticalDivider(
-                                    modifier = Modifier.height(Dimensions.spaceExtraLarge),
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
-                                )
-                                UserStatItem(
-                                    label = "帖子",
-                                    value = userProfile?.postCount?.toString() ?: "0"
-                                )
-                                VerticalDivider(
-                                    modifier = Modifier.height(Dimensions.spaceExtraLarge),
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
-                                )
-                                UserStatItem(
-                                    label = "关注",
-                                    value = userProfile?.followCount?.toString() ?: "0"
-                                )
-                            }
                         }
                     }
                 }

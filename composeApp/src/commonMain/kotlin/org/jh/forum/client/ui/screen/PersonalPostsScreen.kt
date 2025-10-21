@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -202,7 +203,7 @@ fun PersonalPostItem(
             modifier = Modifier.padding(Dimensions.spaceMedium)
         ) {
             // 话题标签（如果有）
-            post.topicName?.let { topicName ->
+            post.topics.let { topicName ->
                 Surface(
                     shape = MaterialTheme.shapes.small,
                     color = MaterialTheme.colorScheme.secondaryContainer,
@@ -219,7 +220,7 @@ fun PersonalPostItem(
                     )
                 }
             }
-            
+
             // 标题
             post.title?.let {
                 Text(
@@ -327,31 +328,30 @@ fun PersonalPostItem(
                 )
             }
 
-                // 时间
+            // 时间
+            Text(
+                text = post.createdAt.substring(0, 10), // 只显示日期部分
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // 置顶标识
+        if (post.isTopped) {
+            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+            Surface(
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.tertiaryContainer
+            ) {
                 Text(
-                    text = post.createdAt.substring(0, 10), // 只显示日期部分
+                    text = "置顶",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            // 置顶标识
-            if (post.isTopped) {
-                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-                Surface(
-                    shape = MaterialTheme.shapes.small,
-                    color = MaterialTheme.colorScheme.tertiaryContainer
-                ) {
-                    Text(
-                        text = "置顶",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer,
-                        modifier = Modifier.padding(
-                            horizontal = Dimensions.spaceSmall,
-                            vertical = Dimensions.spaceExtraSmall
-                        )
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.padding(
+                        horizontal = Dimensions.spaceSmall,
+                        vertical = Dimensions.spaceExtraSmall
                     )
-                }
+                )
             }
         }
     }
