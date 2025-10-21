@@ -1,7 +1,7 @@
 # Material 3 UI 优化总结
 
 ## 概述
-本次优化全面升级了论坛客户端的UI设计，使其完全符合Material 3设计规范，提供了更统一、现代和一致的用户体验。
+本次优化全面升级了论坛客户端的UI设计，使其完全符合Material 3设计规范，提供了更统一、现代和一致的用户体验。所有颜色都采用蓝色色系以保持一致性，并在Android 12+设备上支持动态取色（Material You）。
 
 ## 主要改进
 
@@ -11,16 +11,44 @@
 - `Type.kt` - 完整的Material 3字体排版系统
 - `Shape.kt` - 统一的形状规范（圆角）
 - `Dimensions.kt` - 标准化的尺寸和间距系统
+- `ForumTheme.android.kt` - Android平台特定实现，支持动态取色
+- `ForumTheme.jvm.kt` - Desktop平台特定实现
 
 #### ForumTheme.kt 优化
-- **自定义配色方案**: 
-  - 为浅色和深色模式创建了专门的色彩系统
-  - 使用Material Blue作为主色调，提供更专业的外观
-  - 添加了完整的语义化颜色（primary, secondary, tertiary, error等）
+- **统一的蓝色配色方案**: 
+  - 所有颜色都采用蓝色色系，确保视觉一致性
+  - 主色调使用Material Blue (#2196F3)
+  - Surface、outline等辅助颜色都调整为蓝灰色调
+  - 移除了紫色/薰衣草色调，全部改为蓝色系
+  
+- **Android动态取色支持**:
+  - 在Android 12+ (API 31+) 设备上自动使用系统壁纸取色
+  - 低于Android 12的设备使用蓝色静态配色方案
+  - Desktop平台使用静态蓝色配色方案
   
 - **颜色对比度**: 
   - 确保所有文本和背景的对比度符合WCAG AA标准
   - 为不同的表面层级提供适当的海拔和色调
+
+#### 蓝色色系配色详情
+
+**浅色模式：**
+- Primary: #2196F3 (Material Blue)
+- Secondary: #03A9F4 (Light Blue)
+- Tertiary: #00BCD4 (Cyan)
+- Background: #FCFCFF (带蓝色调的白色)
+- Surface: #FCFCFF
+- SurfaceVariant: #DEE3EB (蓝灰色)
+- Outline: #72777F (蓝灰色边框)
+
+**深色模式：**
+- Primary: #90CAF9 (浅蓝色)
+- Secondary: #81D4FA (浅蓝色)
+- Tertiary: #80DEEA (浅青色)
+- Background: #1A1C1E (深蓝灰色)
+- Surface: #1A1C1E
+- SurfaceVariant: #42474E (深蓝灰色)
+- Outline: #8C9199 (蓝灰色边框)
 
 ### 2. 设计令牌 (Design Tokens)
 
