@@ -193,39 +193,73 @@ fun PersonalPostItem(
     Card(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationMedium),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        shape = MaterialTheme.shapes.large
+        shape = MaterialTheme.shapes.medium
     ) {
         Column(
             modifier = Modifier.padding(Dimensions.spaceMedium)
         ) {
-            // 话题标签（如果有）
-            post.topics.let { topicName ->
-                Surface(
-                    shape = MaterialTheme.shapes.small,
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
-                ) {
-                    Text(
-                        text = "# $topicName",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.padding(
-                            horizontal = Dimensions.spaceSmall,
-                            vertical = Dimensions.spaceExtraSmall
+            // 头部：话题标签和置顶标识
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 话题标签（如果有）
+                if (post.topics.isNotEmpty()) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
+                    ) {
+                        post.topics.take(2).forEach { topicName ->
+                            Surface(
+                                shape = MaterialTheme.shapes.small,
+                                color = MaterialTheme.colorScheme.secondaryContainer
+                            ) {
+                                Text(
+                                    text = "# $topicName",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.padding(
+                                        horizontal = Dimensions.spaceSmall,
+                                        vertical = Dimensions.spaceExtraSmall
+                                    )
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Spacer(modifier = Modifier.width(0.dp))
+                }
+                
+                // 置顶标识
+                if (post.isTopped) {
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.tertiaryContainer
+                    ) {
+                        Text(
+                            text = "置顶",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.padding(
+                                horizontal = Dimensions.spaceSmall,
+                                vertical = Dimensions.spaceExtraSmall
+                            )
                         )
-                    )
+                    }
                 }
             }
+            
+            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
 
             // 标题
             post.title?.let {
                 Text(
                     text = it,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -247,49 +281,16 @@ fun PersonalPostItem(
             // 图片预览（如果有）
             if (post.pictures.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
-                ) {
-                    post.pictures.take(3).forEach { picture ->
-                        Surface(
-                            shape = MaterialTheme.shapes.small,
-                            modifier = Modifier
-                                .size(72.dp)
-                                .weight(1f)
-                        ) {
-                            AsyncImage(
-                                model = picture.url,
-                                contentDescription = "帖子图片",
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-                    }
-                    if (post.totalPictures > 3) {
-                        Surface(
-                            shape = MaterialTheme.shapes.small,
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                            modifier = Modifier
-                                .size(72.dp)
-                                .weight(1f)
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "+${post.totalPictures - 3}",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                }
+                ImageGrid(
+                    images = post.pictures.map { it.url },
+                    totalPictures = post.totalPictures,
+                    onClick = onClick
+                )
             }
 
             Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
-            // 统计信息
+            // 底部：统计信息和时间
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -325,32 +326,6 @@ fun PersonalPostItem(
                     text = post.createdAt.substring(0, 10), // 只显示日期部分
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            // 时间
-            Text(
-                text = post.createdAt.substring(0, 10), // 只显示日期部分
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        // 置顶标识
-        if (post.isTopped) {
-            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-            Surface(
-                shape = MaterialTheme.shapes.small,
-                color = MaterialTheme.colorScheme.tertiaryContainer
-            ) {
-                Text(
-                    text = "置顶",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                    modifier = Modifier.padding(
-                        horizontal = Dimensions.spaceSmall,
-                        vertical = Dimensions.spaceExtraSmall
-                    )
                 )
             }
         }
