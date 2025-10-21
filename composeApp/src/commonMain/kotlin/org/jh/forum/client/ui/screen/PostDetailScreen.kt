@@ -302,8 +302,7 @@ fun PostDetailScreen(
                                 ) {
                                     Text(
                                         "发表评论",
-                                        style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Medium
+                                        style = MaterialTheme.typography.titleLarge
                                     )
                                     // 美化的关闭按钮
                                     Surface(

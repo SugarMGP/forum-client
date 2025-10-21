@@ -122,11 +122,11 @@ fun NotificationSettingsScreen(
                             ) {
                                 Text(
                                     text = "点赞通知",
-                                    fontWeight = FontWeight.Medium
+                                    style = MaterialTheme.typography.titleMedium
                                 )
                                 Text(
                                     text = "接收他人点赞您帖子的通知",
-                                    fontSize = 14.sp,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -175,11 +175,11 @@ fun NotificationSettingsScreen(
                             ) {
                                 Text(
                                     text = "评论通知",
-                                    fontWeight = FontWeight.Medium
+                                    style = MaterialTheme.typography.titleMedium
                                 )
                                 Text(
                                     text = "接收他人评论您帖子的通知",
-                                    fontSize = 14.sp,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -228,13 +228,12 @@ fun NotificationSettingsScreen(
                     ) {
                         Text(
                             text = "关于通知设置",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.titleMedium
                         )
 
                         Text(
                             text = "您可以根据个人需求选择接收哪些类型的通知。关闭通知后，您将不会收到相应的推送提醒。",
-                            fontSize = 14.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

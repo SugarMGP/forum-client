@@ -258,7 +258,6 @@ fun PostListScreen(
                             SecondaryScrollableTabRow(
                                 selectedTabIndex = if (sortType == SortType.HOT) 1 else 0,
                                 containerColor = MaterialTheme.colorScheme.surface,
-                                contentColor = MaterialTheme.colorScheme.primary,
                                 indicator = {
                                     TabRowDefaults.SecondaryIndicator(
                                         Modifier.tabIndicatorOffset(if (sortType == SortType.HOT) 1 else 0)
@@ -285,7 +284,6 @@ fun PostListScreen(
                             SecondaryScrollableTabRow(
                                 selectedTabIndex = selectedCategoryIndex(selectedCategory, categories),
                                 containerColor = MaterialTheme.colorScheme.surface,
-                                contentColor = MaterialTheme.colorScheme.primary,
                                 indicator = {
                                     TabRowDefaults.SecondaryIndicator(
                                         Modifier.tabIndicatorOffset(

@@ -205,8 +205,7 @@ fun PersonalPostItem(
             post.title?.let {
                 Text(
                     text = it,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )

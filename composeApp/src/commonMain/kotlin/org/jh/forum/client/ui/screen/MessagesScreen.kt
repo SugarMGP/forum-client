@@ -379,8 +379,7 @@ fun MessageItem(message: GetNoticeListElement) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = message.senderInfo.nickname ?: "用户",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleSmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -524,8 +523,11 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                 ) {
                     Text(
                         text = announcement.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = if (!announcement.isRead) FontWeight.Bold else FontWeight.Normal,
+                        style = if (!announcement.isRead) {
+                            MaterialTheme.typography.titleMedium
+                        } else {
+                            MaterialTheme.typography.bodyLarge
+                        },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
