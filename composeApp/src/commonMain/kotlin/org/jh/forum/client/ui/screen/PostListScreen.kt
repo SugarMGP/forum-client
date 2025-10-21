@@ -47,7 +47,7 @@ fun ImageGrid(
             // 单图显示 - 改为正方形，并设置更合适的高度限制
             Box(
                 modifier = Modifier
-                    .sizeIn(maxWidth = 300.dp)
+                    .sizeIn(maxWidth = 200.dp)
                     .aspectRatio(1f)
                     .clip(MaterialTheme.shapes.medium)
                     .clickable(onClick = onClick)
@@ -89,7 +89,7 @@ fun ImageGrid(
                     Box(
                         modifier = Modifier
                             .weight(1f, fill = false)
-                            .sizeIn(maxWidth = 300.dp)
+                            .sizeIn(maxWidth = 200.dp)
                             .aspectRatio(1f)
                             .clip(MaterialTheme.shapes.medium)
                             .clickable(onClick = onClick)
@@ -142,7 +142,7 @@ fun ImageGrid(
                                 Box(
                                     modifier = Modifier
                                         .weight(1f, fill = false)
-                                        .sizeIn(maxWidth = 300.dp)
+                                        .sizeIn(maxWidth = 200.dp)
                                         .aspectRatio(1f)
                                         .clip(MaterialTheme.shapes.medium)
                                         .clickable(onClick = onClick)
