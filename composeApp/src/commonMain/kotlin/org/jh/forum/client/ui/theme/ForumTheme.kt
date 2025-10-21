@@ -65,7 +65,7 @@ private val md_theme_dark_inverseOnSurface = Color(0xFF1A1C1E)
 private val md_theme_dark_inverseSurface = Color(0xFFE2E2E6)
 private val md_theme_dark_inversePrimary = Color(0xFF1976D2)
 
-private val LightColorScheme = lightColorScheme(
+val LightColorScheme = lightColorScheme(
     primary = md_theme_light_primary,
     onPrimary = md_theme_light_onPrimary,
     primaryContainer = md_theme_light_primaryContainer,
@@ -94,7 +94,7 @@ private val LightColorScheme = lightColorScheme(
     inversePrimary = md_theme_light_inversePrimary,
 )
 
-private val DarkColorScheme = darkColorScheme(
+val DarkColorScheme = darkColorScheme(
     primary = md_theme_dark_primary,
     onPrimary = md_theme_dark_onPrimary,
     primaryContainer = md_theme_dark_primaryContainer,
