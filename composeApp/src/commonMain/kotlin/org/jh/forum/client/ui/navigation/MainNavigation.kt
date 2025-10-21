@@ -121,6 +121,10 @@ fun MainNavigation(
                                 // 导航到发帖页面
                                 navController.navigate("create_post")
                             },
+                            onUserClick = { userId: Long ->
+                                // 导航到用户主页
+                                navController.navigate("user_profile/$userId")
+                            },
                             refresh = refresh
                         )
                     }

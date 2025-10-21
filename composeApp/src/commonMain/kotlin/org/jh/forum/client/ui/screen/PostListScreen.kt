@@ -187,6 +187,7 @@ fun ImageGrid(
 fun PostListScreen(
     onPostClick: (Long) -> Unit,
     onNavigateToCreatePost: () -> Unit,
+    onUserClick: (Long) -> Unit = {}, // New parameter for user profile navigation
     refresh: Boolean = false
 ) {
     val viewModel = AppModule.postListViewModel
@@ -391,6 +392,7 @@ fun PostItem(
     post: GetPostListElement,
     onClick: () -> Unit,
     onUpvoteClick: (Long) -> Unit,
+    onUserClick: (Long) -> Unit = {}, // New parameter
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -412,9 +414,12 @@ fun PostItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 用户头像和名称
+                // 用户头像和名称 - 改为可点击
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { 
+                        post.publisherInfo.id?.let { onUserClick(it) }
+                    }
                 ) {
                     AsyncImage(
                         model = post.publisherInfo.avatar ?: "",
