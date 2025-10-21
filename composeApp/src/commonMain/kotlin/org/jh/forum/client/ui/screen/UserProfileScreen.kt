@@ -448,42 +448,18 @@ fun UserInfoCard(
 
                 // Signature
                 userProfile?.signature?.let { signature ->
-                    Text(
-                        text = signature,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-                }
-
-                // Stats row
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
-                ) {
-                    UserStatItem(label = "获赞", value = userProfile?.likesCount ?: 0)
-                    UserStatItem(label = "帖子", value = userProfile?.postsCount ?: 0)
-                    UserStatItem(label = "关注", value = userProfile?.followingCount ?: 0)
+                    if (signature.isNotBlank()) {
+                        Text(
+                            text = signature,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun UserStatItem(label: String, value: Int) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = value.toString(),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
 

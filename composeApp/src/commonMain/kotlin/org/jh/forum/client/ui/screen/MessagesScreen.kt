@@ -491,22 +491,6 @@ fun MessageItem(
         }
     }
 }
-                    
-                    Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-                    
-                    Text(
-                        text = message.positionContent ?: "内容不存在",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-        }
-    }
-}
 
 // 获取操作文本
 private fun getActionText(message: GetNoticeListElement): String {
