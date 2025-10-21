@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -31,6 +32,7 @@ import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.ui.component.CommentEditor
 import org.jh.forum.client.ui.component.CommentItem
 import org.jh.forum.client.ui.theme.AppIcons
+import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.CommentViewModel
 import org.jh.forum.client.ui.viewmodel.PostViewModel
 import org.jh.forum.client.util.TimeUtils
@@ -41,7 +43,8 @@ fun PostDetailScreen(
     postId: Long,
     viewModel: PostViewModel,
     commentViewModel: CommentViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onUserClick: (Long) -> Unit = {}
 ) {
     var post by remember { mutableStateOf<GetPostInfoResponse?>(null) }
     val errorMessage by viewModel.errorMessage.collectAsState()
@@ -108,7 +111,11 @@ fun PostDetailScreen(
                             contentDescription = "返回"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         modifier = Modifier.fillMaxSize()
@@ -118,8 +125,8 @@ fun PostDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            contentPadding = PaddingValues(bottom = Dimensions.spaceMedium),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
         ) {
             item {
                 post?.let { currentPost ->
@@ -136,8 +143,9 @@ fun PostDetailScreen(
                         },
                         onShare = { /* 复制/分享逻辑 */ },
                         onUserProfileClick = {
-                            // 处理点击用户头像/昵称的逻辑
-                            // 可以添加跳转到用户个人资料页面的功能
+                            localPost.publisherInfo.id?.let { userId ->
+                                onUserClick(userId)
+                            }
                         },
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -159,7 +167,7 @@ fun PostDetailScreen(
                     Text(
                         text = "评论（${it.commentCount}）",
                         style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        modifier = Modifier.padding(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall)
                     )
                 }
             }
@@ -170,10 +178,14 @@ fun PostDetailScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
+                            .padding(Dimensions.spaceMedium),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("暂无评论")
+                        Text(
+                            "暂无评论",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -190,36 +202,57 @@ fun PostDetailScreen(
                         onDelete = if (comment.isAuthor) {
                             { commentViewModel.deleteComment(comment.commentId) }
                         } else null,
-                        onUserProfileClick = {
-                            comment.publisherInfo.id?.let { userId ->
-                                // 这里可以添加跳转到用户个人资料页面的逻辑
-                                // 例如：navController.navigate("userProfile/$userId")
-                            }
+                        onUserProfileClick = { userId ->
+                            onUserClick(userId)
                         },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                        modifier = Modifier.fillMaxWidth()
                     )
-                    HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+                    HorizontalDivider()
                 }
             }
 
             // 底部空间，确保内容不被悬浮按钮遮挡
             item {
-                Spacer(modifier = Modifier.height(80.dp))
+                Spacer(modifier = Modifier.height(Dimensions.avatarExtraLarge))
             }
 
             // 评论相关错误消息（如果有）
             if (commentError != null) {
                 item {
-                    Snackbar(modifier = Modifier.padding(16.dp)) { Text(commentError ?: "") }
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Dimensions.spaceMedium),
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        shape = MaterialTheme.shapes.small
+                    ) {
+                        Text(
+                            commentError ?: "",
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(Dimensions.spaceMedium)
+                        )
+                    }
                 }
             }
 
             // 全局 error（来自 viewModel）
             if (errorMessage != null) {
                 item {
-                    Snackbar(modifier = Modifier.padding(16.dp)) { Text(errorMessage ?: "") }
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Dimensions.spaceMedium),
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        shape = MaterialTheme.shapes.small
+                    ) {
+                        Text(
+                            errorMessage ?: "",
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(Dimensions.spaceMedium)
+                        )
+                    }
                 }
             }
         }
@@ -246,7 +279,7 @@ fun PostDetailScreen(
                 },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 48.dp, vertical = 16.dp)
+                    .padding(horizontal = Dimensions.buttonHeightLarge, vertical = Dimensions.spaceMedium)
             ) {
                 if (it) {
                     // 评论编辑器状态 - 小而美设计，与界面边框保持间隔
@@ -269,8 +302,7 @@ fun PostDetailScreen(
                                 ) {
                                     Text(
                                         "发表评论",
-                                        style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Medium
+                                        style = MaterialTheme.typography.titleLarge
                                     )
                                     // 美化的关闭按钮
                                     Surface(
@@ -399,19 +431,18 @@ fun PostContent(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .padding(16.dp)
+            .padding(Dimensions.spaceMedium)
             .animateContentSize(),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 4.dp,
-        shape = RoundedCornerShape(16.dp)
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = Dimensions.elevationSmall,
+        shape = MaterialTheme.shapes.medium
     ) {
         Column {
             // 作者信息区域
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(Dimensions.spaceMedium)
                     .clickable { onUserProfileClick() },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -422,23 +453,23 @@ fun PostContent(
                         model = post.publisherInfo.avatar ?: "",
                         contentDescription = "用户头像",
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(Dimensions.avatarLarge)
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(Dimensions.spaceMedium))
                     Column {
                         Text(
                             text = post.publisherInfo.nickname ?: "未知用户",
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Medium
+                                    overflow = TextOverflow.Ellipsis
                         )
                         // 显示帖子板块
                         if (post.category.isNotEmpty()) {
                             Text(
                                 text = PostCategory.getDisplayName(post.category),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.secondary
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -447,7 +478,7 @@ fun PostContent(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = TimeUtils.formatTime(post.createdAt),
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Row(
@@ -457,13 +488,13 @@ fun PostContent(
                             imageVector = AppIcons.Eye,
                             contentDescription = "浏览量",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(Dimensions.iconSmall)
                         )
                         Text(
                             text = "${post.viewCount}",
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 2.dp)
+                            modifier = Modifier.padding(start = Dimensions.spaceExtraSmall)
                         )
                     }
                 }
@@ -473,27 +504,26 @@ fun PostContent(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = Dimensions.spaceMedium)
                     .alpha(contentAlpha)
             ) {
                 Text(
                     text = post.title ?: "",
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
                 )
 
                 // 帖子内容
                 Text(
                     text = post.content ?: "",
                     style = MaterialTheme.typography.bodyLarge,
-                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.2f,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
                 )
 
                 // 图片显示
                 if (post.pictures.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
                     ImageGrid(
                         images = post.pictures.map { it.url },
                         totalPictures = post.pictures.size,
@@ -508,23 +538,23 @@ fun PostContent(
                     exit = fadeOut() + shrinkHorizontally()
                 ) {
                     Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        tonalElevation = 1.dp,
-                        shape = MaterialTheme.shapes.medium,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        tonalElevation = Dimensions.elevationSmall,
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
                     ) {
                         LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                            contentPadding = PaddingValues(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             items(post.topics) { tag ->
                                 FilterChip(
                                     selected = false,
                                     onClick = { },
-                                    label = { Text(tag) },
+                                    label = { Text(tag, style = MaterialTheme.typography.labelMedium) },
                                     colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer
                                     )
                                 )
                             }
@@ -540,74 +570,78 @@ fun PostContent(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp, horizontal = 8.dp)
+                    .padding(vertical = Dimensions.spaceMedium, horizontal = Dimensions.spaceSmall)
             ) {
                 // 点赞按钮
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = {
                         isLikeAnimating = true
                         onUpvote()
                     },
                     modifier = Modifier
-                        .height(36.dp)
-                        .clip(RoundedCornerShape(18.dp)),
-                    shape = RoundedCornerShape(18.dp),
-                    border = ButtonDefaults.outlinedButtonBorder().copy(
-                        width = if (post.isLiked) 1.dp else 1.dp
-                    ),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = if (post.isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        .height(Dimensions.buttonHeightSmall),
+                    shape = MaterialTheme.shapes.small,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = if (post.isLiked) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
+                        contentColor = if (post.isLiked) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
                     )
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(horizontal = 8.dp)
+                        modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
                     ) {
                         Icon(
                             imageVector = AppIcons.ThumbUp,
                             contentDescription = "点赞",
                             modifier = Modifier
-                                .size(16.dp)
+                                .size(Dimensions.iconSmall)
                                 .scale(likeScale)
                         )
                         Text(
                             text = "${post.likeCount}",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(start = 4.dp)
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(start = Dimensions.spaceExtraSmall)
                         )
                     }
                 }
 
                 // 分享按钮
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = {
                         showShareMessage = true
                         onShare()
                     },
                     modifier = Modifier
-                        .height(36.dp)
-                        .clip(RoundedCornerShape(18.dp)),
-                    shape = RoundedCornerShape(18.dp),
-                    border = ButtonDefaults.outlinedButtonBorder().copy(width = 1.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
+                        .height(Dimensions.buttonHeightSmall),
+                    shape = MaterialTheme.shapes.small,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(horizontal = 8.dp)
+                        modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
                     ) {
                         Icon(
                             imageVector = AppIcons.Share,
                             contentDescription = "分享",
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(Dimensions.iconSmall)
                         )
                         Text(
                             text = "分享",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(start = 4.dp)
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(start = Dimensions.spaceExtraSmall)
                         )
                     }
                 }

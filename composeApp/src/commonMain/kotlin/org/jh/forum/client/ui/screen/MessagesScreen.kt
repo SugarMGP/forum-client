@@ -1,6 +1,7 @@
 package org.jh.forum.client.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,13 +20,15 @@ import org.jh.forum.client.data.model.GetAnnouncementListElement
 import org.jh.forum.client.data.model.GetNoticeListElement
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.ui.theme.AppIcons
+import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessagesScreen(
-    repository: ForumRepository
+    repository: ForumRepository,
+    onUserClick: (Long) -> Unit = {}
 ) {
     // 消息相关状态
     var messages by remember { mutableStateOf<List<GetNoticeListElement>>(emptyList()) }
@@ -120,10 +123,10 @@ fun MessagesScreen(
                             Text("消息")
                             // 底栏红点逻辑：如果两个数不都为0则显示红点
                             if (unreadNoticeCount > 0 || unreadAnnouncementCount > 0) {
-                                Spacer(modifier = Modifier.width(8.dp))
+                                Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                                 Box(
                                     modifier = Modifier
-                                        .size(8.dp)
+                                        .size(Dimensions.spaceSmall)
                                         .background(
                                             color = MaterialTheme.colorScheme.error,
                                             shape = CircleShape
@@ -131,7 +134,11 @@ fun MessagesScreen(
                                 )
                             }
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
 
                 Column {
@@ -246,23 +253,39 @@ fun MessagesScreen(
                 selectedType == 0 && messages.isEmpty() -> {
                     Box(
                         modifier = Modifier
-                            .fillMaxSize(),
+                            .fillMaxSize()
+                            .padding(Dimensions.spaceLarge),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(
-                                AppIcons.Message,
-                                contentDescription = "无消息",
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.size(120.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        AppIcons.Message,
+                                        contentDescription = "无消息",
+                                        modifier = Modifier.size(64.dp),
+                                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(Dimensions.spaceLarge))
                             Text(
                                 text = "暂无互动消息",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                            Text(
+                                text = "当有人点赞、评论或收藏您的帖子时\n您将在这里收到通知",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
                         }
                     }
@@ -272,23 +295,39 @@ fun MessagesScreen(
                 selectedType == 1 && announcements.isEmpty() -> {
                     Box(
                         modifier = Modifier
-                            .fillMaxSize(),
+                            .fillMaxSize()
+                            .padding(Dimensions.spaceLarge),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(
-                                AppIcons.Notifications,
-                                contentDescription = "无公告",
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.size(120.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        AppIcons.Notifications,
+                                        contentDescription = "无公告",
+                                        modifier = Modifier.size(64.dp),
+                                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(Dimensions.spaceLarge))
                             Text(
                                 text = "暂无公告",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                            Text(
+                                text = "系统公告和学校公告将在这里显示",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
                         }
                     }
@@ -299,11 +338,14 @@ fun MessagesScreen(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        contentPadding = PaddingValues(Dimensions.spaceMedium),
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
                     ) {
                         items(messages) {
-                            MessageItem(message = it)
+                            MessageItem(
+                                message = it,
+                                onUserClick = onUserClick
+                            )
                         }
                     }
                 }
@@ -313,8 +355,8 @@ fun MessagesScreen(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        contentPadding = PaddingValues(Dimensions.spaceMedium),
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                     ) {
                         items(announcements) {
                             AnnouncementItem(announcement = it)
@@ -328,135 +370,123 @@ fun MessagesScreen(
 
 @OptIn(ExperimentalTime::class)
 @Composable
-fun MessageItem(message: GetNoticeListElement) {
+fun MessageItem(
+    message: GetNoticeListElement,
+    onUserClick: (Long) -> Unit = {}
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = MaterialTheme.shapes.medium
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(Dimensions.spaceMedium)
         ) {
-            // 发送者头像
-            Box(
-                modifier = Modifier.size(48.dp),
-                contentAlignment = Alignment.Center
+            // Header: Avatar + Name + Action + Time
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                // 所有类型消息都使用用户头像
-                AsyncImage(
-                    model = message.senderInfo.avatar,
-                    contentDescription = message.senderInfo.nickname ?: "用户头像",
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // 消息内容
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+                // Avatar and user info
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable {
+                            message.senderInfo.id?.let { onUserClick(it) }
+                        }
                 ) {
-                    // 发送者昵称和操作文本
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    AsyncImage(
+                        model = message.senderInfo.avatar,
+                        contentDescription = "用户头像",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+
+                    Column {
                         Text(
                             text = message.senderInfo.nickname ?: "用户",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleSmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        
                         Text(
                             text = getActionText(message),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    // 未读标记（圆点）和时间
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = TimeUtils.formatTime(message.updatedAt),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        if (!message.isRead) {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        shape = CircleShape
-                                    )
-                            )
-                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // 根据消息类型显示不同内容
-                if (message.type == "comment" && message.newCommentId != null && message.newCommentContent != null) {
+                // Time and unread indicator
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                ) {
                     Text(
-                        text = message.newCommentContent,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        text = TimeUtils.formatTime(message.updatedAt),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    if (!message.isRead) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(6.dp)
+                        ) {}
+                    }
                 }
+            }
 
-                // 位置内容
+            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+
+            // Comment content (if it's a comment message)
+            if (message.type == "comment" && message.newCommentContent != null) {
+                Text(
+                    text = message.newCommentContent,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(vertical = Dimensions.spaceSmall),
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+            }
+
+            // Original content (quote style with minimal design)
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .height(36.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            shape = MaterialTheme.shapes.extraSmall
+                        )
+                )
+
+                Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+
                 Text(
                     text = message.positionContent ?: "内容不存在",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = if (message.type == "comment") 3 else 2,
-                    overflow = TextOverflow.Ellipsis
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f).align(Alignment.CenterVertically)
                 )
-
-                // 评论类型消息的操作按钮
-                if (message.type == "comment") {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        // 点赞按钮
-                        if (message.newCommentId != null) {
-                            IconButton(onClick = { /* 点赞逻辑 */ }) {
-                                Icon(
-                                    AppIcons.Favorite,
-                                    contentDescription = "点赞",
-                                    tint = if (message.isLiked == true) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        // 回复按钮
-                        IconButton(onClick = { /* 回复逻辑 */ }) {
-                            Icon(
-                                AppIcons.Reply,
-                                contentDescription = "回复",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
             }
         }
     }
@@ -478,29 +508,29 @@ private fun getActionText(message: GetNoticeListElement): String {
 fun AnnouncementItem(announcement: GetAnnouncementListElement) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(Dimensions.spaceMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 公告图标
-            Box(
-                modifier = Modifier.size(48.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    AppIcons.Notifications,
-                    contentDescription = "公告",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
+            // Icon
+            Icon(
+                AppIcons.Notifications,
+                contentDescription = "公告",
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
 
-            // 公告内容
+            // Content
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -511,26 +541,33 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                 ) {
                     Text(
                         text = announcement.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = if (!announcement.isRead) FontWeight.Bold else FontWeight.Normal,
+                        style = MaterialTheme.typography.titleSmall,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
 
-                    // 未读标记（圆点）
-                    if (!announcement.isRead) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    shape = CircleShape
-                                )
+                    // Time and unread indicator
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                    ) {
+                        Text(
+                            text = TimeUtils.formatTime(announcement.publishedAt),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        if (!announcement.isRead) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(6.dp)
+                            ) {}
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
 
                 Text(
                     text = announcement.content,
@@ -538,14 +575,6 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = TimeUtils.formatTime(announcement.publishedAt),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

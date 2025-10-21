@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -27,6 +28,7 @@ import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.data.model.SortType
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.theme.AppIcons
+import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
 import kotlin.enums.EnumEntries
 
@@ -46,8 +48,9 @@ fun ImageGrid(
             // 单图显示 - 改为正方形，并设置更合适的高度限制
             Box(
                 modifier = Modifier
-                    .sizeIn(maxWidth = 300.dp)
+                    .sizeIn(maxWidth = 200.dp)
                     .aspectRatio(1f)
+                    .clip(MaterialTheme.shapes.medium)
                     .clickable(onClick = onClick)
             ) {
                 AsyncImage(
@@ -63,12 +66,12 @@ fun ImageGrid(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.5f))
+                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
                     ) {
                         Text(
                             text = "+${totalPictures - 1}",
                             style = MaterialTheme.typography.titleLarge,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -78,7 +81,7 @@ fun ImageGrid(
         in 2..3 -> {
             // 2-3张图片，水平排列，减小高度限制
             Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
             ) {
                 displayImages.forEachIndexed { index, imageUrl ->
                     val isLastImage = index == displayImages.size - 1
@@ -87,8 +90,9 @@ fun ImageGrid(
                     Box(
                         modifier = Modifier
                             .weight(1f, fill = false)
-                            .sizeIn(maxWidth = 300.dp)
+                            .sizeIn(maxWidth = 200.dp)
                             .aspectRatio(1f)
+                            .clip(MaterialTheme.shapes.medium)
                             .clickable(onClick = onClick)
                     ) {
                         AsyncImage(
@@ -104,12 +108,12 @@ fun ImageGrid(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Black.copy(alpha = 0.5f))
+                                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
                             ) {
                                 Text(
                                     text = "+${totalPictures - displayImages.size}",
                                     style = MaterialTheme.typography.titleLarge,
-                                    color = Color.White
+                                    color = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
                         }
@@ -124,11 +128,11 @@ fun ImageGrid(
             val gridRows = (displayImages.size + gridColumns - 1) / gridColumns
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
             ) {
                 (0 until gridRows).forEach { row ->
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
                     ) {
                         (0 until gridColumns).forEach { col ->
                             val index = row * gridColumns + col
@@ -139,8 +143,9 @@ fun ImageGrid(
                                 Box(
                                     modifier = Modifier
                                         .weight(1f, fill = false)
-                                        .sizeIn(maxWidth = 300.dp)
+                                        .sizeIn(maxWidth = 200.dp)
                                         .aspectRatio(1f)
+                                        .clip(MaterialTheme.shapes.medium)
                                         .clickable(onClick = onClick)
                                 ) {
                                     AsyncImage(
@@ -156,12 +161,12 @@ fun ImageGrid(
                                             contentAlignment = Alignment.Center,
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .background(Color.Black.copy(alpha = 0.5f))
+                                                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
                                         ) {
                                             Text(
                                                 text = "+${totalPictures - displayImages.size}",
                                                 style = MaterialTheme.typography.titleLarge,
-                                                color = Color.White
+                                                color = MaterialTheme.colorScheme.onPrimary
                                             )
                                         }
                                     }
@@ -183,6 +188,7 @@ fun ImageGrid(
 fun PostListScreen(
     onPostClick: (Long) -> Unit,
     onNavigateToCreatePost: () -> Unit,
+    onUserClick: (Long) -> Unit = {}, // New parameter for user profile navigation
     refresh: Boolean = false
 ) {
     val viewModel = AppModule.postListViewModel
@@ -254,7 +260,6 @@ fun PostListScreen(
                             SecondaryScrollableTabRow(
                                 selectedTabIndex = if (sortType == SortType.HOT) 1 else 0,
                                 containerColor = MaterialTheme.colorScheme.surface,
-                                contentColor = MaterialTheme.colorScheme.primary,
                                 indicator = {
                                     TabRowDefaults.SecondaryIndicator(
                                         Modifier.tabIndicatorOffset(if (sortType == SortType.HOT) 1 else 0)
@@ -281,7 +286,6 @@ fun PostListScreen(
                             SecondaryScrollableTabRow(
                                 selectedTabIndex = selectedCategoryIndex(selectedCategory, categories),
                                 containerColor = MaterialTheme.colorScheme.surface,
-                                contentColor = MaterialTheme.colorScheme.primary,
                                 indicator = {
                                     TabRowDefaults.SecondaryIndicator(
                                         Modifier.tabIndicatorOffset(
@@ -334,10 +338,10 @@ fun PostListScreen(
                     Icon(
                         AppIcons.Inbox,
                         contentDescription = "空列表",
-                        modifier = Modifier.size(64.dp),
+                        modifier = Modifier.size(Dimensions.iconExtraLarge + Dimensions.spaceMedium),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
                     Text(
                         text = "暂无帖子",
                         style = MaterialTheme.typography.bodyLarge,
@@ -348,13 +352,14 @@ fun PostListScreen(
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    contentPadding = PaddingValues(Dimensions.spaceMedium),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
                 ) {
                     items(posts) {
                         PostItem(
                             post = it,
                             onClick = { onPostClick(it.id) },
+                            onUserClick = { userId -> onUserClick(userId) },
                             onUpvoteClick = { it -> viewModel.upvotePost(it) }
                         )
                     }
@@ -389,54 +394,62 @@ fun PostItem(
     post: GetPostListElement,
     onClick: () -> Unit,
     onUpvoteClick: (Long) -> Unit,
+    onUserClick: (Long) -> Unit = {}, // New parameter
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium),
+            .fillMaxWidth(),
         onClick = onClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
             contentColor = MaterialTheme.colorScheme.onSurface
-        )
+        ),
+        shape = MaterialTheme.shapes.medium
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(Dimensions.spaceMedium)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 用户头像和名称
+                // 用户头像和名称 - 改为可点击
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable {
+                        post.publisherInfo.id?.let { onUserClick(it) }
+                    }
                 ) {
                     AsyncImage(
                         model = post.publisherInfo.avatar ?: "",
                         contentDescription = "用户头像",
                         modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), CircleShape),
+                            .size(Dimensions.avatarMedium)
+                            .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                     Column {
                         Text(
                             text = post.publisherInfo.nickname ?: "",
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1
                         )
                         Text(
                             text = getCategoryDisplayName(post.category),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.width(Dimensions.spaceExtraSmall))
 
                 // 右上角信息：时间、评论、浏览量
                 Column(
@@ -444,55 +457,41 @@ fun PostItem(
                 ) {
                     Text(
                         text = TimeUtils.formatTime(post.createdAt),
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 2.dp)
+                        modifier = Modifier.padding(top = Dimensions.spaceExtraSmall)
                     ) {
                         Icon(
                             AppIcons.Comment,
                             contentDescription = "评论",
-                            modifier = Modifier.size(14.dp),
+                            modifier = Modifier.size(Dimensions.iconSmall),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(modifier = Modifier.width(2.dp))
+                        Spacer(modifier = Modifier.width(Dimensions.spaceExtraSmall))
                         Text(
                             text = "${post.commentCount}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            AppIcons.Visibility,
-                            contentDescription = "浏览",
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Text(
-                            text = "0", // GetPostListElement没有viewCount字段
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
             // 标题
             Text(
                 text = post.title ?: "",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.animateContentSize()
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
 
             // 内容
             Text(
@@ -506,7 +505,7 @@ fun PostItem(
 
             // 图片预览（如果有）
             if (post.pictures.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                 ImageGrid(
                     images = post.pictures.map { it.url },
                     totalPictures = post.totalPictures,
@@ -514,7 +513,7 @@ fun PostItem(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
             // 底部信息 - 优化的点赞按钮设计
             Row(
@@ -523,42 +522,33 @@ fun PostItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 // 左侧：简洁的点赞按钮
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = { onUpvoteClick(post.id) },
-                    modifier = Modifier.height(36.dp),
-                    shape = RoundedCornerShape(18.dp), // 圆角按钮
-                    border = BorderStroke(
-                        1.dp,
-                        if (post.isLiked) {
-                            MaterialTheme.colorScheme.primary
+                    modifier = Modifier.height(Dimensions.buttonHeightSmall),
+                    shape = MaterialTheme.shapes.small,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = if (post.isLiked) {
+                            MaterialTheme.colorScheme.primaryContainer
                         } else {
-                            MaterialTheme.colorScheme.outline
-                        }
-                    ),
-                    colors = ButtonDefaults.outlinedButtonColors(
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
                         contentColor = if (post.isLiked) {
-                            MaterialTheme.colorScheme.primary
+                            MaterialTheme.colorScheme.onPrimaryContainer
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        containerColor = if (post.isLiked) {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
-                        } else {
-                            MaterialTheme.colorScheme.surface
                         }
                     ),
-                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+                    contentPadding = PaddingValues(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall)
                 ) {
                     Icon(
                         AppIcons.ThumbUp,
                         contentDescription = "点赞",
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(Dimensions.iconSmall)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(Dimensions.spaceExtraSmall))
                     Text(
                         text = "${post.likeCount}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = if (post.isLiked) FontWeight.Bold else FontWeight.Normal
+                        style = MaterialTheme.typography.labelLarge
                     )
                 }
             }

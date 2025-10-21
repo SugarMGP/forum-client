@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import org.jh.forum.client.data.model.UpdateNoticeSettingsRequest
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.ui.theme.AppIcons
+import org.jh.forum.client.ui.theme.Dimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,7 +59,11 @@ fun NotificationSettingsScreen(
                             contentDescription = "返回"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
     ) { paddingValues ->
@@ -67,8 +72,8 @@ fun NotificationSettingsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(Dimensions.spaceMedium),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
         ) {
             if (isLoading) {
                 Box(
@@ -99,7 +104,11 @@ fun NotificationSettingsScreen(
             } else {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    shape = MaterialTheme.shapes.medium
                 ) {
                     Column {
                         Row(
@@ -113,11 +122,11 @@ fun NotificationSettingsScreen(
                             ) {
                                 Text(
                                     text = "点赞通知",
-                                    fontWeight = FontWeight.Medium
+                                    style = MaterialTheme.typography.titleMedium
                                 )
                                 Text(
                                     text = "接收他人点赞您帖子的通知",
-                                    fontSize = 14.sp,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -166,11 +175,11 @@ fun NotificationSettingsScreen(
                             ) {
                                 Text(
                                     text = "评论通知",
-                                    fontWeight = FontWeight.Medium
+                                    style = MaterialTheme.typography.titleMedium
                                 )
                                 Text(
                                     text = "接收他人评论您帖子的通知",
-                                    fontSize = 14.sp,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -219,13 +228,12 @@ fun NotificationSettingsScreen(
                     ) {
                         Text(
                             text = "关于通知设置",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
+                            style = MaterialTheme.typography.titleMedium
                         )
 
                         Text(
                             text = "您可以根据个人需求选择接收哪些类型的通知。关闭通知后，您将不会收到相应的推送提醒。",
-                            fontSize = 14.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

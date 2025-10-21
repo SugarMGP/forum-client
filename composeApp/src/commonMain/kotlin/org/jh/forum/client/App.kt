@@ -17,7 +17,8 @@ fun App() {
     }
 
     ForumTheme(
-        darkTheme = darkTheme
+        darkTheme = darkTheme,
+        dynamicColor = true // Enable dynamic color on Android 12+
     ) {
         MainNavigation(
             onThemeChanged = { mode ->

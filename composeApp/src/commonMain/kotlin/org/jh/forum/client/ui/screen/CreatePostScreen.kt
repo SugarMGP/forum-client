@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
 import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.ui.theme.AppIcons
+import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.PostViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -127,7 +129,11 @@ fun CreatePostScreen(
                     IconButton(onClick = onBack) {
                         Icon(AppIcons.ArrowBack, contentDescription = "返回")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
     ) { paddingValues ->
@@ -135,10 +141,10 @@ fun CreatePostScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(Dimensions.spaceMedium)
         ) {
             // 标题输入
-            TextField(
+            OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("标题") },
@@ -149,13 +155,14 @@ fun CreatePostScreen(
                 ),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                shape = MaterialTheme.shapes.medium,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
             // 分类选择
             OutlinedTextField(
@@ -169,7 +176,12 @@ fun CreatePostScreen(
                         Icon(AppIcons.Category, contentDescription = "选择分类")
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                )
             )
 
             // 分类选择菜单
@@ -204,10 +216,10 @@ fun CreatePostScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
             // 内容输入
-            TextField(
+            OutlinedTextField(
                 value = content,
                 onValueChange = { content = it },
                 label = { Text("内容") },
@@ -222,17 +234,18 @@ fun CreatePostScreen(
                     .weight(1f),
                 maxLines = 10,
                 minLines = 5,
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                shape = MaterialTheme.shapes.medium,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
             // 标签输入
             Row(Modifier.fillMaxWidth()) {
-                TextField(
+                OutlinedTextField(
                     value = topicInput,
                     onValueChange = { topicInput = it },
                     label = { Text("标签") },
@@ -247,23 +260,25 @@ fun CreatePostScreen(
                     keyboardActions = KeyboardActions(
                         onDone = { addTopic() }
                     ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                    shape = MaterialTheme.shapes.medium,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     )
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                 Button(
                     onClick = { addTopic() },
-                    modifier = Modifier.align(Alignment.CenterVertically)
+                    modifier = Modifier.align(Alignment.CenterVertically).height(Dimensions.buttonHeightLarge),
+                    shape = MaterialTheme.shapes.small
                 ) {
-                    Text("添加")
+                    Text("添加", style = MaterialTheme.typography.labelLarge)
                 }
             }
 
             // 显示已添加的标签
             if (topics.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                 Box(modifier = Modifier.fillMaxWidth()) {
                     WrapContent {
                         topics.forEach { topic ->
@@ -271,49 +286,51 @@ fun CreatePostScreen(
                                 selected = false,
                                 onClick = { removeTopic(topic) },
                                 label = { Text(topic) },
-                                modifier = Modifier.padding(end = 8.dp, bottom = 8.dp)
+                                modifier = Modifier.padding(end = Dimensions.spaceSmall, bottom = Dimensions.spaceSmall)
                             )
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
             // 图片上传
             Button(
                 onClick = onImagePickerClick,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !isUploadingImage && selectedImages.size < 9
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Dimensions.buttonHeightLarge),
+                enabled = !isUploadingImage && selectedImages.size < 9,
+                shape = MaterialTheme.shapes.small
             ) {
                 if (isUploadingImage) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(Dimensions.iconSmall),
                         color = MaterialTheme.colorScheme.onPrimary,
                         strokeWidth = 2.dp
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("上传中...")
+                    Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                    Text("上传中...", style = MaterialTheme.typography.labelLarge)
                 } else {
-                    Text("选择图片 (最多9张)")
+                    Text("选择图片 (最多9张)", style = MaterialTheme.typography.labelLarge)
                 }
             }
 
             // 图片预览
             if (selectedImages.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
                 LazyHorizontalGrid(
                     rows = GridCells.Fixed(calculateRows(selectedImages.size)),
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                 ) {
                     items(selectedImages) {
                         val index = selectedImages.indexOf(it)
                         Box(
                             modifier = Modifier
-                                .size(80.dp)
-                                .border(1.dp, Color.LightGray)
+                                .size(Dimensions.imagePreviewSmall)
                                 .clip(MaterialTheme.shapes.medium)
                         ) {
                             Image(
@@ -322,21 +339,22 @@ fun CreatePostScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
-                            Box(
+                            Surface(
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
-                                    .background(Color.Black.copy(alpha = 0.5f))
-                                    .padding(2.dp)
+                                    .padding(Dimensions.spaceExtraSmall),
+                                color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f),
+                                shape = CircleShape
                             ) {
                                 IconButton(
                                     onClick = { removeImage(it) },
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(Dimensions.iconMedium)
                                 ) {
                                     Icon(
                                         AppIcons.Close,
                                         contentDescription = "移除图片",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(12.dp)
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(Dimensions.iconSmall)
                                     )
                                 }
                             }
@@ -345,32 +363,43 @@ fun CreatePostScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
             // 提交按钮（大屏幕上显示）
             Box(modifier = Modifier.fillMaxWidth()) {
                 Button(
                     onClick = ::submitPost,
                     enabled = !isSubmitting && title.isNotBlank() && content.isNotBlank() && selectedCategory != null,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(Dimensions.buttonHeightLarge),
+                    shape = MaterialTheme.shapes.small
                 ) {
                     if (isSubmitting) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(Dimensions.iconSmall),
                             color = MaterialTheme.colorScheme.onPrimary,
                             strokeWidth = 2.dp
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                     }
-                    Text("发布帖子")
+                    Text("发布帖子", style = MaterialTheme.typography.labelLarge)
                 }
             }
 
             errorMessage?.let { message ->
-                Snackbar(
-                    modifier = Modifier.padding(16.dp)
+                Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    shape = MaterialTheme.shapes.small
                 ) {
-                    Text(message)
+                    Text(
+                        message,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(Dimensions.spaceMedium)
+                    )
                 }
             }
         }
