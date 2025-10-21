@@ -39,6 +39,7 @@ fun MainNavigation(
     val currentDestination = navBackStackEntry?.destination
     var showThemeSettings by remember { mutableStateOf(false) }
     var showNotificationSettings by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(false) }
     var currentTheme by remember { mutableStateOf(ThemeMode.SYSTEM) }
 
     // 在组件初始化时检查用户登录状态
@@ -74,6 +75,15 @@ fun MainNavigation(
             onNavigateBack = {
                 showNotificationSettings = false
             }
+        )
+    } else if (showSettings) {
+        SettingsScreen(
+            authViewModel = authViewModel,
+            onNavigateBack = {
+                showSettings = false
+            },
+            onNavigateToThemeSettings = { showThemeSettings = true },
+            onNavigateToNotificationSettings = { showNotificationSettings = true }
         )
     } else {
         NavigationSuiteScaffold(
@@ -120,17 +130,36 @@ fun MainNavigation(
                     }
 
                     composable(BottomNavItem.Profile.route) {
-                        ProfileScreen(
-                            authViewModel = authViewModel,
-                            onNavigateToThemeSettings = { showThemeSettings = true },
-                            onNavigateToNotificationSettings = { showNotificationSettings = true },
-                            onNavigateToLogin = {
-                                navController.navigate("login")
-                            },
-                            onNavigateToPersonalPosts = {
-                                navController.navigate("personal_posts")
-                            }
-                        )
+                        val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
+                        val isLoggedIn = authViewModel.isLoggedIn.collectAsState().value
+                        
+                        if (isLoggedIn && currentUserId != null) {
+                            UserProfileScreen(
+                                userId = currentUserId,
+                                authViewModel = authViewModel,
+                                repository = repository,
+                                onPostClick = { postId ->
+                                    navController.navigate("post_detail/$postId")
+                                },
+                                onNavigateBack = null, // No back button for bottom nav
+                                onNavigateToSettings = {
+                                    showSettings = true
+                                }
+                            )
+                        } else {
+                            // Show login prompt
+                            ProfileScreen(
+                                authViewModel = authViewModel,
+                                onNavigateToThemeSettings = { showThemeSettings = true },
+                                onNavigateToNotificationSettings = { showNotificationSettings = true },
+                                onNavigateToLogin = {
+                                    navController.navigate("login")
+                                },
+                                onNavigateToPersonalPosts = {
+                                    navController.navigate("personal_posts")
+                                }
+                            )
+                        }
                     }
 
                     composable("personal_posts") {
@@ -179,6 +208,26 @@ fun MainNavigation(
                                 navController.popBackStack()
                             },
                             onImagePickerClick = {}
+                        )
+                    }
+
+                    // 用户主页 - 查看其他用户
+                    composable("user_profile/{userId}") { backStackEntry ->
+                        val userIdStr = backStackEntry.savedStateHandle.get<String>("userId") ?: "0"
+                        val userId = userIdStr.toLongOrNull() ?: 0L
+                        UserProfileScreen(
+                            userId = userId,
+                            authViewModel = authViewModel,
+                            repository = repository,
+                            onPostClick = { postId ->
+                                navController.navigate("post_detail/$postId")
+                            },
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            },
+                            onNavigateToSettings = {
+                                showSettings = true
+                            }
                         )
                     }
                 }
