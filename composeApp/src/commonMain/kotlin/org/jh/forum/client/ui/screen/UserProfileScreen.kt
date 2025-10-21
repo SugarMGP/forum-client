@@ -33,7 +33,7 @@ fun UserProfileScreen(
     val isCurrentUser = authViewModel.userProfile.collectAsState().value?.userId == userId
     var userProfile by remember { mutableStateOf<org.jh.forum.client.data.model.GetUserProfileResponse?>(null) }
     var isLoading by remember { mutableStateOf(true) }
-    
+
     // Load user profile
     LaunchedEffect(userId) {
         try {
@@ -121,6 +121,7 @@ fun UserProfileScreen(
                         repository = repository,
                         onPostClick = onPostClick
                     )
+
                     1 -> {
                         if (isCurrentUser) {
                             UserCommentsTab(
@@ -368,7 +369,7 @@ fun UserCommentsTab(
     repository: ForumRepository
 ) {
     val listState = rememberLazyListState()
-    
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         state = listState,

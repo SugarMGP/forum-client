@@ -141,7 +141,7 @@ fun MainNavigation(
                     composable(BottomNavItem.Profile.route) {
                         val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
                         val isLoggedIn = authViewModel.isLoggedIn.collectAsState().value
-                        
+
                         if (isLoggedIn && currentUserId != null) {
                             UserProfileScreen(
                                 userId = currentUserId,

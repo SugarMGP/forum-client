@@ -16,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.CommentElement
 import org.jh.forum.client.ui.theme.Dimensions
@@ -88,7 +87,10 @@ fun CommentItem(
                                 text = "楼主",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(horizontal = Dimensions.spaceSmall, vertical = Dimensions.spaceExtraSmall)
+                                modifier = Modifier.padding(
+                                    horizontal = Dimensions.spaceSmall,
+                                    vertical = Dimensions.spaceExtraSmall
+                                )
                             )
                         }
                     }

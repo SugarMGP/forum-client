@@ -14,12 +14,13 @@ actual fun ForumTheme(
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
-    
+
     // Dynamic color is available on Android 12+ (API 31+)
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }

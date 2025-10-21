@@ -19,10 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -167,7 +165,10 @@ fun PostDetailScreen(
                     Text(
                         text = "评论（${it.commentCount}）",
                         style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall)
+                        modifier = Modifier.padding(
+                            horizontal = Dimensions.spaceMedium,
+                            vertical = Dimensions.spaceSmall
+                        )
                     )
                 }
             }
@@ -462,7 +463,7 @@ fun PostContent(
                         Text(
                             text = post.publisherInfo.nickname ?: "未知用户",
                             style = MaterialTheme.typography.titleSmall,
-                                    overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis
                         )
                         // 显示帖子板块
                         if (post.category.isNotEmpty()) {
@@ -545,7 +546,10 @@ fun PostContent(
                     ) {
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
-                            contentPadding = PaddingValues(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall),
+                            contentPadding = PaddingValues(
+                                horizontal = Dimensions.spaceMedium,
+                                vertical = Dimensions.spaceSmall
+                            ),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             items(post.topics) { tag ->

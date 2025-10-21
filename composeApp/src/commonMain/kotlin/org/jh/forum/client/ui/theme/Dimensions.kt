@@ -13,36 +13,36 @@ object Dimensions {
     val spaceMedium = 16.dp
     val spaceLarge = 24.dp
     val spaceExtraLarge = 32.dp
-    
+
     // Card elevations
     val elevationNone = 0.dp
     val elevationSmall = 1.dp
     val elevationMedium = 3.dp
     val elevationLarge = 6.dp
-    
+
     // Icon sizes
     val iconSmall = 16.dp
     val iconMedium = 24.dp
     val iconLarge = 32.dp
     val iconExtraLarge = 48.dp
-    
+
     // Avatar sizes
     val avatarSmall = 32.dp
     val avatarMedium = 40.dp
     val avatarLarge = 56.dp
     val avatarExtraLarge = 80.dp
-    
+
     // Button heights
     val buttonHeightSmall = 32.dp
     val buttonHeightMedium = 40.dp
     val buttonHeightLarge = 48.dp
-    
+
     // Corner radius for various components
     val cornerRadiusSmall = 8.dp
     val cornerRadiusMedium = 12.dp
     val cornerRadiusLarge = 16.dp
     val cornerRadiusFull = 999.dp
-    
+
     // Image preview sizes
     val imagePreviewSmall = 80.dp
     val imagePreviewMedium = 100.dp
