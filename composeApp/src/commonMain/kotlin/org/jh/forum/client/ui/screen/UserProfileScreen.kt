@@ -95,43 +95,40 @@ fun UserProfileScreen(
                 )
 
                 // Tabs below user info
-                if (isCurrentUser) {
-                    // Show both tabs for current user
-                    PrimaryTabRow(
-                        selectedTabIndex = selectedTab,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Tab(
-                            selected = selectedTab == 0,
-                            onClick = { selectedTab = 0 },
-                            text = { Text("帖子") }
-                        )
+                PrimaryTabRow(
+                    selectedTabIndex = selectedTab,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Tab(
+                        selected = selectedTab == 0,
+                        onClick = { selectedTab = 0 },
+                        text = { Text("帖子") }
+                    )
+                    // Only show Comments tab for current user
+                    if (isCurrentUser) {
                         Tab(
                             selected = selectedTab == 1,
                             onClick = { selectedTab = 1 },
                             text = { Text("评论") }
                         )
                     }
+                }
 
-                    // Tab Content
-                    when (selectedTab) {
-                        0 -> UserPostsTab(
-                            userId = userId,
-                            repository = repository,
-                            onPostClick = onPostClick
-                        )
-                        1 -> UserCommentsTab(
-                            userId = userId,
-                            repository = repository
-                        )
-                    }
-                } else {
-                    // Only show posts tab for other users
-                    UserPostsTab(
+                // Tab Content
+                when (selectedTab) {
+                    0 -> UserPostsTab(
                         userId = userId,
                         repository = repository,
                         onPostClick = onPostClick
                     )
+                    1 -> {
+                        if (isCurrentUser) {
+                            UserCommentsTab(
+                                userId = userId,
+                                repository = repository
+                            )
+                        }
+                    }
                 }
             }
         }
