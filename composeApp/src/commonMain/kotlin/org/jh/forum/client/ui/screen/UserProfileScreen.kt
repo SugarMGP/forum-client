@@ -368,7 +368,31 @@ fun UserCommentsTab(
     userId: Long,
     repository: ForumRepository
 ) {
+    var comments by remember { mutableStateOf<List<org.jh.forum.client.data.model.PersonalCommentListElement>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var hasMore by remember { mutableStateOf(true) }
+    var currentPage by remember { mutableStateOf(1) }
     val listState = rememberLazyListState()
+
+    // Load comments
+    LaunchedEffect(currentPage, userId) {
+        try {
+            isLoading = true
+            val result = repository.getPersonalComment(page = currentPage, pageSize = 20)
+            if (result.code == 200 && result.data != null) {
+                val commentList = result.data
+                comments = if (currentPage == 1) {
+                    commentList.list
+                } else {
+                    comments + commentList.list
+                }
+                hasMore = commentList.page * commentList.pageSize < commentList.total
+            }
+            isLoading = false
+        } catch (e: Exception) {
+            isLoading = false
+        }
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -376,17 +400,130 @@ fun UserCommentsTab(
         contentPadding = PaddingValues(Dimensions.spaceMedium),
         verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
     ) {
-        // Placeholder for comments
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(Dimensions.spaceExtraLarge),
-                contentAlignment = Alignment.Center
+        items(comments, key = { it.commentId }) { comment ->
+            PersonalCommentCard(comment = comment)
+        }
+
+        if (isLoading && comments.isNotEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Dimensions.spaceMedium),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+        }
+
+        if (!isLoading && comments.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Dimensions.spaceExtraLarge),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "暂无评论",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+
+    // Load more when scrolled to bottom
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .collect { lastVisibleIndex ->
+                if (lastVisibleIndex != null &&
+                    lastVisibleIndex >= comments.size - 2 &&
+                    !isLoading &&
+                    hasMore
+                ) {
+                    currentPage++
+                }
+            }
+    }
+}
+
+@Composable
+fun PersonalCommentCard(
+    comment: org.jh.forum.client.data.model.PersonalCommentListElement
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Dimensions.spaceMedium)
+        ) {
+            // Comment content
+            Text(
+                text = comment.content,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
+            )
+
+            // Target content (quoted style)
+            if (comment.targetContent.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = Dimensions.spaceSmall)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(2.dp)
+                            .height(36.dp)
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Surface(
+                            modifier = Modifier.fillMaxSize(),
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            shape = MaterialTheme.shapes.extraSmall
+                        ) {}
+                    }
+
+                    Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+
+                    Text(
+                        text = comment.targetContent,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            // Stats row
+            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
+                ) {
+                    PostStatChip(icon = AppIcons.ThumbUp, count = comment.upvoteCount)
+                    PostStatChip(icon = AppIcons.Comment, count = comment.replyCount)
+                }
+
                 Text(
-                    "评论功能开发中...",
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = comment.createdAt,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

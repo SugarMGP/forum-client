@@ -505,19 +505,22 @@ private fun getActionText(message: GetNoticeListElement): String {
 @OptIn(ExperimentalTime::class)
 @Composable
 fun AnnouncementItem(announcement: GetAnnouncementListElement) {
+    var isExpanded by remember { mutableStateOf(false) }
+    
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.medium,
+        onClick = { isExpanded = !isExpanded }
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(Dimensions.spaceMedium),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             // Icon
             Icon(
@@ -568,13 +571,25 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
 
                 Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
 
+                // Show full content when expanded, otherwise show truncated with ellipsis
                 Text(
                     text = announcement.content,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
+                    maxLines = if (isExpanded) Int.MAX_VALUE else 2,
                     overflow = TextOverflow.Ellipsis
                 )
+                
+                // Show expand/collapse indicator when content is long
+                if (announcement.content.length > 50) {
+                    Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
+                    Text(
+                        text = if (isExpanded) "收起" else "展开",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = Dimensions.spaceExtraSmall)
+                    )
+                }
             }
         }
     }
