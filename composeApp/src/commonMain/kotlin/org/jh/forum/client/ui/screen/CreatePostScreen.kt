@@ -2,6 +2,7 @@ package org.jh.forum.client.ui.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -26,29 +27,28 @@ import org.jh.forum.client.ui.viewmodel.PostViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 
-// 自定义的流式布局组件
-@Composable
-fun WrapContent(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    Box(modifier = modifier) {
-        content()
-    }
-}
-
 // 计算图片网格的行数
 fun calculateRows(itemCount: Int): Int {
     return if (itemCount <= 3) 1 else if (itemCount <= 6) 2 else 3
 }
+
+// Platform-specific image picker implementation
+@Composable
+expect fun ImagePicker(
+    onImageSelected: (ByteArray, String) -> Unit,
+    enabled: Boolean = true,
+    content: @Composable () -> Unit
+)
+
+// CompositionLocal for providing the image picker click handler (for platforms that need it)
+expect val LocalImagePickerClick: androidx.compose.runtime.ProvidableCompositionLocal<() -> Unit>
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
     viewModel: PostViewModel,
     onBack: () -> Unit,
-    onPostCreated: () -> Unit,
-    onImagePickerClick: () -> Unit = {}
+    onPostCreated: () -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
@@ -121,10 +121,26 @@ fun CreatePostScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("发布帖子") },
+                title = { Text("发布帖子", style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(AppIcons.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                actions = {
+                    // Move submit button to the top bar for better UX
+                    TextButton(
+                        onClick = ::submitPost,
+                        enabled = !isSubmitting && title.isNotBlank() && content.isNotBlank() && selectedCategory != null
+                    ) {
+                        if (isSubmitting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("发布", style = MaterialTheme.typography.labelLarge)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -134,224 +150,262 @@ fun CreatePostScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(Dimensions.spaceMedium)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(Dimensions.spaceMedium),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
         ) {
-            // 标题输入
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("标题") },
-                placeholder = { Text("请输入帖子标题") },
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences,
-                    keyboardType = KeyboardType.Text
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = MaterialTheme.shapes.medium,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                )
-            )
-
-            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-
-            // 分类选择
-            OutlinedTextField(
-                value = selectedCategory?.displayName ?: "",
-                onValueChange = {},
-                label = { Text("分类") },
-                placeholder = { Text("请选择帖子分类") },
-                readOnly = true,
-                trailingIcon = {
-                    IconButton(onClick = { showCategoryMenu = !showCategoryMenu }) {
-                        Icon(AppIcons.Category, contentDescription = "选择分类")
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                )
-            )
-
-            // 分类选择菜单
-            DropdownMenu(
-                expanded = showCategoryMenu,
-                onDismissRequest = { showCategoryMenu = false }
-            ) {
-                PostCategory.entries.forEach { category ->
-                    DropdownMenuItem(
-                        text = { Text(category.displayName) },
-                        onClick = {
-                            selectedCategory = category
-                            showCategoryMenu = false
-                        },
-                        leadingIcon = {
-                            val icon = when (category) {
-                                PostCategory.CAMPUS -> AppIcons.School
-                                PostCategory.EMOTION -> AppIcons.Favorite
-                                PostCategory.STUDY -> AppIcons.MenuBook
-                                PostCategory.CONTEST -> AppIcons.EmojiEvents
-                                PostCategory.HOBBY -> AppIcons.SportsEsports
-                                PostCategory.LOST -> AppIcons.Search
-                                PostCategory.SECONDHAND -> AppIcons.Shop
-                            }
-                            Icon(
-                                icon,
-                                contentDescription = category.displayName,
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-
-            // 内容输入
-            OutlinedTextField(
-                value = content,
-                onValueChange = { content = it },
-                label = { Text("内容") },
-                placeholder = { Text("请输入帖子内容") },
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences,
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Default
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                maxLines = 10,
-                minLines = 5,
-                shape = MaterialTheme.shapes.medium,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                )
-            )
-
-            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-
-            // 标签输入
-            Row(Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = topicInput,
-                    onValueChange = { topicInput = it },
-                    label = { Text("标签") },
-                    placeholder = { Text("输入标签后按回车") },
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Sentences,
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done
-                    ),
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    keyboardActions = KeyboardActions(
-                        onDone = { addTopic() }
-                    ),
-                    shape = MaterialTheme.shapes.medium,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                    )
-                )
-                Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-                Button(
-                    onClick = { addTopic() },
-                    modifier = Modifier.align(Alignment.CenterVertically).height(Dimensions.buttonHeightLarge),
-                    shape = MaterialTheme.shapes.small
-                ) {
-                    Text("添加", style = MaterialTheme.typography.labelLarge)
-                }
-            }
-
-            // 显示已添加的标签
-            if (topics.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    WrapContent {
-                        topics.forEach { topic ->
-                            FilterChip(
-                                selected = false,
-                                onClick = { removeTopic(topic) },
-                                label = { Text(topic) },
-                                modifier = Modifier.padding(end = Dimensions.spaceSmall, bottom = Dimensions.spaceSmall)
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-
-            // 图片上传
-            Button(
-                onClick = onImagePickerClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(Dimensions.buttonHeightLarge),
-                enabled = !isUploadingImage && selectedImages.size < 9,
-                shape = MaterialTheme.shapes.small
-            ) {
-                if (isUploadingImage) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(Dimensions.iconSmall),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
-                    Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-                    Text("上传中...", style = MaterialTheme.typography.labelLarge)
-                } else {
-                    Text("选择图片 (最多9张)", style = MaterialTheme.typography.labelLarge)
-                }
-            }
-
-            // 图片预览
-            if (selectedImages.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-                LazyHorizontalGrid(
-                    rows = GridCells.Fixed(calculateRows(selectedImages.size)),
+            // Title Card
+            item {
+                ElevatedCard(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
                 ) {
-                    items(selectedImages) {
-                        val index = selectedImages.indexOf(it)
-                        Box(
-                            modifier = Modifier
-                                .size(Dimensions.imagePreviewSmall)
-                                .clip(MaterialTheme.shapes.medium)
-                        ) {
-                            Image(
-                                painter = rememberAsyncImagePainter(it),
-                                contentDescription = "图片 $index",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
+                    Column(modifier = Modifier.padding(Dimensions.spaceMedium)) {
+                        Text(
+                            text = "标题",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
+                        )
+                        OutlinedTextField(
+                            value = title,
+                            onValueChange = { title = it },
+                            placeholder = {
+                                Text(
+                                    "请输入帖子标题",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            },
+                            keyboardOptions = KeyboardOptions(
+                                capitalization = KeyboardCapitalization.Sentences,
+                                keyboardType = KeyboardType.Text
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = MaterialTheme.shapes.medium,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
                             )
-                            Surface(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(Dimensions.spaceExtraSmall),
-                                color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f),
-                                shape = CircleShape
-                            ) {
-                                IconButton(
-                                    onClick = { removeImage(it) },
-                                    modifier = Modifier.size(Dimensions.iconMedium)
-                                ) {
+                        )
+                    }
+                }
+            }
+
+            // Category Card
+            item {
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(Dimensions.spaceMedium)) {
+                        Text(
+                            text = "分类",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
+                        )
+                        OutlinedTextField(
+                            value = selectedCategory?.displayName ?: "",
+                            onValueChange = {},
+                            placeholder = {
+                                Text(
+                                    "请选择帖子分类",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            },
+                            readOnly = true,
+                            trailingIcon = {
+                                IconButton(onClick = { showCategoryMenu = !showCategoryMenu }) {
                                     Icon(
-                                        AppIcons.Close,
-                                        contentDescription = "移除图片",
-                                        tint = MaterialTheme.colorScheme.onPrimary,
-                                        modifier = Modifier.size(Dimensions.iconSmall)
+                                        if (showCategoryMenu) AppIcons.ExpandLess else AppIcons.ExpandMore,
+                                        contentDescription = "选择分类"
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                            )
+                        )
+
+                        // Category selection dropdown
+                        DropdownMenu(
+                            expanded = showCategoryMenu,
+                            onDismissRequest = { showCategoryMenu = false }
+                        ) {
+                            PostCategory.entries.forEach { category ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            val icon = when (category) {
+                                                PostCategory.CAMPUS -> AppIcons.School
+                                                PostCategory.EMOTION -> AppIcons.Favorite
+                                                PostCategory.STUDY -> AppIcons.MenuBook
+                                                PostCategory.CONTEST -> AppIcons.EmojiEvents
+                                                PostCategory.HOBBY -> AppIcons.SportsEsports
+                                                PostCategory.LOST -> AppIcons.Search
+                                                PostCategory.SECONDHAND -> AppIcons.Shop
+                                            }
+                                            Icon(
+                                                icon,
+                                                contentDescription = category.displayName,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                                            Text(
+                                                category.displayName,
+                                                style = MaterialTheme.typography.bodyLarge
+                                            )
+                                        }
+                                    },
+                                    onClick = {
+                                        selectedCategory = category
+                                        showCategoryMenu = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Content Card
+            item {
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(Dimensions.spaceMedium)) {
+                        Text(
+                            text = "内容",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
+                        )
+                        OutlinedTextField(
+                            value = content,
+                            onValueChange = { content = it },
+                            placeholder = {
+                                Text(
+                                    "分享你的想法...",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            },
+                            keyboardOptions = KeyboardOptions(
+                                capitalization = KeyboardCapitalization.Sentences,
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Default
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 200.dp),
+                            maxLines = 10,
+                            minLines = 8,
+                            shape = MaterialTheme.shapes.medium,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                            )
+                        )
+                    }
+                }
+            }
+
+            // Topics Card
+            item {
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(Dimensions.spaceMedium)) {
+                        Text(
+                            text = "话题标签",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedTextField(
+                                value = topicInput,
+                                onValueChange = { topicInput = it },
+                                placeholder = {
+                                    Text(
+                                        "添加话题...",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                },
+                                keyboardOptions = KeyboardOptions(
+                                    capitalization = KeyboardCapitalization.Sentences,
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Done
+                                ),
+                                modifier = Modifier.weight(1f),
+                                singleLine = true,
+                                keyboardActions = KeyboardActions(
+                                    onDone = { addTopic() }
+                                ),
+                                shape = MaterialTheme.shapes.medium,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                            FilledIconButton(
+                                onClick = { addTopic() },
+                                enabled = topicInput.isNotBlank()
+                            ) {
+                                Icon(AppIcons.Add, contentDescription = "添加话题")
+                            }
+                        }
+
+                        // Display added topics
+                        if (topics.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
+                            FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                                verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                            ) {
+                                topics.forEach { topic ->
+                                    AssistChip(
+                                        onClick = { removeTopic(topic) },
+                                        label = {
+                                            Text(
+                                                "#$topic",
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                        },
+                                        trailingIcon = {
+                                            Icon(
+                                                AppIcons.Close,
+                                                contentDescription = "删除",
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        },
+                                        colors = AssistChipDefaults.assistChipColors(
+                                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                            labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                        )
                                     )
                                 }
                             }
@@ -360,45 +414,145 @@ fun CreatePostScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-
-            // 提交按钮（大屏幕上显示）
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Button(
-                    onClick = ::submitPost,
-                    enabled = !isSubmitting && title.isNotBlank() && content.isNotBlank() && selectedCategory != null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(Dimensions.buttonHeightLarge),
-                    shape = MaterialTheme.shapes.small
+            // Images Card
+            item {
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
                 ) {
-                    if (isSubmitting) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(Dimensions.iconSmall),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                    Column(modifier = Modifier.padding(Dimensions.spaceMedium)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "图片 (${selectedImages.size}/9)",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+
+                            ImagePicker(
+                                onImageSelected = { bytes, filename ->
+                                    uploadImage(bytes, filename)
+                                },
+                                enabled = !isUploadingImage && selectedImages.size < 9
+                            ) {
+                                FilledTonalButton(
+                                    onClick = LocalImagePickerClick.current,
+                                    enabled = !isUploadingImage && selectedImages.size < 9
+                                ) {
+                                    Icon(
+                                        AppIcons.Image,
+                                        contentDescription = "选择图片",
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                                    Text(
+                                        if (isUploadingImage) "上传中..." else "选择图片",
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
+                            }
+                        }
+
+                        // Image preview grid
+                        if (selectedImages.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
+                            LazyHorizontalGrid(
+                                rows = GridCells.Fixed(calculateRows(selectedImages.size)),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(if (selectedImages.size <= 3) 100.dp else 200.dp),
+                                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                                verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                            ) {
+                                items(selectedImages) { imageUrl ->
+                                    Box(
+                                        modifier = Modifier
+                                            .size(100.dp)
+                                            .clip(MaterialTheme.shapes.medium)
+                                    ) {
+                                        Image(
+                                            painter = rememberAsyncImagePainter(imageUrl),
+                                            contentDescription = "图片预览",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        Surface(
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(4.dp),
+                                            color = MaterialTheme.colorScheme.errorContainer.copy(
+                                                alpha = 0.9f
+                                            ),
+                                            shape = CircleShape
+                                        ) {
+                                            IconButton(
+                                                onClick = { removeImage(imageUrl) },
+                                                modifier = Modifier.size(24.dp)
+                                            ) {
+                                                Icon(
+                                                    AppIcons.Close,
+                                                    contentDescription = "移除图片",
+                                                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                    Text("发布帖子", style = MaterialTheme.typography.labelLarge)
                 }
             }
 
-            errorMessage?.let { message ->
-                Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.errorContainer,
-                    shape = MaterialTheme.shapes.small
-                ) {
-                    Text(
-                        message,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(Dimensions.spaceMedium)
-                    )
+            // Error message
+            if (errorMessage != null) {
+                item {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(Dimensions.spaceMedium),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                AppIcons.Error,
+                                contentDescription = "错误",
+                                tint = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                            Text(
+                                errorMessage ?: "",
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+// FlowRow implementation for topics
+@Composable
+fun FlowRow(
+    modifier: Modifier = Modifier,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
+    content: @Composable androidx.compose.foundation.layout.FlowRowScope.() -> Unit
+) {
+    androidx.compose.foundation.layout.FlowRow(
+        modifier = modifier,
+        horizontalArrangement = horizontalArrangement,
+        verticalArrangement = verticalArrangement,
+        content = content
+    )
 }

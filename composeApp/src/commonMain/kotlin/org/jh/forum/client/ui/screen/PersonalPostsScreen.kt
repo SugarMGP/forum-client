@@ -36,7 +36,8 @@ fun PersonalPostsScreen(
     LaunchedEffect(currentPage, userId) {
         try {
             isLoading = true
-            val result = repository.getPersonalPostList(page = currentPage, pageSize = 20, userId = userId)
+            val result =
+                repository.getPersonalPostList(page = currentPage, pageSize = 20, userId = userId)
             if (result.code == 200 && result.data != null) {
                 val postList = result.data
                 posts = if (currentPage == 1) {

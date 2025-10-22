@@ -41,10 +41,12 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.okhttp)
 
             // Image loading - Coil multiplatform (if available in your libs)
             implementation(libs.coil.compose)
-            implementation(libs.coil.network.okhttp)
+            implementation(libs.coil.network.ktor3)
+            implementation(libs.coil.network.cache.control)
 
             implementation(libs.navigation.compose)
         }
@@ -53,9 +55,6 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-
-            // Android-specific Ktor engine
-            implementation(libs.ktor.client.android)
 
             // DataStore for Android
             implementation(libs.datastore.preferences)
@@ -68,7 +67,6 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
-            implementation(libs.ktor.client.java)
 
             implementation("org.slf4j:slf4j-simple:2.0.7")
         }
@@ -113,7 +111,6 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             includeAllModules = true
-            jvmArgs += listOf("-Dfile.encoding=UTF-8,--add-opens=java.base/java.lang=ALL-UNNAMED")
             packageName = "精弘论坛"
             packageVersion = "1.0.0"
         }

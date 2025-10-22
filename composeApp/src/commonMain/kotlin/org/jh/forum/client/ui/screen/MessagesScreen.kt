@@ -49,7 +49,8 @@ fun MessagesScreen(
         errorMessage = null
         try {
             // 请求通知列表
-            val noticeResponse = repository.getNoticeList(page = 1, pageSize = 20, type = selectedNoticeType)
+            val noticeResponse =
+                repository.getNoticeList(page = 1, pageSize = 20, type = selectedNoticeType)
             if (noticeResponse.code == 200 && noticeResponse.data != null) {
                 messages = noticeResponse.data.list
             } else {
@@ -74,7 +75,8 @@ fun MessagesScreen(
                 2 -> "systematic"
                 else -> ""
             }
-            val announcementResponse = repository.getAnnouncementList(page = 1, pageSize = 20, type = type)
+            val announcementResponse =
+                repository.getAnnouncementList(page = 1, pageSize = 20, type = type)
             if (announcementResponse.code == 200 && announcementResponse.data != null) {
                 announcements = announcementResponse.data.list
             } else {
@@ -170,7 +172,12 @@ fun MessagesScreen(
                                 selectedTabIndex = selectedNoticeType,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                listOf("全部", "点赞", "收藏", "评论和@").forEachIndexed { index, title ->
+                                listOf(
+                                    "全部",
+                                    "点赞",
+                                    "收藏",
+                                    "评论和@"
+                                ).forEachIndexed { index, title ->
                                     Tab(
                                         selected = selectedNoticeType == index,
                                         onClick = { selectedNoticeType = index },
@@ -184,7 +191,11 @@ fun MessagesScreen(
                                 selectedTabIndex = selectedAnnouncementType,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                listOf("全部", "学校公告", "系统公告").forEachIndexed { index, title ->
+                                listOf(
+                                    "全部",
+                                    "学校公告",
+                                    "系统公告"
+                                ).forEachIndexed { index, title ->
                                     Tab(
                                         selected = selectedAnnouncementType == index,
                                         onClick = { selectedAnnouncementType = index },
@@ -505,19 +516,22 @@ private fun getActionText(message: GetNoticeListElement): String {
 @OptIn(ExperimentalTime::class)
 @Composable
 fun AnnouncementItem(announcement: GetAnnouncementListElement) {
+    var isExpanded by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.medium,
+        onClick = { isExpanded = !isExpanded }
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(Dimensions.spaceMedium),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             // Icon
             Icon(
@@ -568,13 +582,25 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
 
                 Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
 
+                // Show full content when expanded, otherwise show truncated with ellipsis
                 Text(
                     text = announcement.content,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
+                    maxLines = if (isExpanded) Int.MAX_VALUE else 2,
                     overflow = TextOverflow.Ellipsis
                 )
+
+                // Show expand/collapse indicator when content is long
+                if (announcement.content.length > 50) {
+                    Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
+                    Text(
+                        text = if (isExpanded) "收起" else "展开",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = Dimensions.spaceExtraSmall)
+                    )
+                }
             }
         }
     }

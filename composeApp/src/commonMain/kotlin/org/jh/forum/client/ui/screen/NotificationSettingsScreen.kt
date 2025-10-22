@@ -159,7 +159,11 @@ fun NotificationSettingsScreen(
                             )
                         }
 
-                        HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+                        HorizontalDivider(
+                            Modifier,
+                            DividerDefaults.Thickness,
+                            DividerDefaults.color
+                        )
 
                         // 评论通知设置
                         Row(

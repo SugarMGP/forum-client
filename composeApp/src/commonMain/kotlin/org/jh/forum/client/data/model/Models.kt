@@ -288,7 +288,7 @@ data class PersonalCommentListElement(
     val postId: Long = 0,
     val commentId: Long = 0,
     val replyId: Long = 0,
-    val targetContent: String = "",
+    val targetContent: String? = null,
     val content: String = "",
     val pictures: List<PictureInfoDTO> = emptyList(),
     val createdAt: String = "",

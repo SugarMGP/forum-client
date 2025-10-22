@@ -44,4 +44,7 @@ object AppIcons {
     val Eye: ImageVector = Icons.Default.RemoveRedEye
     val VisibilityOff: ImageVector = Icons.Default.VisibilityOff
     val FavoriteBorder: ImageVector = Icons.Default.FavoriteBorder
+    val ExpandLess: ImageVector = Icons.Default.ExpandLess
+    val ExpandMore: ImageVector = Icons.Default.ExpandMore
+    val Image: ImageVector = Icons.Default.Image
 }

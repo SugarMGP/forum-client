@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class SerializableCookie(
     val name: String,
     val value: String,
-    val maxAge: Int = 0,
+    val maxAge: Int? = null,
     val expiresMillis: Long? = null,
     val domain: String? = null,
     val path: String? = null,

@@ -1,5 +1,10 @@
 package org.jh.forum.client.ui.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -26,6 +31,28 @@ sealed class BottomNavItem(
     object Messages : BottomNavItem("messages", "消息", AppIcons.Message)
     object Profile : BottomNavItem("profile", "我的", AppIcons.Person)
 }
+
+// Default navigation transitions
+private const val ANIMATION_DURATION = 300
+
+private val fadeInTransition = fadeIn(animationSpec = tween(ANIMATION_DURATION))
+private val fadeOutTransition = fadeOut(animationSpec = tween(ANIMATION_DURATION))
+private val slideInTransition = slideInHorizontally(
+    initialOffsetX = { fullWidth -> fullWidth },
+    animationSpec = tween(ANIMATION_DURATION)
+)
+private val slideOutTransition = slideOutHorizontally(
+    targetOffsetX = { fullWidth -> -fullWidth / 3 },
+    animationSpec = tween(ANIMATION_DURATION)
+)
+private val slideInPopTransition = slideInHorizontally(
+    initialOffsetX = { fullWidth -> -fullWidth / 3 },
+    animationSpec = tween(ANIMATION_DURATION)
+)
+private val slideOutPopTransition = slideOutHorizontally(
+    targetOffsetX = { fullWidth -> fullWidth },
+    animationSpec = tween(ANIMATION_DURATION)
+)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveNavigationSuiteApi::class)
 @Composable
@@ -88,7 +115,11 @@ fun MainNavigation(
     } else {
         NavigationSuiteScaffold(
             navigationSuiteItems = {
-                listOf(BottomNavItem.Home, BottomNavItem.Messages, BottomNavItem.Profile).forEach { it ->
+                listOf(
+                    BottomNavItem.Home,
+                    BottomNavItem.Messages,
+                    BottomNavItem.Profile
+                ).forEach { it ->
                     item(
                         icon = { Icon(it.icon, contentDescription = it.title) },
                         label = { Text(it.title) },
@@ -110,8 +141,14 @@ fun MainNavigation(
                     navController = navController,
                     startDestination = BottomNavItem.Home.route,
                 ) {
-                    composable(BottomNavItem.Home.route + "?refresh={refresh}") { backStackEntry ->
-                        val refresh = backStackEntry.savedStateHandle.get<String>("refresh")?.toBoolean() ?: false
+                    composable(
+                        BottomNavItem.Home.route + "?refresh={refresh}",
+                        enterTransition = { fadeInTransition },
+                        exitTransition = { fadeOutTransition }
+                    ) { backStackEntry ->
+                        val refresh =
+                            backStackEntry.savedStateHandle.get<String>("refresh")?.toBoolean()
+                                ?: false
                         PostListScreen(
                             onPostClick = { postId: Long ->
                                 // 导航到帖子详情页
@@ -129,7 +166,11 @@ fun MainNavigation(
                         )
                     }
 
-                    composable(BottomNavItem.Messages.route) {
+                    composable(
+                        BottomNavItem.Messages.route,
+                        enterTransition = { fadeInTransition },
+                        exitTransition = { fadeOutTransition }
+                    ) {
                         MessagesScreen(
                             repository = repository,
                             onUserClick = { userId ->
@@ -138,7 +179,11 @@ fun MainNavigation(
                         )
                     }
 
-                    composable(BottomNavItem.Profile.route) {
+                    composable(
+                        BottomNavItem.Profile.route,
+                        enterTransition = { fadeInTransition },
+                        exitTransition = { fadeOutTransition }
+                    ) {
                         val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
                         val isLoggedIn = authViewModel.isLoggedIn.collectAsState().value
 
@@ -160,7 +205,9 @@ fun MainNavigation(
                             ProfileScreen(
                                 authViewModel = authViewModel,
                                 onNavigateToThemeSettings = { showThemeSettings = true },
-                                onNavigateToNotificationSettings = { showNotificationSettings = true },
+                                onNavigateToNotificationSettings = {
+                                    showNotificationSettings = true
+                                },
                                 onNavigateToLogin = {
                                     navController.navigate("login")
                                 },
@@ -171,7 +218,13 @@ fun MainNavigation(
                         }
                     }
 
-                    composable("personal_posts") {
+                    composable(
+                        "personal_posts",
+                        enterTransition = { slideInTransition + fadeInTransition },
+                        exitTransition = { fadeOutTransition },
+                        popEnterTransition = { fadeInTransition },
+                        popExitTransition = { slideOutPopTransition + fadeOutTransition }
+                    ) {
                         PersonalPostsScreen(
                             repository = repository,
                             onPostClick = { postId ->
@@ -184,7 +237,11 @@ fun MainNavigation(
                     }
 
                     // 其他页面路由
-                    composable("login") {
+                    composable(
+                        "login",
+                        enterTransition = { fadeInTransition },
+                        exitTransition = { fadeOutTransition }
+                    ) {
                         LoginScreen(
                             onLoginSuccess = {
                                 navController.navigate(BottomNavItem.Home.route) {
@@ -195,7 +252,13 @@ fun MainNavigation(
                     }
 
                     // 帖子详情页
-                    composable("post_detail/{postId}") {
+                    composable(
+                        "post_detail/{postId}",
+                        enterTransition = { slideInTransition + fadeInTransition },
+                        exitTransition = { fadeOutTransition },
+                        popEnterTransition = { fadeInTransition },
+                        popExitTransition = { slideOutPopTransition + fadeOutTransition }
+                    ) {
                         val postId = it.savedStateHandle.get<String>("postId")?.toLongOrNull() ?: 0L
                         PostDetailScreen(
                             postId = postId,
@@ -210,7 +273,13 @@ fun MainNavigation(
 
 
                     // 发帖页面
-                    composable("create_post") {
+                    composable(
+                        "create_post",
+                        enterTransition = { slideInTransition + fadeInTransition },
+                        exitTransition = { fadeOutTransition },
+                        popEnterTransition = { fadeInTransition },
+                        popExitTransition = { slideOutPopTransition + fadeOutTransition }
+                    ) {
                         CreatePostScreen(
                             viewModel = AppModule.postViewModel,
                             onBack = {
@@ -218,13 +287,18 @@ fun MainNavigation(
                             },
                             onPostCreated = {
                                 navController.popBackStack()
-                            },
-                            onImagePickerClick = {}
+                            }
                         )
                     }
 
                     // 用户主页 - 查看其他用户
-                    composable("user_profile/{userId}") { backStackEntry ->
+                    composable(
+                        "user_profile/{userId}",
+                        enterTransition = { slideInTransition + fadeInTransition },
+                        exitTransition = { fadeOutTransition },
+                        popEnterTransition = { fadeInTransition },
+                        popExitTransition = { slideOutPopTransition + fadeOutTransition }
+                    ) { backStackEntry ->
                         val userIdStr = backStackEntry.savedStateHandle.get<String>("userId") ?: "0"
                         val userId = userIdStr.toLongOrNull() ?: 0L
                         UserProfileScreen(

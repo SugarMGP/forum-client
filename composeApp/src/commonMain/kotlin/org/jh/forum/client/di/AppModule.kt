@@ -15,6 +15,8 @@ import org.jh.forum.client.ui.viewmodel.AuthViewModel
 import org.jh.forum.client.ui.viewmodel.CommentViewModel
 import org.jh.forum.client.ui.viewmodel.PostListViewModel
 import org.jh.forum.client.ui.viewmodel.PostViewModel
+import java.net.InetSocketAddress
+import java.net.Proxy
 
 object AppModule {
     // 基础URL，可根据环境配置修改

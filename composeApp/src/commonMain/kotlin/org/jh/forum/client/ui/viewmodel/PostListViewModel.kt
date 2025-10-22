@@ -47,7 +47,8 @@ class PostListViewModel : ViewModel() {
             }
 
             try {
-                val result = repository.getPostList(_currentPage.value, 20, category, actualSortType)
+                val result =
+                    repository.getPostList(_currentPage.value, 20, category, actualSortType)
                 _isLoading.value = false
 
                 if (result.code == 200 && result.data != null) {
@@ -85,7 +86,10 @@ class PostListViewModel : ViewModel() {
                         if (post.id == postId) {
                             val updatedLiked = result.data.status
                             val updatedLikeCount =
-                                if (updatedLiked) post.likeCount + 1 else maxOf(0, post.likeCount - 1)
+                                if (updatedLiked) post.likeCount + 1 else maxOf(
+                                    0,
+                                    post.likeCount - 1
+                                )
                             post.copy(
                                 likeCount = updatedLikeCount,
                                 isLiked = updatedLiked
@@ -105,20 +109,32 @@ class PostListViewModel : ViewModel() {
     }
 
     fun refresh() {
-        loadPosts(category = _selectedCategory.value, sortType = _sortType.value.name.lowercase(), reset = true)
+        loadPosts(
+            category = _selectedCategory.value,
+            sortType = _sortType.value.name.lowercase(),
+            reset = true
+        )
     }
 
     fun selectCategory(category: String?) {
         if (_selectedCategory.value != category) {
             _selectedCategory.value = category
-            loadPosts(category = category, sortType = _sortType.value.name.lowercase(), reset = true)
+            loadPosts(
+                category = category,
+                sortType = _sortType.value.name.lowercase(),
+                reset = true
+            )
         }
     }
 
     fun setSortType(sortType: SortType) {
         if (_sortType.value != sortType) {
             _sortType.value = sortType
-            loadPosts(category = _selectedCategory.value, sortType = sortType.name.lowercase(), reset = true)
+            loadPosts(
+                category = _selectedCategory.value,
+                sortType = sortType.name.lowercase(),
+                reset = true
+            )
         }
     }
 }

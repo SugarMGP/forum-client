@@ -40,7 +40,11 @@ interface ForumApi {
         highlightReplyId: Long?
     ): AjaxResult<GetCommentReplyListResponse>
 
-    suspend fun getPersonalComment(page: Int, pageSize: Int): AjaxResult<BaseListResponse<PersonalCommentListElement>>
+    suspend fun getPersonalComment(
+        page: Int,
+        pageSize: Int
+    ): AjaxResult<BaseListResponse<PersonalCommentListElement>>
+
     suspend fun getCommentList(
         page: Int,
         pageSize: Int,
@@ -63,6 +67,9 @@ interface ForumApi {
     suspend fun uploadPicture(bytes: ByteArray, filename: String): AjaxResult<UploadResponse>
 
     suspend fun checkUnread(): AjaxResult<UnreadCheckResponse>
-    suspend fun getNoticeList(page: Int, pageSize: Int, type: Int): AjaxResult<BaseListResponse<GetNoticeListElement>>
+    suspend fun getNoticeList(
+        page: Int,
+        pageSize: Int,
+        type: Int
+    ): AjaxResult<BaseListResponse<GetNoticeListElement>>
 }
-

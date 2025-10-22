@@ -184,12 +184,15 @@ class KtorForumApi(private val client: HttpClient, private val baseUrl: String) 
             setBody(request)
         }.body()
 
-    override suspend fun uploadPicture(bytes: ByteArray, filename: String): AjaxResult<UploadResponse> =
+    override suspend fun uploadPicture(
+        bytes: ByteArray,
+        filename: String
+    ): AjaxResult<UploadResponse> =
         client.submitFormWithBinaryData(
             url("/api/file/picture"),
             formData {
                 append("picture", bytes, Headers.build {
-                    append(HttpHeaders.ContentDisposition, "form-data; name=\"picture\"; filename=\"$filename\"")
+                    append(HttpHeaders.ContentDisposition, "filename=\"$filename\"")
                 })
             }
         ).body()

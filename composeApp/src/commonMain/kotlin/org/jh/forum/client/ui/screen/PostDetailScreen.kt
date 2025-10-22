@@ -280,7 +280,10 @@ fun PostDetailScreen(
                 },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = Dimensions.buttonHeightLarge, vertical = Dimensions.spaceMedium)
+                    .padding(
+                        horizontal = Dimensions.buttonHeightLarge,
+                        vertical = Dimensions.spaceMedium
+                    )
             ) {
                 if (it) {
                     // 评论编辑器状态 - 小而美设计，与界面边框保持间隔
@@ -443,12 +446,18 @@ fun PostContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(Dimensions.spaceMedium)
-                    .clickable { onUserProfileClick() },
+                    .padding(Dimensions.spaceMedium),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable {
+                            onUserProfileClick()
+                        }
+                ) {
                     // 用户头像
                     AsyncImage(
                         model = post.publisherInfo.avatar ?: "",
@@ -463,7 +472,8 @@ fun PostContent(
                         Text(
                             text = post.publisherInfo.nickname ?: "未知用户",
                             style = MaterialTheme.typography.titleSmall,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1
                         )
                         // 显示帖子板块
                         if (post.category.isNotEmpty()) {
@@ -475,6 +485,9 @@ fun PostContent(
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.width(Dimensions.spaceExtraSmall))
+
                 // 右侧显示时间和浏览量
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
@@ -556,7 +569,12 @@ fun PostContent(
                                 FilterChip(
                                     selected = false,
                                     onClick = { },
-                                    label = { Text(tag, style = MaterialTheme.typography.labelMedium) },
+                                    label = {
+                                        Text(
+                                            tag,
+                                            style = MaterialTheme.typography.labelMedium
+                                        )
+                                    },
                                     colors = FilterChipDefaults.filterChipColors(
                                         containerColor = MaterialTheme.colorScheme.secondaryContainer
                                     )
