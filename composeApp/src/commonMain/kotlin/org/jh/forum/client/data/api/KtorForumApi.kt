@@ -192,8 +192,7 @@ class KtorForumApi(private val client: HttpClient, private val baseUrl: String) 
             url("/api/file/picture"),
             formData {
                 append("picture", bytes, Headers.build {
-                    append(HttpHeaders.ContentDisposition, "form-data; name=\"picture\"; filename=\"$filename\"")
-                    append(HttpHeaders.ContentType, "image/${filename.substringAfterLast('.', "jpeg")}")
+                    append(HttpHeaders.ContentDisposition, "filename=\"$filename\"")
                 })
             }
         ).body()

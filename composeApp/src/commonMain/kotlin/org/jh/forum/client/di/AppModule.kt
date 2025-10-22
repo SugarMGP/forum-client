@@ -25,10 +25,6 @@ object AppModule {
     // 统一创建 HttpClient（common）
     private val httpClient: HttpClient by lazy {
         HttpClient {
-            engine {
-                proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress("192.168.31.83", 9000))
-            }
-
             install(ContentNegotiation) {
                 json(Json {
                     encodeDefaults = true
