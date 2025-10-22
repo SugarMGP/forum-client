@@ -32,13 +32,20 @@ fun calculateRows(itemCount: Int): Int {
     return if (itemCount <= 3) 1 else if (itemCount <= 6) 2 else 3
 }
 
+// Platform-specific image picker implementation
+@Composable
+expect fun ImagePicker(
+    onImageSelected: (ByteArray, String) -> Unit,
+    enabled: Boolean = true,
+    content: @Composable () -> Unit
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
     viewModel: PostViewModel,
     onBack: () -> Unit,
-    onPostCreated: () -> Unit,
-    onImagePickerClick: () -> Unit = {}
+    onPostCreated: () -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
@@ -401,20 +408,26 @@ fun CreatePostScreen(
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            FilledTonalButton(
-                                onClick = onImagePickerClick,
+                            
+                            ImagePicker(
+                                onImageSelected = { bytes, filename -> uploadImage(bytes, filename) },
                                 enabled = !isUploadingImage && selectedImages.size < 9
                             ) {
-                                Icon(
-                                    AppIcons.Image,
-                                    contentDescription = "选择图片",
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-                                Text(
-                                    if (isUploadingImage) "上传中..." else "选择图片",
-                                    style = MaterialTheme.typography.labelMedium
-                                )
+                                FilledTonalButton(
+                                    onClick = { },
+                                    enabled = !isUploadingImage && selectedImages.size < 9
+                                ) {
+                                    Icon(
+                                        AppIcons.Image,
+                                        contentDescription = "选择图片",
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                                    Text(
+                                        if (isUploadingImage) "上传中..." else "选择图片",
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
                             }
                         }
 

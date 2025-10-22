@@ -276,8 +276,7 @@ fun MainNavigation(
                             },
                             onPostCreated = {
                                 navController.popBackStack()
-                            },
-                            onImagePickerClick = {}
+                            }
                         )
                     }
 
