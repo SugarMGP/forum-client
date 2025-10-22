@@ -18,6 +18,16 @@ import java.io.File
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
+/**
+ * Android implementation of CookiesStorage using DataStore Preferences Core.
+ * 
+ * This implementation stores HTTP cookies persistently using AndroidX DataStore,
+ * allowing the Ktor HTTP client to maintain authentication and session state
+ * across app restarts.
+ * 
+ * Cookies are serialized to JSON and stored as a single preference value.
+ * The implementation handles cookie expiration, URL matching, and thread-safe access.
+ */
 class AndroidCookiesStorage : CookiesStorage {
     
     private val dataStore: DataStore<Preferences> by lazy {
