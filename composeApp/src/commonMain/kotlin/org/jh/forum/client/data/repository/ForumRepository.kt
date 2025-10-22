@@ -2,6 +2,7 @@ package org.jh.forum.client.data.repository
 
 import org.jh.forum.client.data.api.ForumApi
 import org.jh.forum.client.data.model.*
+import java.io.InputStream
 
 class ForumRepository(private val api: ForumApi) {
     suspend fun login(request: LoginRequest): AjaxResult<LoginResponse> = api.login(request)
@@ -76,8 +77,8 @@ class ForumRepository(private val api: ForumApi) {
     suspend fun reportContent(request: ReportContentRequest): AjaxResultVoid =
         api.reportContent(request)
 
-    suspend fun uploadPicture(bytes: ByteArray, filename: String): AjaxResult<UploadResponse> =
-        api.uploadPicture(bytes, filename)
+    suspend fun uploadPicture(input: InputStream): AjaxResult<UploadResponse> =
+        api.uploadPicture(input)
 
     suspend fun checkUnread(): AjaxResult<UnreadCheckResponse> = api.checkUnread()
 

@@ -1,6 +1,6 @@
 package org.jh.forum.client.di
 
-import io.ktor.http.CookieEncoding
+import io.ktor.http.*
 import kotlinx.serialization.Serializable
 
 @Serializable

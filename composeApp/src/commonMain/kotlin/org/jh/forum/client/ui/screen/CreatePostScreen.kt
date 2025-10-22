@@ -24,6 +24,7 @@ import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.PostViewModel
+import java.io.InputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -35,7 +36,7 @@ fun calculateRows(itemCount: Int): Int {
 // Platform-specific image picker implementation
 @Composable
 expect fun ImagePicker(
-    onImageSelected: (ByteArray, String) -> Unit,
+    onImageSelected: (InputStream) -> Unit,
     enabled: Boolean = true,
     content: @Composable () -> Unit
 )
@@ -93,9 +94,9 @@ fun CreatePostScreen(
     }
 
     // 上传图片
-    fun uploadImage(bytes: ByteArray, filename: String) {
+    fun uploadImage(input: InputStream) {
         isUploadingImage = true
-        viewModel.uploadImage(bytes, filename) {
+        viewModel.uploadImage(input) {
             isUploadingImage = false
             if (it != null) {
                 selectedImages = selectedImages + it
@@ -435,11 +436,8 @@ fun CreatePostScreen(
                             )
 
                             ImagePicker(
-                                onImageSelected = { bytes, filename ->
-                                    uploadImage(
-                                        bytes,
-                                        filename
-                                    )
+                                onImageSelected = { input ->
+                                    uploadImage(input)
                                 },
                                 enabled = !isUploadingImage && selectedImages.size < 9
                             ) {

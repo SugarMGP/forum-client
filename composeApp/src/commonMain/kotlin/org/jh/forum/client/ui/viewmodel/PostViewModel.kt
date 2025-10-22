@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import org.jh.forum.client.data.model.GetPostInfoResponse
 import org.jh.forum.client.data.model.PublishPostRequest
 import org.jh.forum.client.di.AppModule
+import java.io.InputStream
 
 @Stable
 class PostViewModel : ViewModel() {
@@ -102,10 +103,10 @@ class PostViewModel : ViewModel() {
         }
     }
 
-    fun uploadImage(bytes: ByteArray, filename: String, onResult: (String?) -> Unit) {
+    fun uploadImage(input: InputStream, onResult: (String?) -> Unit) {
         viewModelScope.launch {
             try {
-                val result = repository.uploadPicture(bytes, filename)
+                val result = repository.uploadPicture(input)
                 if (result.code == 200 && result.data != null && result.data.url != null) {
                     onResult(result.data.url)
                 } else {
@@ -115,6 +116,8 @@ class PostViewModel : ViewModel() {
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "图片上传失败"
                 onResult(null)
+            } finally {
+                try { input.close() } catch (_: Exception) {}
             }
         }
     }

@@ -446,12 +446,18 @@ fun PostContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(Dimensions.spaceMedium)
-                    .clickable { onUserProfileClick() },
+                    .padding(Dimensions.spaceMedium),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable {
+                            onUserProfileClick()
+                        }
+                ) {
                     // 用户头像
                     AsyncImage(
                         model = post.publisherInfo.avatar ?: "",
@@ -466,7 +472,8 @@ fun PostContent(
                         Text(
                             text = post.publisherInfo.nickname ?: "未知用户",
                             style = MaterialTheme.typography.titleSmall,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1
                         )
                         // 显示帖子板块
                         if (post.category.isNotEmpty()) {
@@ -478,6 +485,9 @@ fun PostContent(
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.width(Dimensions.spaceExtraSmall))
+
                 // 右侧显示时间和浏览量
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
