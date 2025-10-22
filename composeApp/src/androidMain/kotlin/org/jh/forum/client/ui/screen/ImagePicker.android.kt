@@ -1,5 +1,6 @@
 package org.jh.forum.client.ui.screen
 
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -11,7 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 
 @Composable
 actual fun ImagePicker(
-    onImageSelected: (ByteArray) -> Unit,
+    onImageSelected: (ByteArray, String) -> Unit,
     enabled: Boolean,
     content: @Composable () -> Unit
 ) {
@@ -26,7 +27,9 @@ actual fun ImagePicker(
             // 读取文件内容到 ByteArray
             val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
             if (bytes != null) {
-                onImageSelected(bytes)
+                // 尝试获取文件名
+                val filename = getFilenameFromUri(context, uri) ?: "image_${System.currentTimeMillis()}.jpg"
+                onImageSelected(bytes, filename)
             }
         }.onFailure { it.printStackTrace() }
     }
@@ -50,6 +53,17 @@ actual fun ImagePicker(
             }
         ) {
             content()
+        }
+    }
+}
+
+private fun getFilenameFromUri(context: android.content.Context, uri: Uri): String? {
+    return context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+        val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+        if (nameIndex >= 0 && cursor.moveToFirst()) {
+            cursor.getString(nameIndex)
+        } else {
+            null
         }
     }
 }

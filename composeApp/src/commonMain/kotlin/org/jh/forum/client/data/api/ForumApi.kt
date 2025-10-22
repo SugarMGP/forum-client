@@ -64,7 +64,7 @@ interface ForumApi {
     suspend fun reportUser(request: ReportUserRequest): AjaxResultVoid
     suspend fun reportContent(request: ReportContentRequest): AjaxResultVoid
 
-    suspend fun uploadPicture(bytes: ByteArray): AjaxResult<UploadResponse>
+    suspend fun uploadPicture(bytes: ByteArray, filename: String): AjaxResult<UploadResponse>
 
     suspend fun checkUnread(): AjaxResult<UnreadCheckResponse>
     suspend fun getNoticeList(

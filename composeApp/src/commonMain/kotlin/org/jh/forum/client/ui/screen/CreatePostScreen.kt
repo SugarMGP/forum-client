@@ -35,7 +35,7 @@ fun calculateRows(itemCount: Int): Int {
 // Platform-specific image picker implementation
 @Composable
 expect fun ImagePicker(
-    onImageSelected: (ByteArray) -> Unit,
+    onImageSelected: (ByteArray, String) -> Unit,
     enabled: Boolean = true,
     content: @Composable () -> Unit
 )
@@ -93,9 +93,9 @@ fun CreatePostScreen(
     }
 
     // 上传图片
-    fun uploadImage(bytes: ByteArray) {
+    fun uploadImage(bytes: ByteArray, filename: String) {
         isUploadingImage = true
-        viewModel.uploadImage(bytes) {
+        viewModel.uploadImage(bytes, filename) {
             isUploadingImage = false
             if (it != null) {
                 selectedImages = selectedImages + it
@@ -435,8 +435,8 @@ fun CreatePostScreen(
                             )
 
                             ImagePicker(
-                                onImageSelected = { bytes ->
-                                    uploadImage(bytes)
+                                onImageSelected = { bytes, filename ->
+                                    uploadImage(bytes, filename)
                                 },
                                 enabled = !isUploadingImage && selectedImages.size < 9
                             ) {

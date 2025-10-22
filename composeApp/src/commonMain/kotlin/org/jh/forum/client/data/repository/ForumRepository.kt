@@ -76,8 +76,8 @@ class ForumRepository(private val api: ForumApi) {
     suspend fun reportContent(request: ReportContentRequest): AjaxResultVoid =
         api.reportContent(request)
 
-    suspend fun uploadPicture(bytes: ByteArray): AjaxResult<UploadResponse> =
-        api.uploadPicture(bytes)
+    suspend fun uploadPicture(bytes: ByteArray, filename: String): AjaxResult<UploadResponse> =
+        api.uploadPicture(bytes, filename)
 
     suspend fun checkUnread(): AjaxResult<UnreadCheckResponse> = api.checkUnread()
 

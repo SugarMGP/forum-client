@@ -102,10 +102,10 @@ class PostViewModel : ViewModel() {
         }
     }
 
-    fun uploadImage(bytes: ByteArray, onResult: (String?) -> Unit) {
+    fun uploadImage(bytes: ByteArray, filename: String, onResult: (String?) -> Unit) {
         viewModelScope.launch {
             try {
-                val result = repository.uploadPicture(bytes)
+                val result = repository.uploadPicture(bytes, filename)
                 if (result.code == 200 && result.data != null && result.data.url != null) {
                     onResult(result.data.url)
                 } else {

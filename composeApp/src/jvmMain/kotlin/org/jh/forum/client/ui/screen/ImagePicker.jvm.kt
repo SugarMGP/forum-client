@@ -12,7 +12,7 @@ import java.io.File
 
 @Composable
 actual fun ImagePicker(
-    onImageSelected: (ByteArray) -> Unit,
+    onImageSelected: (ByteArray, String) -> Unit,
     enabled: Boolean,
     content: @Composable () -> Unit
 ) {
@@ -39,7 +39,8 @@ actual fun ImagePicker(
                     if (directory != null && filename != null) {
                         try {
                             val file = File(directory, filename)
-                            onImageSelected(file.readBytes())
+                            val bytes = file.readBytes()
+                            onImageSelected(bytes, filename)
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
