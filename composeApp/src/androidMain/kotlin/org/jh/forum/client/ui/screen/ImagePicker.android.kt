@@ -1,6 +1,5 @@
 package org.jh.forum.client.ui.screen
 
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -9,11 +8,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import java.io.InputStream
 
 @Composable
 actual fun ImagePicker(
-    onImageSelected: (InputStream) -> Unit,
+    onImageSelected: (ByteArray) -> Unit,
     enabled: Boolean,
     content: @Composable () -> Unit
 ) {
@@ -21,18 +19,16 @@ actual fun ImagePicker(
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
-    ) { uri: Uri? ->
-        uri?.let {
-            try {
-                val input: InputStream? = context.contentResolver.openInputStream(it)
-                if (input != null) {
-                    // Pass the stream to caller; lifecycle/closing is managed downstream
-                    onImageSelected(input)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+
+        runCatching {
+            // 读取文件内容到 ByteArray
+            val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            if (bytes != null) {
+                onImageSelected(bytes)
             }
-        }
+        }.onFailure { it.printStackTrace() }
     }
 
     androidx.compose.runtime.CompositionLocalProvider(

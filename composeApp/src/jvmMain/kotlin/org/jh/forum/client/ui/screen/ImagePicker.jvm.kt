@@ -9,12 +9,10 @@ import kotlinx.coroutines.withContext
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
-import java.io.FileInputStream
-import java.io.InputStream
 
 @Composable
 actual fun ImagePicker(
-    onImageSelected: (InputStream) -> Unit,
+    onImageSelected: (ByteArray) -> Unit,
     enabled: Boolean,
     content: @Composable () -> Unit
 ) {
@@ -41,8 +39,7 @@ actual fun ImagePicker(
                     if (directory != null && filename != null) {
                         try {
                             val file = File(directory, filename)
-                            val input: InputStream = FileInputStream(file)
-                            onImageSelected(input)
+                            onImageSelected(file.readBytes())
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }

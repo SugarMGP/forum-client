@@ -5,9 +5,7 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
-import io.ktor.utils.io.streams.asInput
 import org.jh.forum.client.data.model.*
-import java.io.InputStream
 
 class KtorForumApi(private val client: HttpClient, private val baseUrl: String) : ForumApi {
     private fun url(path: String) = baseUrl.trimEnd('/') + path
@@ -187,20 +185,14 @@ class KtorForumApi(private val client: HttpClient, private val baseUrl: String) 
         }.body()
 
     override suspend fun uploadPicture(
-        input: InputStream
+        bytes: ByteArray,
     ): AjaxResult<UploadResponse> =
-        client.post(url("/api/file/picture")) {
-            setBody(
-                MultiPartFormDataContent(
-                    formData {
-                        append(
-                            "picture",
-                            InputProvider { input.asInput() }
-                        )
-                    }
-                )
-            )
-        }.body()
+        client.submitFormWithBinaryData(
+            url("/api/file/picture"),
+            formData {
+                append("picture", bytes)
+            }
+        ).body()
 
     override suspend fun checkUnread(): AjaxResult<UnreadCheckResponse> =
         client.get(url("/api/notices/unread")).body()

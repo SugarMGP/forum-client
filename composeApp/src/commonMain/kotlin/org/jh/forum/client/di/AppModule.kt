@@ -15,6 +15,8 @@ import org.jh.forum.client.ui.viewmodel.AuthViewModel
 import org.jh.forum.client.ui.viewmodel.CommentViewModel
 import org.jh.forum.client.ui.viewmodel.PostListViewModel
 import org.jh.forum.client.ui.viewmodel.PostViewModel
+import java.net.InetSocketAddress
+import java.net.Proxy
 
 object AppModule {
     // 基础URL，可根据环境配置修改
@@ -23,6 +25,10 @@ object AppModule {
     // 统一创建 HttpClient（common）
     private val httpClient: HttpClient by lazy {
         HttpClient {
+            engine {
+                proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress("192.168.31.83", 9000))
+            }
+
             install(ContentNegotiation) {
                 json(Json {
                     encodeDefaults = true

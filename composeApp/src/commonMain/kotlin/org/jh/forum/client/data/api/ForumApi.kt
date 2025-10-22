@@ -1,7 +1,6 @@
 package org.jh.forum.client.data.api
 
 import org.jh.forum.client.data.model.*
-import java.io.InputStream
 
 interface ForumApi {
     suspend fun login(request: LoginRequest): AjaxResult<LoginResponse>
@@ -65,7 +64,7 @@ interface ForumApi {
     suspend fun reportUser(request: ReportUserRequest): AjaxResultVoid
     suspend fun reportContent(request: ReportContentRequest): AjaxResultVoid
 
-    suspend fun uploadPicture(input: InputStream): AjaxResult<UploadResponse>
+    suspend fun uploadPicture(bytes: ByteArray): AjaxResult<UploadResponse>
 
     suspend fun checkUnread(): AjaxResult<UnreadCheckResponse>
     suspend fun getNoticeList(
