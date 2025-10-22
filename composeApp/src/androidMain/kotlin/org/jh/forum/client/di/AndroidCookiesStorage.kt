@@ -5,13 +5,13 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import io.ktor.client.plugins.cookies.*
-import io.ktor.http.*
+import io.ktor.client.plugins.cookies.CookiesStorage
+import io.ktor.http.Cookie
+import io.ktor.http.Url
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jh.forum.client.ForumApplication
 import java.io.File
@@ -20,25 +20,25 @@ import kotlin.time.ExperimentalTime
 
 /**
  * Android implementation of CookiesStorage using DataStore Preferences Core.
- * 
+ *
  * This implementation stores HTTP cookies persistently using AndroidX DataStore,
  * allowing the Ktor HTTP client to maintain authentication and session state
  * across app restarts.
- * 
+ *
  * Cookies are serialized to JSON and stored as a single preference value.
  * The implementation handles cookie expiration, URL matching, and thread-safe access.
  */
 class AndroidCookiesStorage : CookiesStorage {
-    
+
     private val dataStore: DataStore<Preferences> by lazy {
         PreferenceDataStoreFactory.create {
             File(ForumApplication.instance.filesDir, "cookies.preferences_pb")
         }
     }
-    
+
     private val mutex = Mutex()
     private val cookiesKey = stringPreferencesKey("cookies_json")
-    
+
     private val json = Json {
         ignoreUnknownKeys = true
         encodeDefaults = true
@@ -47,17 +47,17 @@ class AndroidCookiesStorage : CookiesStorage {
     override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
         mutex.withLock {
             val cookies = loadCookies().toMutableList()
-            
+
             // Remove existing cookie with same name, domain, and path
-            cookies.removeAll { 
-                it.name == cookie.name && 
-                it.domain == cookie.domain && 
-                it.path == cookie.path 
+            cookies.removeAll {
+                it.name == cookie.name &&
+                        it.domain == cookie.domain &&
+                        it.path == cookie.path
             }
-            
+
             // Add new cookie
             cookies.add(cookie.toSerializable())
-            
+
             // Save to DataStore
             saveCookies(cookies)
         }
@@ -68,17 +68,17 @@ class AndroidCookiesStorage : CookiesStorage {
         return mutex.withLock {
             val nowMillis = Clock.System.now().toEpochMilliseconds()
             val cookies = loadCookies().toMutableList()
-            
+
             // Remove expired cookies
             val validCookies = cookies.filter { cookie ->
                 cookie.expiresMillis?.let { it > nowMillis } ?: true
             }
-            
+
             // Save back if we removed any expired cookies
             if (validCookies.size != cookies.size) {
                 saveCookies(validCookies)
             }
-            
+
             // Return cookies that match the URL
             validCookies
                 .filter { cookieMatchesUrl(it, requestUrl) }
@@ -95,7 +95,7 @@ class AndroidCookiesStorage : CookiesStorage {
             val jsonString = dataStore.data.map { preferences ->
                 preferences[cookiesKey] ?: "[]"
             }.first()
-            
+
             if (jsonString.isBlank()) {
                 emptyList()
             } else {

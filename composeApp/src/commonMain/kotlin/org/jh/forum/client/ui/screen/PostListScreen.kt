@@ -155,7 +155,11 @@ fun ImageGrid(
                                             contentAlignment = Alignment.Center,
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
+                                                .background(
+                                                    MaterialTheme.colorScheme.scrim.copy(
+                                                        alpha = 0.6f
+                                                    )
+                                                )
                                         ) {
                                             Text(
                                                 text = "+${totalPictures - displayImages.size}",
@@ -204,7 +208,10 @@ fun PostListScreen(
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
             .collect { lastVisibleIndex ->
                 if (lastVisibleIndex != null && lastVisibleIndex >= posts.size - 3 && hasMore && !isLoading) {
-                    viewModel.loadPosts(category = selectedCategory, sortType = sortType.name.lowercase())
+                    viewModel.loadPosts(
+                        category = selectedCategory,
+                        sortType = sortType.name.lowercase()
+                    )
                 }
             }
     }
@@ -278,7 +285,10 @@ fun PostListScreen(
 
                             // 分类选项卡
                             SecondaryScrollableTabRow(
-                                selectedTabIndex = selectedCategoryIndex(selectedCategory, categories),
+                                selectedTabIndex = selectedCategoryIndex(
+                                    selectedCategory,
+                                    categories
+                                ),
                                 containerColor = MaterialTheme.colorScheme.surface,
                                 indicator = {
                                     TabRowDefaults.SecondaryIndicator(

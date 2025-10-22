@@ -1,7 +1,10 @@
 package org.jh.forum.client.ui.navigation
 
-import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -112,7 +115,11 @@ fun MainNavigation(
     } else {
         NavigationSuiteScaffold(
             navigationSuiteItems = {
-                listOf(BottomNavItem.Home, BottomNavItem.Messages, BottomNavItem.Profile).forEach { it ->
+                listOf(
+                    BottomNavItem.Home,
+                    BottomNavItem.Messages,
+                    BottomNavItem.Profile
+                ).forEach { it ->
                     item(
                         icon = { Icon(it.icon, contentDescription = it.title) },
                         label = { Text(it.title) },
@@ -139,7 +146,9 @@ fun MainNavigation(
                         enterTransition = { fadeInTransition },
                         exitTransition = { fadeOutTransition }
                     ) { backStackEntry ->
-                        val refresh = backStackEntry.savedStateHandle.get<String>("refresh")?.toBoolean() ?: false
+                        val refresh =
+                            backStackEntry.savedStateHandle.get<String>("refresh")?.toBoolean()
+                                ?: false
                         PostListScreen(
                             onPostClick = { postId: Long ->
                                 // 导航到帖子详情页
@@ -196,7 +205,9 @@ fun MainNavigation(
                             ProfileScreen(
                                 authViewModel = authViewModel,
                                 onNavigateToThemeSettings = { showThemeSettings = true },
-                                onNavigateToNotificationSettings = { showNotificationSettings = true },
+                                onNavigateToNotificationSettings = {
+                                    showNotificationSettings = true
+                                },
                                 onNavigateToLogin = {
                                     navController.navigate("login")
                                 },

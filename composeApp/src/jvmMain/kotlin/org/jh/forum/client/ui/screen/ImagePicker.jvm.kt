@@ -1,8 +1,8 @@
 package org.jh.forum.client.ui.screen
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.staticCompositionLocalOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -17,7 +17,7 @@ actual fun ImagePicker(
     content: @Composable () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    
+
     // Create a handler that can be called
     val pickImage = {
         if (enabled) {
@@ -26,16 +26,16 @@ actual fun ImagePicker(
                     val fileDialog = FileDialog(null as Frame?, "选择图片", FileDialog.LOAD)
                     fileDialog.setFilenameFilter { _, name ->
                         name.lowercase().endsWith(".jpg") ||
-                        name.lowercase().endsWith(".jpeg") ||
-                        name.lowercase().endsWith(".png") ||
-                        name.lowercase().endsWith(".gif") ||
-                        name.lowercase().endsWith(".webp")
+                                name.lowercase().endsWith(".jpeg") ||
+                                name.lowercase().endsWith(".png") ||
+                                name.lowercase().endsWith(".gif") ||
+                                name.lowercase().endsWith(".webp")
                     }
                     fileDialog.isVisible = true
-                    
+
                     val directory = fileDialog.directory
                     val filename = fileDialog.file
-                    
+
                     if (directory != null && filename != null) {
                         try {
                             val file = File(directory, filename)
@@ -49,7 +49,7 @@ actual fun ImagePicker(
             }
         }
     }
-    
+
     // Provide the onClick via CompositionLocal
     androidx.compose.runtime.CompositionLocalProvider(
         LocalImagePickerClick provides pickImage

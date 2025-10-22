@@ -18,7 +18,7 @@ actual fun ImagePicker(
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
-    
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -29,14 +29,16 @@ actual fun ImagePicker(
                     val outputStream = ByteArrayOutputStream()
                     stream.copyTo(outputStream)
                     val bytes = outputStream.toByteArray()
-                    
+
                     // Get filename from URI or generate one
-                    val filename = context.contentResolver.query(it, null, null, null, null)?.use { cursor ->
-                        val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
-                        cursor.moveToFirst()
-                        cursor.getString(nameIndex)
-                    } ?: "image_${System.currentTimeMillis()}.jpg"
-                    
+                    val filename =
+                        context.contentResolver.query(it, null, null, null, null)?.use { cursor ->
+                            val nameIndex =
+                                cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                            cursor.moveToFirst()
+                            cursor.getString(nameIndex)
+                        } ?: "image_${System.currentTimeMillis()}.jpg"
+
                     onImageSelected(bytes, filename)
                 }
             } catch (e: Exception) {
@@ -44,13 +46,13 @@ actual fun ImagePicker(
             }
         }
     }
-    
+
     androidx.compose.runtime.CompositionLocalProvider(
         LocalImagePickerClick provides { if (enabled) launcher.launch("image/*") }
     ) {
         Box(
-            modifier = Modifier.clickable(enabled = enabled) { 
-                launcher.launch("image/*") 
+            modifier = Modifier.clickable(enabled = enabled) {
+                launcher.launch("image/*")
             }
         ) {
             content()

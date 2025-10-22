@@ -10,7 +10,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -32,7 +31,11 @@ fun UserProfileScreen(
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val isCurrentUser = authViewModel.userProfile.collectAsState().value?.userId == userId
-    var userProfile by remember { mutableStateOf<org.jh.forum.client.data.model.GetUserProfileResponse?>(null) }
+    var userProfile by remember {
+        mutableStateOf<org.jh.forum.client.data.model.GetUserProfileResponse?>(
+            null
+        )
+    }
     var isLoading by remember { mutableStateOf(true) }
 
     // Load user profile
@@ -44,7 +47,7 @@ fun UserProfileScreen(
                 userProfile = result.data
             }
             isLoading = false
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             isLoading = false
         }
     }
@@ -153,7 +156,8 @@ fun UserPostsTab(
     LaunchedEffect(currentPage, userId) {
         try {
             isLoading = true
-            val result = repository.getPersonalPostList(page = currentPage, pageSize = 20, userId = userId)
+            val result =
+                repository.getPersonalPostList(page = currentPage, pageSize = 20, userId = userId)
             if (result.code == 200 && result.data != null) {
                 val postList = result.data
                 posts = if (currentPage == 1) {
@@ -164,7 +168,7 @@ fun UserPostsTab(
                 hasMore = postList.page * postList.pageSize < postList.total
             }
             isLoading = false
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             isLoading = false
         }
     }
@@ -369,7 +373,11 @@ fun UserCommentsTab(
     userId: Long,
     repository: ForumRepository
 ) {
-    var comments by remember { mutableStateOf<List<org.jh.forum.client.data.model.PersonalCommentListElement>>(emptyList()) }
+    var comments by remember {
+        mutableStateOf<List<org.jh.forum.client.data.model.PersonalCommentListElement>>(
+            emptyList()
+        )
+    }
     var isLoading by remember { mutableStateOf(true) }
     var hasMore by remember { mutableStateOf(true) }
     var currentPage by remember { mutableStateOf(1) }
@@ -378,7 +386,7 @@ fun UserCommentsTab(
     // Load comments
     LaunchedEffect(currentPage, userId) {
         if (!hasMore && currentPage > 1) return@LaunchedEffect  // Don't load if no more data
-        
+
         try {
             isLoading = true
             val result = repository.getPersonalComment(page = currentPage, pageSize = 20)
@@ -392,7 +400,7 @@ fun UserCommentsTab(
                 hasMore = commentList.page * commentList.pageSize < commentList.total
             }
             isLoading = false
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             isLoading = false
         }
     }
@@ -479,35 +487,35 @@ fun PersonalCommentCard(
             )
 
             // Target content (quoted style)
-                Row(
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = Dimensions.spaceSmall)
+            ) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = Dimensions.spaceSmall)
+                        .width(2.dp)
+                        .height(36.dp)
+                        .padding(vertical = 4.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .width(2.dp)
-                            .height(36.dp)
-                            .padding(vertical = 4.dp)
-                    ) {
-                        Surface(
-                            modifier = Modifier.fillMaxSize(),
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            shape = MaterialTheme.shapes.extraSmall
-                        ) {}
-                    }
-
-                    Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-
-                    Text(
-                        text = comment.targetContent ?: "内容不存在",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f).align(Alignment.CenterVertically)
-                    )
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        shape = MaterialTheme.shapes.extraSmall
+                    ) {}
                 }
+
+                Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+
+                Text(
+                    text = comment.targetContent ?: "内容不存在",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f).align(Alignment.CenterVertically)
+                )
+            }
 
             // Stats row
             Spacer(modifier = Modifier.height(Dimensions.spaceSmall))

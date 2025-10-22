@@ -280,7 +280,10 @@ fun PostDetailScreen(
                 },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = Dimensions.buttonHeightLarge, vertical = Dimensions.spaceMedium)
+                    .padding(
+                        horizontal = Dimensions.buttonHeightLarge,
+                        vertical = Dimensions.spaceMedium
+                    )
             ) {
                 if (it) {
                     // 评论编辑器状态 - 小而美设计，与界面边框保持间隔
@@ -556,7 +559,12 @@ fun PostContent(
                                 FilterChip(
                                     selected = false,
                                     onClick = { },
-                                    label = { Text(tag, style = MaterialTheme.typography.labelMedium) },
+                                    label = {
+                                        Text(
+                                            tag,
+                                            style = MaterialTheme.typography.labelMedium
+                                        )
+                                    },
                                     colors = FilterChipDefaults.filterChipColors(
                                         containerColor = MaterialTheme.colorScheme.secondaryContainer
                                     )

@@ -175,7 +175,12 @@ fun CreatePostScreen(
                         OutlinedTextField(
                             value = title,
                             onValueChange = { title = it },
-                            placeholder = { Text("请输入帖子标题", style = MaterialTheme.typography.bodyLarge) },
+                            placeholder = {
+                                Text(
+                                    "请输入帖子标题",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            },
                             keyboardOptions = KeyboardOptions(
                                 capitalization = KeyboardCapitalization.Sentences,
                                 keyboardType = KeyboardType.Text
@@ -210,7 +215,12 @@ fun CreatePostScreen(
                         OutlinedTextField(
                             value = selectedCategory?.displayName ?: "",
                             onValueChange = {},
-                            placeholder = { Text("请选择帖子分类", style = MaterialTheme.typography.bodyLarge) },
+                            placeholder = {
+                                Text(
+                                    "请选择帖子分类",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            },
                             readOnly = true,
                             trailingIcon = {
                                 IconButton(onClick = { showCategoryMenu = !showCategoryMenu }) {
@@ -289,7 +299,12 @@ fun CreatePostScreen(
                         OutlinedTextField(
                             value = content,
                             onValueChange = { content = it },
-                            placeholder = { Text("分享你的想法...", style = MaterialTheme.typography.bodyLarge) },
+                            placeholder = {
+                                Text(
+                                    "分享你的想法...",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            },
                             keyboardOptions = KeyboardOptions(
                                 capitalization = KeyboardCapitalization.Sentences,
                                 keyboardType = KeyboardType.Text,
@@ -332,7 +347,12 @@ fun CreatePostScreen(
                             OutlinedTextField(
                                 value = topicInput,
                                 onValueChange = { topicInput = it },
-                                placeholder = { Text("添加话题...", style = MaterialTheme.typography.bodyMedium) },
+                                placeholder = {
+                                    Text(
+                                        "添加话题...",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                },
                                 keyboardOptions = KeyboardOptions(
                                     capitalization = KeyboardCapitalization.Sentences,
                                     keyboardType = KeyboardType.Text,
@@ -369,7 +389,12 @@ fun CreatePostScreen(
                                 topics.forEach { topic ->
                                     AssistChip(
                                         onClick = { removeTopic(topic) },
-                                        label = { Text("#$topic", style = MaterialTheme.typography.bodyMedium) },
+                                        label = {
+                                            Text(
+                                                "#$topic",
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                        },
                                         trailingIcon = {
                                             Icon(
                                                 AppIcons.Close,
@@ -408,9 +433,14 @@ fun CreatePostScreen(
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            
+
                             ImagePicker(
-                                onImageSelected = { bytes, filename -> uploadImage(bytes, filename) },
+                                onImageSelected = { bytes, filename ->
+                                    uploadImage(
+                                        bytes,
+                                        filename
+                                    )
+                                },
                                 enabled = !isUploadingImage && selectedImages.size < 9
                             ) {
                                 FilledTonalButton(
@@ -458,7 +488,9 @@ fun CreatePostScreen(
                                             modifier = Modifier
                                                 .align(Alignment.TopEnd)
                                                 .padding(4.dp),
-                                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.9f),
+                                            color = MaterialTheme.colorScheme.errorContainer.copy(
+                                                alpha = 0.9f
+                                            ),
                                             shape = CircleShape
                                         ) {
                                             IconButton(

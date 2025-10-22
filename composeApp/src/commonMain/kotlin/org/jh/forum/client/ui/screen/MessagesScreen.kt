@@ -49,7 +49,8 @@ fun MessagesScreen(
         errorMessage = null
         try {
             // 请求通知列表
-            val noticeResponse = repository.getNoticeList(page = 1, pageSize = 20, type = selectedNoticeType)
+            val noticeResponse =
+                repository.getNoticeList(page = 1, pageSize = 20, type = selectedNoticeType)
             if (noticeResponse.code == 200 && noticeResponse.data != null) {
                 messages = noticeResponse.data.list
             } else {
@@ -74,7 +75,8 @@ fun MessagesScreen(
                 2 -> "systematic"
                 else -> ""
             }
-            val announcementResponse = repository.getAnnouncementList(page = 1, pageSize = 20, type = type)
+            val announcementResponse =
+                repository.getAnnouncementList(page = 1, pageSize = 20, type = type)
             if (announcementResponse.code == 200 && announcementResponse.data != null) {
                 announcements = announcementResponse.data.list
             } else {
@@ -170,7 +172,12 @@ fun MessagesScreen(
                                 selectedTabIndex = selectedNoticeType,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                listOf("全部", "点赞", "收藏", "评论和@").forEachIndexed { index, title ->
+                                listOf(
+                                    "全部",
+                                    "点赞",
+                                    "收藏",
+                                    "评论和@"
+                                ).forEachIndexed { index, title ->
                                     Tab(
                                         selected = selectedNoticeType == index,
                                         onClick = { selectedNoticeType = index },
@@ -184,7 +191,11 @@ fun MessagesScreen(
                                 selectedTabIndex = selectedAnnouncementType,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                listOf("全部", "学校公告", "系统公告").forEachIndexed { index, title ->
+                                listOf(
+                                    "全部",
+                                    "学校公告",
+                                    "系统公告"
+                                ).forEachIndexed { index, title ->
                                     Tab(
                                         selected = selectedAnnouncementType == index,
                                         onClick = { selectedAnnouncementType = index },
@@ -506,7 +517,7 @@ private fun getActionText(message: GetNoticeListElement): String {
 @Composable
 fun AnnouncementItem(announcement: GetAnnouncementListElement) {
     var isExpanded by remember { mutableStateOf(false) }
-    
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
@@ -579,7 +590,7 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                     maxLines = if (isExpanded) Int.MAX_VALUE else 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                
+
                 // Show expand/collapse indicator when content is long
                 if (announcement.content.length > 50) {
                     Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))

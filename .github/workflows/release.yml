@@ -46,7 +46,7 @@ jobs:
   build-desktop:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
         include:
           - os: ubuntu-latest
             task: packageDeb
@@ -94,7 +94,7 @@ jobs:
           path: ${{ matrix.artifact-path }}
 
   create-release:
-    needs: [build-android, build-desktop]
+    needs: [ build-android, build-desktop ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
