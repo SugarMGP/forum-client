@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import java.io.ByteArrayOutputStream
@@ -44,11 +45,19 @@ actual fun ImagePicker(
         }
     }
     
-    Box(
-        modifier = Modifier.clickable(enabled = enabled) { 
-            launcher.launch("image/*") 
-        }
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalImagePickerClick provides { if (enabled) launcher.launch("image/*") }
     ) {
-        content()
+        Box(
+            modifier = Modifier.clickable(enabled = enabled) { 
+                launcher.launch("image/*") 
+            }
+        ) {
+            content()
+        }
     }
+}
+
+actual val LocalImagePickerClick = staticCompositionLocalOf<() -> Unit> {
+    { }
 }

@@ -40,6 +40,9 @@ expect fun ImagePicker(
     content: @Composable () -> Unit
 )
 
+// CompositionLocal for providing the image picker click handler (for platforms that need it)
+expect val LocalImagePickerClick: androidx.compose.runtime.ProvidableCompositionLocal<() -> Unit>
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
@@ -228,14 +231,12 @@ fun CreatePostScreen(
                         // Category selection dropdown
                         DropdownMenu(
                             expanded = showCategoryMenu,
-                            onDismissRequest = { showCategoryMenu = false },
-                            modifier = Modifier.fillMaxWidth()
+                            onDismissRequest = { showCategoryMenu = false }
                         ) {
                             PostCategory.entries.forEach { category ->
                                 DropdownMenuItem(
                                     text = {
                                         Row(
-                                            modifier = Modifier.fillMaxWidth(),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             val icon = when (category) {
@@ -250,10 +251,9 @@ fun CreatePostScreen(
                                             Icon(
                                                 icon,
                                                 contentDescription = category.displayName,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(24.dp)
+                                                modifier = Modifier.size(20.dp)
                                             )
-                                            Spacer(modifier = Modifier.width(Dimensions.spaceMedium))
+                                            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                                             Text(
                                                 category.displayName,
                                                 style = MaterialTheme.typography.bodyLarge
@@ -414,7 +414,7 @@ fun CreatePostScreen(
                                 enabled = !isUploadingImage && selectedImages.size < 9
                             ) {
                                 FilledTonalButton(
-                                    onClick = { },
+                                    onClick = LocalImagePickerClick.current,
                                     enabled = !isUploadingImage && selectedImages.size < 9
                                 ) {
                                     Icon(

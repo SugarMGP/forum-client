@@ -376,6 +376,8 @@ fun UserCommentsTab(
 
     // Load comments
     LaunchedEffect(currentPage, userId) {
+        if (!hasMore && currentPage > 1) return@LaunchedEffect  // Don't load if no more data
+        
         try {
             isLoading = true
             val result = repository.getPersonalComment(page = currentPage, pageSize = 20)
@@ -436,13 +438,14 @@ fun UserCommentsTab(
     }
 
     // Load more when scrolled to bottom
-    LaunchedEffect(listState) {
+    LaunchedEffect(listState, hasMore, isLoading) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
             .collect { lastVisibleIndex ->
                 if (lastVisibleIndex != null &&
                     lastVisibleIndex >= comments.size - 2 &&
                     !isLoading &&
-                    hasMore
+                    hasMore &&
+                    comments.isNotEmpty()
                 ) {
                     currentPage++
                 }
