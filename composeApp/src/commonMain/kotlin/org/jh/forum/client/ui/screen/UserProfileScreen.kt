@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -478,7 +479,6 @@ fun PersonalCommentCard(
             )
 
             // Target content (quoted style)
-            if (comment.targetContent.isNotEmpty()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -500,15 +500,14 @@ fun PersonalCommentCard(
                     Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
 
                     Text(
-                        text = comment.targetContent,
+                        text = comment.targetContent ?: "内容不存在",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).align(Alignment.CenterVertically)
                     )
                 }
-            }
 
             // Stats row
             Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
