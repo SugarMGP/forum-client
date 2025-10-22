@@ -113,7 +113,6 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             includeAllModules = true
-            jvmArgs += listOf("-Dfile.encoding=UTF-8,--add-opens=java.base/java.lang=ALL-UNNAMED")
             packageName = "精弘论坛"
             packageVersion = "1.0.0"
         }
