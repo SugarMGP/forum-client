@@ -110,8 +110,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            includeAllModules = true
-            packageName = "精弘论坛"
+            packageName = "org.jh.forum.client"
             packageVersion = "1.0.0"
         }
     }
