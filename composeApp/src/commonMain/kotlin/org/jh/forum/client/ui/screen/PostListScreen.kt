@@ -559,8 +559,8 @@ fun PostItem(
                     totalPictures = post.totalPictures,
                     onClick = { clickedUrl -> 
                         // Find index of clicked image and open gallery
-                        val clickedIndex = imageUrls.indexOf(clickedUrl).coerceAtLeast(0)
-                        onImageClick(imageUrls, clickedIndex)
+                        val clickedIndex = imageUrls.indexOf(clickedUrl)
+                        onImageClick(imageUrls, if (clickedIndex >= 0) clickedIndex else 0)
                     }
                 )
             }

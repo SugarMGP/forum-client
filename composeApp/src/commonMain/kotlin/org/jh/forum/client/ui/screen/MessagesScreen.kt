@@ -1,6 +1,7 @@
 package org.jh.forum.client.ui.screen
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -724,23 +725,29 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
 
                 Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
 
-                // Animated content with smooth height transition
-                AnimatedVisibility(
-                    visible = true,
-                    enter = expandVertically(animationSpec = tween(300)),
-                    exit = shrinkVertically(animationSpec = tween(300))
-                ) {
-                    Column {
-                        Text(
-                            text = announcement.content,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = if (isExpanded) Int.MAX_VALUE else 2,
-                            overflow = TextOverflow.Ellipsis
+                // Content with animated height transition
+                Column {
+                    Text(
+                        text = announcement.content,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = if (isExpanded) Int.MAX_VALUE else 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.animateContentSize(
+                            animationSpec = tween(
+                                durationMillis = 300,
+                                easing = FastOutSlowInEasing
+                            )
                         )
-                        
-                        // Show signatory if available
-                        if (!announcement.signatory.isNullOrBlank()) {
+                    )
+                    
+                    // Show signatory if available and expanded
+                    AnimatedVisibility(
+                        visible = isExpanded && !announcement.signatory.isNullOrBlank(),
+                        enter = expandVertically(animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)),
+                        exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(animationSpec = tween(300))
+                    ) {
+                        Column {
                             Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                             Text(
                                 text = "—— ${announcement.signatory}",

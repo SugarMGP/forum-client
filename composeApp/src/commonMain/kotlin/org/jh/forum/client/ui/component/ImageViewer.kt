@@ -150,6 +150,12 @@ fun ImageGalleryViewer(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Guard against empty image list
+    if (images.isEmpty()) {
+        onDismiss()
+        return
+    }
+    
     val pagerState = rememberPagerState(
         initialPage = initialIndex.coerceIn(0, images.size - 1),
         pageCount = { images.size }
