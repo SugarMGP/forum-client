@@ -21,6 +21,7 @@ import org.jh.forum.client.data.model.GetPostListElement
 import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.data.model.SortType
 import org.jh.forum.client.di.AppModule
+import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
@@ -199,6 +200,11 @@ fun PostListScreen(
 
     val listState = rememberLazyListState()
     var showTabs by remember { mutableStateOf(false) }
+    
+    // Image gallery state
+    var showImageGallery by remember { mutableStateOf(false) }
+    var galleryImages by remember { mutableStateOf<List<String>>(emptyList()) }
+    var galleryInitialIndex by remember { mutableStateOf(0) }
 
 
     val categories = PostCategory.entries
@@ -364,7 +370,12 @@ fun PostListScreen(
                             post = it,
                             onClick = { onPostClick(it.id) },
                             onUserClick = { userId -> onUserClick(userId) },
-                            onUpvoteClick = { it -> viewModel.upvotePost(it) }
+                            onUpvoteClick = { it -> viewModel.upvotePost(it) },
+                            onImageClick = { images, index ->
+                                galleryImages = images
+                                galleryInitialIndex = index
+                                showImageGallery = true
+                            }
                         )
                     }
 
@@ -388,6 +399,18 @@ fun PostListScreen(
                 }
             }
         }
+        
+        // Image gallery dialog
+        ImageGalleryDialog(
+            visible = showImageGallery,
+            images = galleryImages,
+            initialIndex = galleryInitialIndex,
+            onDismiss = {
+                showImageGallery = false
+                galleryImages = emptyList()
+                galleryInitialIndex = 0
+            }
+        )
     }
 
 
@@ -398,7 +421,8 @@ fun PostItem(
     post: GetPostListElement,
     onClick: () -> Unit,
     onUpvoteClick: (Long) -> Unit,
-    onUserClick: (Long) -> Unit = {}, // New parameter
+    onUserClick: (Long) -> Unit = {},
+    onImageClick: (List<String>, Int) -> Unit = { _, _ -> }, // New parameter for image gallery
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -529,10 +553,15 @@ fun PostItem(
             // 图片预览（如果有）
             if (post.pictures.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                val imageUrls = post.pictures.mapNotNull { it.url }
                 ImageGrid(
-                    images = post.pictures.map { it.url },
+                    images = imageUrls,
                     totalPictures = post.totalPictures,
-                    onClick = { _ -> onClick() }
+                    onClick = { clickedUrl -> 
+                        // Find index of clicked image and open gallery
+                        val clickedIndex = imageUrls.indexOf(clickedUrl).coerceAtLeast(0)
+                        onImageClick(imageUrls, clickedIndex)
+                    }
                 )
             }
             
