@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.launch
 import org.jh.forum.client.data.model.GetAnnouncementListElement
 import org.jh.forum.client.data.model.GetNoticeListElement
 import org.jh.forum.client.data.repository.ForumRepository
@@ -31,6 +33,8 @@ fun MessagesScreen(
     repository: ForumRepository,
     onUserClick: (Long) -> Unit = {}
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    
     // 消息相关状态
     var messages by remember { mutableStateOf<List<GetNoticeListElement>>(emptyList()) }
     var announcements by remember { mutableStateOf<List<GetAnnouncementListElement>>(emptyList()) }
@@ -39,6 +43,12 @@ fun MessagesScreen(
     var unreadNoticeCount by remember { mutableStateOf(0) }
     var unreadAnnouncementCount by remember { mutableStateOf(0) }
     var retryTrigger by remember { mutableStateOf(0) }
+    
+    // Pagination state
+    var noticeCurrentPage by remember { mutableStateOf(1) }
+    var noticeHasMore by remember { mutableStateOf(true) }
+    var announcementCurrentPage by remember { mutableStateOf(1) }
+    var announcementHasMore by remember { mutableStateOf(true) }
 
     // UI状态
     var selectedNoticeType by remember { mutableStateOf(0) } // 0:全部, 1:点赞, 2:收藏, 3:评论和@
@@ -46,24 +56,42 @@ fun MessagesScreen(
     var selectedAnnouncementType by remember { mutableStateOf(0) } // 0:全部, 1:学校公告, 2:系统公告
 
     // 加载互动消息
-    suspend fun loadNoticesOnce() {
+    suspend fun loadNotices(reset: Boolean = false) {
+        if (!reset && !noticeHasMore) return // Don't load if no more data
+        if (isLoading) return // Prevent concurrent loading
+        
         isLoading = true
         errorMessage = null
         try {
+            val page = if (reset) 1 else noticeCurrentPage
             // 请求通知列表
             val noticeResponse =
-                repository.getNoticeList(page = 1, pageSize = 20, type = selectedNoticeType)
+                repository.getNoticeList(page = page, pageSize = 20, type = selectedNoticeType)
             if (noticeResponse.code == 200 && noticeResponse.data != null) {
-                // Defensive deduplication - filter out any duplicate notices by ID
-                val newNotices = noticeResponse.data.list
-                val seenIds = mutableSetOf<Long>()
-                messages = newNotices.filter { notice ->
-                    if (notice.id in seenIds) false
-                    else {
-                        seenIds.add(notice.id)
-                        true
+                val response = noticeResponse.data
+                val newNotices = response.list
+                
+                messages = if (reset) {
+                    // Reset: replace with new data
+                    noticeCurrentPage = 1
+                    val seenIds = mutableSetOf<Long>()
+                    newNotices.filter { notice ->
+                        if (notice.id in seenIds) false
+                        else {
+                            seenIds.add(notice.id)
+                            true
+                        }
                     }
+                } else {
+                    // Append: merge with deduplication
+                    val existingIds = messages.map { it.id }.toSet()
+                    val uniqueNewNotices = newNotices.filter { it.id !in existingIds }
+                    messages + uniqueNewNotices
                 }
+                
+                // Update pagination state
+                noticeHasMore = response.page * response.pageSize < response.total
+                if (noticeHasMore) noticeCurrentPage++
             } else {
                 errorMessage = "加载通知失败"
             }
@@ -76,10 +104,14 @@ fun MessagesScreen(
     }
 
     // 加载公告列表
-    suspend fun loadAnnouncementsOnce() {
+    suspend fun loadAnnouncements(reset: Boolean = false) {
+        if (!reset && !announcementHasMore) return // Don't load if no more data
+        if (isLoading) return // Prevent concurrent loading
+        
         isLoading = true
         errorMessage = null
         try {
+            val page = if (reset) 1 else announcementCurrentPage
             // 请求公告列表，根据选择的类型传递参数
             val type = when (selectedAnnouncementType) {
                 1 -> "scholastic"
@@ -87,18 +119,32 @@ fun MessagesScreen(
                 else -> ""
             }
             val announcementResponse =
-                repository.getAnnouncementList(page = 1, pageSize = 20, type = type)
+                repository.getAnnouncementList(page = page, pageSize = 20, type = type)
             if (announcementResponse.code == 200 && announcementResponse.data != null) {
-                // Defensive deduplication - filter out any duplicate announcements by ID
-                val newAnnouncements = announcementResponse.data.list
-                val seenIds = mutableSetOf<Long>()
-                announcements = newAnnouncements.filter { announcement ->
-                    if (announcement.id in seenIds) false
-                    else {
-                        seenIds.add(announcement.id)
-                        true
+                val response = announcementResponse.data
+                val newAnnouncements = response.list
+                
+                announcements = if (reset) {
+                    // Reset: replace with new data
+                    announcementCurrentPage = 1
+                    val seenIds = mutableSetOf<Long>()
+                    newAnnouncements.filter { announcement ->
+                        if (announcement.id in seenIds) false
+                        else {
+                            seenIds.add(announcement.id)
+                            true
+                        }
                     }
+                } else {
+                    // Append: merge with deduplication
+                    val existingIds = announcements.map { it.id }.toSet()
+                    val uniqueNewAnnouncements = newAnnouncements.filter { it.id !in existingIds }
+                    announcements + uniqueNewAnnouncements
                 }
+                
+                // Update pagination state
+                announcementHasMore = response.page * response.pageSize < response.total
+                if (announcementHasMore) announcementCurrentPage++
             } else {
                 errorMessage = "加载公告失败"
             }
@@ -126,10 +172,16 @@ fun MessagesScreen(
     // 初始加载和重试加载（在 LaunchedEffect 中启动 suspend 加载）
     LaunchedEffect(Unit, retryTrigger, selectedNoticeType, selectedType, selectedAnnouncementType) {
         checkUnreadMessages()
+        // Reset pagination state when filters change
+        noticeCurrentPage = 1
+        noticeHasMore = true
+        announcementCurrentPage = 1
+        announcementHasMore = true
+        
         if (selectedType == 0) {
-            loadNoticesOnce()
+            loadNotices(reset = true)
         } else {
-            loadAnnouncementsOnce()
+            loadAnnouncements(reset = true)
         }
     }
 
@@ -365,7 +417,25 @@ fun MessagesScreen(
 
                 // 显示互动消息
                 selectedType == 0 -> {
+                    val noticeListState = rememberLazyListState()
+                    
+                    // Monitor scroll position for pagination
+                    LaunchedEffect(noticeListState) {
+                        snapshotFlow { noticeListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                            .collect { lastVisibleIndex ->
+                                if (lastVisibleIndex != null && 
+                                    lastVisibleIndex >= messages.size - 3 && 
+                                    noticeHasMore && 
+                                    !isLoading) {
+                                    coroutineScope.launch {
+                                        loadNotices(reset = false)
+                                    }
+                                }
+                            }
+                    }
+                    
                     LazyColumn(
+                        state = noticeListState,
                         modifier = Modifier
                             .fillMaxSize(),
                         contentPadding = PaddingValues(Dimensions.spaceMedium),
@@ -377,12 +447,42 @@ fun MessagesScreen(
                                 onUserClick = onUserClick
                             )
                         }
+                        
+                        // Loading indicator
+                        if (isLoading && messages.isNotEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+                        }
                     }
                 }
 
                 // 显示公告
                 else -> {
+                    val announcementListState = rememberLazyListState()
+                    
+                    // Monitor scroll position for pagination
+                    LaunchedEffect(announcementListState) {
+                        snapshotFlow { announcementListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                            .collect { lastVisibleIndex ->
+                                if (lastVisibleIndex != null && 
+                                    lastVisibleIndex >= announcements.size - 3 && 
+                                    announcementHasMore && 
+                                    !isLoading) {
+                                    coroutineScope.launch {
+                                        loadAnnouncements(reset = false)
+                                    }
+                                }
+                            }
+                    }
+                    
                     LazyColumn(
+                        state = announcementListState,
                         modifier = Modifier
                             .fillMaxSize(),
                         contentPadding = PaddingValues(Dimensions.spaceMedium),
@@ -390,6 +490,18 @@ fun MessagesScreen(
                     ) {
                         items(announcements) {
                             AnnouncementItem(announcement = it)
+                        }
+                        
+                        // Loading indicator
+                        if (isLoading && announcements.isNotEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
                         }
                     }
                 }
