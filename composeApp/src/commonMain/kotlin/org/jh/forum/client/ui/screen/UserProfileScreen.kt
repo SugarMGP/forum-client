@@ -339,15 +339,17 @@ fun PersonalPostCard(
             // Images
             if (post.pictures.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-                val imageUrls = post.pictures.map { it.url }
-                ImageGrid(
-                    images = imageUrls,
-                    totalPictures = post.totalPictures,
-                    onClick = { clickedUrl ->
-                        val clickedIndex = imageUrls.indexOf(clickedUrl)
-                        onImageClick(imageUrls, if (clickedIndex >= 0) clickedIndex else 0)
-                    }
-                )
+                val imageUrls = post.pictures.mapNotNull { it.url }
+                if (imageUrls.isNotEmpty()) {
+                    ImageGrid(
+                        images = imageUrls,
+                        totalPictures = post.totalPictures,
+                        onClick = { clickedUrl ->
+                            val clickedIndex = imageUrls.indexOf(clickedUrl)
+                            onImageClick(imageUrls, if (clickedIndex >= 0) clickedIndex else 0)
+                        }
+                    )
+                }
             }
 
             // Topic tags (below content)

@@ -74,7 +74,8 @@ fun ImageViewer(
             onClick = onDismiss,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(16.dp)
+                .statusBarsPadding()
+                .padding(top = 48.dp, end = 16.dp)
         ) {
             Surface(
                 shape = CircleShape,
@@ -169,6 +170,7 @@ fun ImageGalleryViewer(
         // Horizontal pager for swiping between images
         HorizontalPager(
             state = pagerState,
+            userScrollEnabled = true,
             modifier = Modifier.fillMaxSize()
         ) { page ->
             var scale by remember { mutableStateOf(1f) }
@@ -214,7 +216,8 @@ fun ImageGalleryViewer(
             onClick = onDismiss,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(16.dp)
+                .statusBarsPadding()
+                .padding(top = 48.dp, end = 16.dp)
         ) {
             Surface(
                 shape = CircleShape,

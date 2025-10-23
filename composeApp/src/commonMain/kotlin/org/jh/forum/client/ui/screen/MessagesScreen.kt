@@ -710,38 +710,32 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                 Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
 
                 // Content with animated height transition
-                Column {
-                    Text(
-                        text = announcement.content,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = if (isExpanded) Int.MAX_VALUE else 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.animateContentSize(
+                Text(
+                    text = announcement.content,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = if (isExpanded) Int.MAX_VALUE else 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .animateContentSize(
                             animationSpec = tween(
                                 durationMillis = 300,
                                 easing = FastOutSlowInEasing
                             )
                         )
-                    )
-                    
-                    // Show signatory if available and expanded
-                    AnimatedVisibility(
-                        visible = isExpanded && !announcement.signatory.isNullOrBlank(),
-                        enter = expandVertically(animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)),
-                        exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(animationSpec = tween(300))
-                    ) {
-                        Column {
-                            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-                            Text(
-                                text = "—— ${announcement.signatory}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.align(Alignment.End)
-                            )
-                        }
-                    }
-                }
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+            
+            // Signatory on the right side (always visible if present)
+            if (!announcement.signatory.isNullOrBlank()) {
+                Text(
+                    text = "—— ${announcement.signatory}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             
             Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
