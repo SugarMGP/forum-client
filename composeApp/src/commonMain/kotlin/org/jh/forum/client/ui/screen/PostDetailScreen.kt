@@ -629,8 +629,8 @@ fun PostContent(
 
             // 底部操作按钮 - Compact design
             Row(
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
-                modifier = Modifier.padding(vertical = Dimensions.spaceMedium, horizontal = Dimensions.spaceSmall)
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth().padding(vertical = Dimensions.spaceMedium, horizontal = Dimensions.spaceSmall)
             ) {
                 // 点赞按钮
                 FilledTonalButton(
