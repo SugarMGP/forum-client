@@ -27,6 +27,7 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jh.forum.client.data.model.GetPostInfoResponse
 import org.jh.forum.client.data.model.PostCategory
+import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.component.CommentEditor
 import org.jh.forum.client.ui.component.CommentItem
 import org.jh.forum.client.ui.component.ImageViewerDialog
@@ -57,6 +58,10 @@ fun PostDetailScreen(
     val commentError by commentViewModel.errorMessage.collectAsState()
 
     val listState = rememberLazyListState()
+    
+    // Get current user ID to check if they're the post author
+    val authViewModel = AppModule.authViewModel
+    val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
 
     LaunchedEffect(postId) {
         viewModel.getPost(postId) { result ->
@@ -208,7 +213,7 @@ fun PostDetailScreen(
                     CommentItem(
                         comment = comment,
                         onUpvote = { commentViewModel.upvoteComment(comment.commentId) },
-                        onPin = if (true) {
+                        onPin = if (currentUserId != null && currentUserId == post?.publisherInfo?.id) {
                             { commentViewModel.pinComment(comment.commentId) }
                         } else null,
                         onDelete = if (comment.isAuthor) {
@@ -565,11 +570,19 @@ fun PostContent(
                     .padding(horizontal = Dimensions.spaceMedium)
                     .alpha(contentAlpha)
             ) {
-                Text(
-                    text = post.title ?: "",
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
-                )
+                // 标题（带置顶标识）
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
+                ) {
+                    // Note: GetPostInfoResponse doesn't have isPinned field, 
+                    // so we can't show pinned indicator here unless API is updated
+                    Text(
+                        text = post.title ?: "",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
+                    )
+                }
 
                 // 帖子内容
                 Text(
@@ -585,9 +598,8 @@ fun PostContent(
                     ImageGrid(
                         images = post.pictures.map { it.url },
                         totalPictures = post.pictures.size,
-                        onClick = { 
-                            // Show the first image when clicking the grid
-                            post.pictures.firstOrNull()?.url?.let { onImageClick(it) }
+                        onClick = { imageUrl -> 
+                            onImageClick(imageUrl)
                         }
                     )
                 }
@@ -623,12 +635,10 @@ fun PostContent(
 
             Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
-            // 底部操作按钮 - Enhanced with better visual hierarchy
+            // 底部操作按钮 - Compact design
             Row(
                 horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = Dimensions.spaceMedium, horizontal = Dimensions.spaceSmall)
+                modifier = Modifier.padding(vertical = Dimensions.spaceMedium, horizontal = Dimensions.spaceSmall)
             ) {
                 // 点赞按钮
                 FilledTonalButton(
@@ -636,9 +646,7 @@ fun PostContent(
                         isLikeAnimating = true
                         onUpvote()
                     },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(Dimensions.buttonHeightSmall),
+                    modifier = Modifier.height(Dimensions.buttonHeightSmall),
                     shape = MaterialTheme.shapes.small,
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = if (post.isLiked) {
@@ -679,9 +687,7 @@ fun PostContent(
                         showShareMessage = true
                         onShare()
                     },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(Dimensions.buttonHeightSmall),
+                    modifier = Modifier.height(Dimensions.buttonHeightSmall),
                     shape = MaterialTheme.shapes.small,
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,

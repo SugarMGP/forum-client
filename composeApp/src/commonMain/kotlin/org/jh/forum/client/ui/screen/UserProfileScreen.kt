@@ -311,7 +311,7 @@ fun PersonalPostCard(
                 ImageGrid(
                     images = post.pictures.map { it.url },
                     totalPictures = post.totalPictures,
-                    onClick = { }
+                    onClick = { _ -> }
                 )
             }
 

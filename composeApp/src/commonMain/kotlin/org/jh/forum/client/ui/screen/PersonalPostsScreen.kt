@@ -263,7 +263,7 @@ fun PersonalPostItem(
                 ImageGrid(
                     images = post.pictures.map { it.url },
                     totalPictures = post.totalPictures,
-                    onClick = onClick
+                    onClick = { _ -> onClick() }
                 )
             }
 

@@ -34,7 +34,7 @@ fun ImageViewer(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.9f))
+            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f))
             .clickable(onClick = onDismiss)
     ) {
         // Image with zoom and pan
@@ -118,8 +118,14 @@ fun ImageViewerDialog(
 ) {
     AnimatedVisibility(
         visible = visible && imageUrl != null,
-        enter = fadeIn(animationSpec = tween(300)),
-        exit = fadeOut(animationSpec = tween(300))
+        enter = fadeIn(animationSpec = tween(300)) + scaleIn(
+            initialScale = 0.8f,
+            animationSpec = tween(300)
+        ),
+        exit = fadeOut(animationSpec = tween(300)) + scaleOut(
+            targetScale = 0.8f,
+            animationSpec = tween(300)
+        )
     ) {
         if (imageUrl != null) {
             ImageViewer(

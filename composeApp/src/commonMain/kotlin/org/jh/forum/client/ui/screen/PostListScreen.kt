@@ -30,7 +30,7 @@ import kotlin.enums.EnumEntries
 fun ImageGrid(
     images: List<String?>,
     totalPictures: Int = images.size,
-    onClick: () -> Unit
+    onClick: (String) -> Unit
 ) {
     // 最多显示9张图片
     val displayImages = images.take(9)
@@ -45,7 +45,7 @@ fun ImageGrid(
                     .sizeIn(maxWidth = 200.dp)
                     .aspectRatio(1f)
                     .clip(MaterialTheme.shapes.medium)
-                    .clickable(onClick = onClick)
+                    .clickable { displayImages[0]?.let { onClick(it) } }
             ) {
                 AsyncImage(
                     model = displayImages[0],
@@ -87,7 +87,7 @@ fun ImageGrid(
                             .sizeIn(maxWidth = 200.dp)
                             .aspectRatio(1f)
                             .clip(MaterialTheme.shapes.medium)
-                            .clickable(onClick = onClick)
+                            .clickable { imageUrl?.let { onClick(it) } }
                     ) {
                         AsyncImage(
                             model = imageUrl,
@@ -140,7 +140,7 @@ fun ImageGrid(
                                         .sizeIn(maxWidth = 200.dp)
                                         .aspectRatio(1f)
                                         .clip(MaterialTheme.shapes.medium)
-                                        .clickable(onClick = onClick)
+                                        .clickable { displayImages[index]?.let { onClick(it) } }
                                 ) {
                                     AsyncImage(
                                         model = displayImages[index],
@@ -532,7 +532,7 @@ fun PostItem(
                 ImageGrid(
                     images = post.pictures.map { it.url },
                     totalPictures = post.totalPictures,
-                    onClick = onClick
+                    onClick = { _ -> onClick() }
                 )
             }
             
