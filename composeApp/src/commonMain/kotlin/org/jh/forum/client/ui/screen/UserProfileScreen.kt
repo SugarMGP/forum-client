@@ -429,7 +429,18 @@ fun UserCommentsTab(
         contentPadding = PaddingValues(Dimensions.spaceMedium),
         verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
     ) {
-        items(comments, key = { it.commentId }) { comment ->
+        items(
+            items = comments,
+            key = { comment -> 
+                // Create unique key combining commentId and replyId
+                // If replyId is non-zero, it's a reply, otherwise it's a comment
+                if (comment.replyId != 0L) {
+                    "reply_${comment.replyId}"
+                } else {
+                    "comment_${comment.commentId}"
+                }
+            }
+        ) { comment ->
             PersonalCommentCard(comment = comment)
         }
 

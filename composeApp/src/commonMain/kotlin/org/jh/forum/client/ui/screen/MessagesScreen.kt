@@ -411,11 +411,9 @@ fun MessageItem(
                 // Avatar and user info
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable {
-                            message.senderInfo.id?.let { onUserClick(it) }
-                        }
+                    modifier = Modifier.clickable {
+                        message.senderInfo.id?.let { onUserClick(it) }
+                    }
                 ) {
                     AsyncImage(
                         model = message.senderInfo.avatar,

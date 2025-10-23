@@ -494,11 +494,9 @@ fun PostContent(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable {
-                            onUserProfileClick()
-                        }
+                    modifier = Modifier.clickable {
+                        onUserProfileClick()
+                    }
                 ) {
                     // 用户头像
                     AsyncImage(

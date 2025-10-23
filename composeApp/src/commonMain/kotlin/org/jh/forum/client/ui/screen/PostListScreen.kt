@@ -423,14 +423,12 @@ fun PostItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 用户头像和名称 - 改为可点击
+                // 用户头像和名称 - 改为可点击，但不占满整行
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable {
-                            post.publisherInfo.id?.let { onUserClick(it) }
-                        }
+                    modifier = Modifier.clickable {
+                        post.publisherInfo.id?.let { onUserClick(it) }
+                    }
                 ) {
                     AsyncImage(
                         model = post.publisherInfo.avatar ?: "",
@@ -442,24 +440,12 @@ fun PostItem(
                     )
                     Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                     Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            // Show pin indicator for pinned posts
-                            if (post.isPinned) {
-                                Icon(
-                                    imageVector = AppIcons.PushPin,
-                                    contentDescription = "置顶",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(Dimensions.iconSmall)
-                                )
-                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                            }
-                            Text(
-                                text = post.publisherInfo.nickname ?: "",
-                                style = MaterialTheme.typography.titleSmall,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 1
-                            )
-                        }
+                        Text(
+                            text = post.publisherInfo.nickname ?: "",
+                            style = MaterialTheme.typography.titleSmall,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1
+                        )
                         Text(
                             text = getCategoryDisplayName(post.category),
                             style = MaterialTheme.typography.labelSmall,
@@ -501,14 +487,28 @@ fun PostItem(
 
             Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
-            // 标题
-            Text(
-                text = post.title ?: "",
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.animateContentSize()
-            )
+            // 标题（带置顶标识）
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
+            ) {
+                // Show pin indicator for pinned posts before title
+                if (post.isPinned) {
+                    Icon(
+                        imageVector = AppIcons.PushPin,
+                        contentDescription = "置顶",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(Dimensions.iconSmall)
+                    )
+                }
+                Text(
+                    text = post.title ?: "",
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.animateContentSize()
+                )
+            }
 
             Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
 
