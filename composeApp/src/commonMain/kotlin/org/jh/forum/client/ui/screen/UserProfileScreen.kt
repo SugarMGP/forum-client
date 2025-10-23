@@ -1,5 +1,6 @@
 package org.jh.forum.client.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.GetPersonalPostListElement
 import org.jh.forum.client.data.repository.ForumRepository
+import org.jh.forum.client.ui.component.ImageViewerDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
@@ -37,6 +39,8 @@ fun UserProfileScreen(
         )
     }
     var isLoading by remember { mutableStateOf(true) }
+    var showImageViewer by remember { mutableStateOf(false) }
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
     // Load user profile
     LaunchedEffect(userId) {
@@ -95,6 +99,10 @@ fun UserProfileScreen(
                 // User Info Card at top
                 UserInfoCard(
                     userProfile = userProfile,
+                    onAvatarClick = { avatarUrl ->
+                        selectedImageUrl = avatarUrl
+                        showImageViewer = true
+                    },
                     modifier = Modifier.padding(Dimensions.spaceMedium)
                 )
 
@@ -137,6 +145,16 @@ fun UserProfileScreen(
                 }
             }
         }
+        
+        // Image viewer dialog
+        ImageViewerDialog(
+            visible = showImageViewer,
+            imageUrl = selectedImageUrl,
+            onDismiss = {
+                showImageViewer = false
+                selectedImageUrl = null
+            }
+        )
     }
 }
 
@@ -544,6 +562,7 @@ fun PersonalCommentCard(
 @Composable
 fun UserInfoCard(
     userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?,
+    onAvatarClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -560,11 +579,14 @@ fun UserInfoCard(
                 .padding(Dimensions.spaceMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar on the left
+            // Avatar on the left - clickable
             Surface(
                 shape = CircleShape,
                 shadowElevation = Dimensions.elevationSmall,
-                color = MaterialTheme.colorScheme.surface
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.clickable {
+                    userProfile?.avatar?.let { onAvatarClick(it) }
+                }
             ) {
                 AsyncImage(
                     model = userProfile?.avatar,

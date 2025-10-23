@@ -1,5 +1,7 @@
 package org.jh.forum.client.ui.screen
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -220,41 +222,87 @@ fun CreatePostScreen(
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                         )
-                        OutlinedTextField(
-                            value = selectedCategory?.displayName ?: "",
-                            onValueChange = {},
-                            placeholder = {
-                                Text(
-                                    "请选择帖子分类",
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            },
-                            readOnly = true,
-                            trailingIcon = {
-                                IconButton(onClick = { showCategoryMenu = !showCategoryMenu }) {
-                                    Icon(
-                                        if (showCategoryMenu) AppIcons.ExpandLess else AppIcons.ExpandMore,
-                                        contentDescription = "选择分类"
-                                    )
-                                }
-                            },
+                        
+                        // Clickable category selector with better visual design
+                        Surface(
                             modifier = Modifier.fillMaxWidth(),
                             shape = MaterialTheme.shapes.medium,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                            )
-                        )
-
-                        // Category selection dropdown
-                        DropdownMenu(
-                            expanded = showCategoryMenu,
-                            onDismissRequest = { showCategoryMenu = false }
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            onClick = { showCategoryMenu = !showCategoryMenu }
                         ) {
-                            PostCategory.entries.forEach { category ->
-                                DropdownMenuItem(
-                                    text = {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(Dimensions.spaceMedium),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    selectedCategory?.let { category ->
+                                        val icon = when (category) {
+                                            PostCategory.CAMPUS -> AppIcons.School
+                                            PostCategory.EMOTION -> AppIcons.Favorite
+                                            PostCategory.STUDY -> AppIcons.MenuBook
+                                            PostCategory.CONTEST -> AppIcons.EmojiEvents
+                                            PostCategory.HOBBY -> AppIcons.SportsEsports
+                                            PostCategory.LOST -> AppIcons.Search
+                                            PostCategory.SECONDHAND -> AppIcons.Shop
+                                        }
+                                        Icon(
+                                            icon,
+                                            contentDescription = category.displayName,
+                                            modifier = Modifier.size(20.dp),
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                        Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                                    }
+                                    Text(
+                                        text = selectedCategory?.displayName ?: "请选择帖子分类",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = if (selectedCategory != null) {
+                                            MaterialTheme.colorScheme.onSurface
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        }
+                                    )
+                                }
+                                Icon(
+                                    if (showCategoryMenu) AppIcons.ExpandLess else AppIcons.ExpandMore,
+                                    contentDescription = "选择分类",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        // Animated dropdown menu with theme-following colors
+                        AnimatedVisibility(
+                            visible = showCategoryMenu,
+                            enter = expandVertically(animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)),
+                            exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(animationSpec = tween(300))
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = Dimensions.spaceSmall)
+                            ) {
+                                PostCategory.entries.forEach { category ->
+                                    Surface(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = MaterialTheme.shapes.small,
+                                        color = if (selectedCategory == category) {
+                                            MaterialTheme.colorScheme.primaryContainer
+                                        } else {
+                                            MaterialTheme.colorScheme.surface
+                                        },
+                                        onClick = {
+                                            selectedCategory = category
+                                            showCategoryMenu = false
+                                        }
+                                    ) {
                                         Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(Dimensions.spaceMedium),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             val icon = when (category) {
@@ -269,20 +317,26 @@ fun CreatePostScreen(
                                             Icon(
                                                 icon,
                                                 contentDescription = category.displayName,
-                                                modifier = Modifier.size(20.dp)
+                                                modifier = Modifier.size(20.dp),
+                                                tint = if (selectedCategory == category) {
+                                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                                } else {
+                                                    MaterialTheme.colorScheme.primary
+                                                }
                                             )
                                             Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                                             Text(
                                                 category.displayName,
-                                                style = MaterialTheme.typography.bodyLarge
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = if (selectedCategory == category) {
+                                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                                } else {
+                                                    MaterialTheme.colorScheme.onSurface
+                                                }
                                             )
                                         }
-                                    },
-                                    onClick = {
-                                        selectedCategory = category
-                                        showCategoryMenu = false
                                     }
-                                )
+                                }
                             }
                         }
                     }

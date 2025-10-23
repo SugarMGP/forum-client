@@ -29,6 +29,7 @@ import org.jh.forum.client.data.model.GetPostInfoResponse
 import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.ui.component.CommentEditor
 import org.jh.forum.client.ui.component.CommentItem
+import org.jh.forum.client.ui.component.ImageViewerDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.CommentViewModel
@@ -47,6 +48,8 @@ fun PostDetailScreen(
     var post by remember { mutableStateOf<GetPostInfoResponse?>(null) }
     val errorMessage by viewModel.errorMessage.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showImageViewer by remember { mutableStateOf(false) }
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
     val comments by commentViewModel.comments.collectAsState()
     val isCommentLoading by commentViewModel.isLoading.collectAsState()
@@ -146,6 +149,10 @@ fun PostDetailScreen(
                                 onUserClick(userId)
                             }
                         },
+                        onImageClick = { imageUrl ->
+                            selectedImageUrl = imageUrl
+                            showImageViewer = true
+                        },
                         modifier = Modifier.fillMaxWidth()
                     )
                 } ?: run {
@@ -206,6 +213,10 @@ fun PostDetailScreen(
                         } else null,
                         onUserProfileClick = { userId ->
                             onUserClick(userId)
+                        },
+                        onImageClick = { imageUrl ->
+                            selectedImageUrl = imageUrl
+                            showImageViewer = true
                         },
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -400,6 +411,16 @@ fun PostDetailScreen(
                 }
             )
         }
+        
+        // Image viewer dialog
+        ImageViewerDialog(
+            visible = showImageViewer,
+            imageUrl = selectedImageUrl,
+            onDismiss = {
+                showImageViewer = false
+                selectedImageUrl = null
+            }
+        )
     }
 }
 
@@ -410,6 +431,7 @@ fun PostContent(
     onUpvote: () -> Unit,
     onShare: () -> Unit,
     onUserProfileClick: () -> Unit,
+    onImageClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showShareMessage by remember { mutableStateOf(false) }
@@ -542,7 +564,10 @@ fun PostContent(
                     ImageGrid(
                         images = post.pictures.map { it.url },
                         totalPictures = post.pictures.size,
-                        onClick = { /* 可以添加点击放大功能 */ }
+                        onClick = { 
+                            // Show the first image when clicking the grid
+                            post.pictures.firstOrNull()?.url?.let { onImageClick(it) }
+                        }
                     )
                 }
 

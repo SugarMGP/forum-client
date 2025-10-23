@@ -28,6 +28,7 @@ fun CommentItem(
     onPin: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
     onUserProfileClick: (Long) -> Unit = {},
+    onImageClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -152,13 +153,16 @@ fun CommentItem(
                 horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                 contentPadding = PaddingValues(vertical = Dimensions.spaceExtraSmall)
             ) {
-                items(comment.pictures) {
+                items(comment.pictures) { picture ->
                     AsyncImage(
-                        model = it.url,
+                        model = picture.url,
                         contentDescription = "评论图片",
                         modifier = Modifier
                             .size(Dimensions.imagePreviewMedium)
-                            .clip(MaterialTheme.shapes.medium),
+                            .clip(MaterialTheme.shapes.medium)
+                            .clickable {
+                                picture.url?.let { onImageClick(it) }
+                            },
                         contentScale = ContentScale.Crop
                     )
                 }
