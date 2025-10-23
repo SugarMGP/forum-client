@@ -1,5 +1,7 @@
 package org.jh.forum.client.ui.screen
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -560,6 +562,8 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                         modifier = Modifier.weight(1f)
                     )
 
+                    Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                    
                     // Time and unread indicator
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -582,25 +586,45 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
 
                 Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
 
-                // Show full content when expanded, otherwise show truncated with ellipsis
-                Text(
-                    text = announcement.content,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = if (isExpanded) Int.MAX_VALUE else 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                // Show expand/collapse indicator when content is long
-                if (announcement.content.length > 50) {
-                    Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
-                    Text(
-                        text = if (isExpanded) "收起" else "展开",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = Dimensions.spaceExtraSmall)
-                    )
+                // Animated content with smooth height transition
+                AnimatedVisibility(
+                    visible = true,
+                    enter = expandVertically(animationSpec = tween(300)),
+                    exit = shrinkVertically(animationSpec = tween(300))
+                ) {
+                    Column {
+                        Text(
+                            text = announcement.content,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = if (isExpanded) Int.MAX_VALUE else 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        
+                        // Show signatory if available
+                        if (!announcement.signatory.isNullOrBlank()) {
+                            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                            Text(
+                                text = "—— ${announcement.signatory}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.align(Alignment.End)
+                            )
+                        }
+                    }
                 }
+            }
+            
+            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+            
+            // Expand/collapse icon indicator on the right side
+            if (announcement.content.length > 50) {
+                Icon(
+                    imageVector = if (isExpanded) AppIcons.ExpandLess else AppIcons.ExpandMore,
+                    contentDescription = if (isExpanded) "收起" else "展开",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }

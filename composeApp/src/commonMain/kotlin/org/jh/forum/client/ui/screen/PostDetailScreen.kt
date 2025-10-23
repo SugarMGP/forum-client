@@ -547,42 +547,31 @@ fun PostContent(
                 }
 
                 // 话题标签
-                AnimatedVisibility(
-                    visible = post.topics.isNotEmpty(),
-                    enter = fadeIn() + expandHorizontally(),
-                    exit = fadeOut() + shrinkHorizontally()
-                ) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        tonalElevation = Dimensions.elevationSmall,
-                        shape = MaterialTheme.shapes.small,
-                        modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
+                if (post.topics.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
-                            contentPadding = PaddingValues(
-                                horizontal = Dimensions.spaceMedium,
-                                vertical = Dimensions.spaceSmall
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            items(post.topics) { tag ->
-                                FilterChip(
-                                    selected = false,
-                                    onClick = { },
-                                    label = {
-                                        Text(
-                                            tag,
-                                            style = MaterialTheme.typography.labelMedium
-                                        )
-                                    },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        post.topics.forEach { tag ->
+                            AssistChip(
+                                onClick = { },
+                                label = {
+                                    Text(
+                                        text = "#$tag",
+                                        style = MaterialTheme.typography.labelMedium
                                     )
-                                )
-                            }
+                                },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                border = null,
+                                modifier = Modifier.height(28.dp)
+                            )
                         }
                     }
+                    Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                 }
             }
 

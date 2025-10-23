@@ -205,12 +205,12 @@ fun PersonalPostItem(
             if (post.isTopped) {
                 Surface(
                     shape = MaterialTheme.shapes.small,
-                    color = MaterialTheme.colorScheme.tertiaryContainer
+                    color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Text(
                         text = "置顶",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(
                             horizontal = Dimensions.spaceSmall,
                             vertical = Dimensions.spaceExtraSmall

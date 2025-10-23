@@ -128,18 +128,26 @@ fun CreatePostScreen(
                     }
                 },
                 actions = {
-                    // Move submit button to the top bar for better UX
-                    TextButton(
+                    // Move submit button to the top bar for better UX - using icon instead of text
+                    IconButton(
                         onClick = ::submitPost,
                         enabled = !isSubmitting && title.isNotBlank() && content.isNotBlank() && selectedCategory != null
                     ) {
                         if (isSubmitting) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
+                                modifier = Modifier.size(24.dp),
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("发布", style = MaterialTheme.typography.labelLarge)
+                            Icon(
+                                AppIcons.Send,
+                                contentDescription = "发布",
+                                tint = if (title.isNotBlank() && content.isNotBlank() && selectedCategory != null) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                }
+                            )
                         }
                     }
                 },

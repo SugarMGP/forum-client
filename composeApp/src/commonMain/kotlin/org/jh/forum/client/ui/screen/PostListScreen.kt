@@ -439,12 +439,24 @@ fun PostItem(
                     )
                     Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                     Column {
-                        Text(
-                            text = post.publisherInfo.nickname ?: "",
-                            style = MaterialTheme.typography.titleSmall,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 1
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            // Show pin indicator for pinned posts
+                            if (post.isPinned) {
+                                Icon(
+                                    imageVector = AppIcons.PushPin,
+                                    contentDescription = "置顶",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(Dimensions.iconSmall)
+                                )
+                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                            }
+                            Text(
+                                text = post.publisherInfo.nickname ?: "",
+                                style = MaterialTheme.typography.titleSmall,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1
+                            )
+                        }
                         Text(
                             text = getCategoryDisplayName(post.category),
                             style = MaterialTheme.typography.labelSmall,
@@ -515,6 +527,50 @@ fun PostItem(
                     totalPictures = post.totalPictures,
                     onClick = onClick
                 )
+            }
+            
+            // Display post tags if available
+            if (post.topics.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    post.topics.take(3).forEach { topicName ->
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = "#$topicName",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            ),
+                            border = null,
+                            modifier = Modifier.height(24.dp)
+                        )
+                    }
+                    if (post.topics.size > 3) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = "+${post.topics.size - 3}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            border = null,
+                            modifier = Modifier.height(24.dp)
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
