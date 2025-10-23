@@ -61,9 +61,6 @@ fun MainNavigation(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    var showThemeSettings by remember { mutableStateOf(false) }
-    var showNotificationSettings by remember { mutableStateOf(false) }
-    var showSettings by remember { mutableStateOf(false) }
     var currentTheme by remember { mutableStateOf(ThemeMode.SYSTEM) }
 
     // 在组件初始化时检查用户登录状态
@@ -81,72 +78,7 @@ fun MainNavigation(
         }
     }
 
-    // 如果显示主题设置页面
-    AnimatedVisibility(
-        visible = showThemeSettings,
-        enter = slideInHorizontally(
-            initialOffsetX = { fullWidth -> fullWidth },
-            animationSpec = tween(ANIMATION_DURATION)
-        ) + fadeIn(animationSpec = tween(ANIMATION_DURATION)),
-        exit = slideOutHorizontally(
-            targetOffsetX = { fullWidth -> fullWidth },
-            animationSpec = tween(ANIMATION_DURATION)
-        ) + fadeOut(animationSpec = tween(ANIMATION_DURATION))
-    ) {
-        ThemeSettingsScreen(
-            currentTheme = currentTheme,
-            onThemeChanged = { themeMode ->
-                currentTheme = themeMode
-                onThemeChanged(themeMode)
-            },
-            onNavigateBack = {
-                showThemeSettings = false
-            }
-        )
-    }
-    
-    AnimatedVisibility(
-        visible = showNotificationSettings && !showThemeSettings,
-        enter = slideInHorizontally(
-            initialOffsetX = { fullWidth -> fullWidth },
-            animationSpec = tween(ANIMATION_DURATION)
-        ) + fadeIn(animationSpec = tween(ANIMATION_DURATION)),
-        exit = slideOutHorizontally(
-            targetOffsetX = { fullWidth -> fullWidth },
-            animationSpec = tween(ANIMATION_DURATION)
-        ) + fadeOut(animationSpec = tween(ANIMATION_DURATION))
-    ) {
-        NotificationSettingsScreen(
-            repository = repository,
-            onNavigateBack = {
-                showNotificationSettings = false
-            }
-        )
-    }
-    
-    AnimatedVisibility(
-        visible = showSettings && !showThemeSettings && !showNotificationSettings,
-        enter = slideInHorizontally(
-            initialOffsetX = { fullWidth -> fullWidth },
-            animationSpec = tween(ANIMATION_DURATION)
-        ) + fadeIn(animationSpec = tween(ANIMATION_DURATION)),
-        exit = slideOutHorizontally(
-            targetOffsetX = { fullWidth -> fullWidth },
-            animationSpec = tween(ANIMATION_DURATION)
-        ) + fadeOut(animationSpec = tween(ANIMATION_DURATION))
-    ) {
-        SettingsScreen(
-            authViewModel = authViewModel,
-            onNavigateBack = {
-                showSettings = false
-            },
-            onNavigateToThemeSettings = { showThemeSettings = true },
-            onNavigateToNotificationSettings = { showNotificationSettings = true }
-        )
-    }
-    
-    if (!showSettings && !showThemeSettings && !showNotificationSettings) {
-        NavigationSuiteScaffold(
+    NavigationSuiteScaffold(
             navigationSuiteItems = {
                 listOf(
                     BottomNavItem.Home,
@@ -230,44 +162,68 @@ fun MainNavigation(
                                 },
                                 onNavigateBack = null, // No back button for bottom nav
                                 onNavigateToSettings = {
-                                    showSettings = true
-                                }
-                            )
-                        } else {
-                            // Show login prompt
-                            ProfileScreen(
-                                authViewModel = authViewModel,
-                                onNavigateToThemeSettings = { showThemeSettings = true },
-                                onNavigateToNotificationSettings = {
-                                    showNotificationSettings = true
-                                },
-                                onNavigateToLogin = {
-                                    navController.navigate("login")
-                                },
-                                onNavigateToPersonalPosts = {
-                                    navController.navigate("personal_posts")
+                                    navController.navigate("settings")
                                 }
                             )
                         }
                     }
 
+                    // Settings screens
                     composable(
-                        "personal_posts",
+                        "settings",
                         enterTransition = { slideInTransition + fadeInTransition },
-                        exitTransition = { fadeOutTransition },
-                        popEnterTransition = { fadeInTransition },
+                        exitTransition = { slideOutTransition + fadeOutTransition },
+                        popEnterTransition = { slideInPopTransition + fadeInTransition },
                         popExitTransition = { slideOutPopTransition + fadeOutTransition }
                     ) {
-                        PersonalPostsScreen(
-                            repository = repository,
-                            onPostClick = { postId ->
-                                navController.navigate("post_detail/$postId")
+                        SettingsScreen(
+                            authViewModel = authViewModel,
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            },
+                            onNavigateToThemeSettings = {
+                                navController.navigate("theme_settings")
+                            },
+                            onNavigateToNotificationSettings = {
+                                navController.navigate("notification_settings")
+                            }
+                        )
+                    }
+
+                    composable(
+                        "theme_settings",
+                        enterTransition = { slideInTransition + fadeInTransition },
+                        exitTransition = { slideOutTransition + fadeOutTransition },
+                        popEnterTransition = { slideInPopTransition + fadeInTransition },
+                        popExitTransition = { slideOutPopTransition + fadeOutTransition }
+                    ) {
+                        ThemeSettingsScreen(
+                            currentTheme = currentTheme,
+                            onThemeChanged = { themeMode ->
+                                currentTheme = themeMode
+                                onThemeChanged(themeMode)
                             },
                             onNavigateBack = {
                                 navController.popBackStack()
                             }
                         )
                     }
+
+                    composable(
+                        "notification_settings",
+                        enterTransition = { slideInTransition + fadeInTransition },
+                        exitTransition = { slideOutTransition + fadeOutTransition },
+                        popEnterTransition = { slideInPopTransition + fadeInTransition },
+                        popExitTransition = { slideOutPopTransition + fadeOutTransition }
+                    ) {
+                        NotificationSettingsScreen(
+                            repository = repository,
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+
 
                     // 其他页面路由
                     composable(

@@ -59,7 +59,6 @@ fun MessagesScreen(
     // 加载互动消息
     suspend fun loadNotices(reset: Boolean = false) {
         if (!reset && !noticeHasMore) return // Don't load if no more data
-        if (isLoading) return // Prevent concurrent loading
         
         isLoading = true
         errorMessage = null
@@ -75,16 +74,9 @@ fun MessagesScreen(
                 messages = if (reset) {
                     // Reset: replace with new data
                     noticeCurrentPage = 1
-                    val seenIds = mutableSetOf<Long>()
-                    newNotices.filter { notice ->
-                        if (notice.id in seenIds) false
-                        else {
-                            seenIds.add(notice.id)
-                            true
-                        }
-                    }
+                    newNotices
                 } else {
-                    // Append: merge with deduplication
+                    // Append: merge with deduplication across pages
                     val existingIds = messages.map { it.id }.toSet()
                     val uniqueNewNotices = newNotices.filter { it.id !in existingIds }
                     messages + uniqueNewNotices
@@ -107,7 +99,6 @@ fun MessagesScreen(
     // 加载公告列表
     suspend fun loadAnnouncements(reset: Boolean = false) {
         if (!reset && !announcementHasMore) return // Don't load if no more data
-        if (isLoading) return // Prevent concurrent loading
         
         isLoading = true
         errorMessage = null
@@ -128,16 +119,9 @@ fun MessagesScreen(
                 announcements = if (reset) {
                     // Reset: replace with new data
                     announcementCurrentPage = 1
-                    val seenIds = mutableSetOf<Long>()
-                    newAnnouncements.filter { announcement ->
-                        if (announcement.id in seenIds) false
-                        else {
-                            seenIds.add(announcement.id)
-                            true
-                        }
-                    }
+                    newAnnouncements
                 } else {
-                    // Append: merge with deduplication
+                    // Append: merge with deduplication across pages
                     val existingIds = announcements.map { it.id }.toSet()
                     val uniqueNewAnnouncements = newAnnouncements.filter { it.id !in existingIds }
                     announcements + uniqueNewAnnouncements
