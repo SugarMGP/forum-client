@@ -411,9 +411,11 @@ fun MessageItem(
                 // Avatar and user info
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
-                        message.senderInfo.id?.let { onUserClick(it) }
-                    }
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .clickable {
+                            message.senderInfo.id?.let { onUserClick(it) }
+                        }
                 ) {
                     AsyncImage(
                         model = message.senderInfo.avatar,
@@ -426,7 +428,9 @@ fun MessageItem(
 
                     Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
 
-                    Column {
+                    Column(
+                        modifier = Modifier.weight(1f, fill = false)
+                    ) {
                         Text(
                             text = message.senderInfo.nickname ?: "用户",
                             style = MaterialTheme.typography.titleSmall,

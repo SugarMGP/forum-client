@@ -494,9 +494,11 @@ fun PostContent(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
-                        onUserProfileClick()
-                    }
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .clickable {
+                            onUserProfileClick()
+                        }
                 ) {
                     // 用户头像
                     AsyncImage(
@@ -508,7 +510,9 @@ fun PostContent(
                         contentScale = ContentScale.Crop
                     )
                     Spacer(modifier = Modifier.width(Dimensions.spaceMedium))
-                    Column {
+                    Column(
+                        modifier = Modifier.weight(1f, fill = false)
+                    ) {
                         Text(
                             text = post.publisherInfo.nickname ?: "未知用户",
                             style = MaterialTheme.typography.titleSmall,

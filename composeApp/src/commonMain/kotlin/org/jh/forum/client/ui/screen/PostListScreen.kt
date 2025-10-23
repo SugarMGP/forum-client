@@ -426,9 +426,11 @@ fun PostItem(
                 // 用户头像和名称 - 改为可点击，但不占满整行
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
-                        post.publisherInfo.id?.let { onUserClick(it) }
-                    }
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .clickable {
+                            post.publisherInfo.id?.let { onUserClick(it) }
+                        }
                 ) {
                     AsyncImage(
                         model = post.publisherInfo.avatar ?: "",
@@ -439,7 +441,9 @@ fun PostItem(
                         contentScale = ContentScale.Crop
                     )
                     Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-                    Column {
+                    Column(
+                        modifier = Modifier.weight(1f, fill = false)
+                    ) {
                         Text(
                             text = post.publisherInfo.nickname ?: "",
                             style = MaterialTheme.typography.titleSmall,
