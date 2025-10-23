@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.GetPersonalPostListElement
 import org.jh.forum.client.data.repository.ForumRepository
+import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.component.ImageViewerDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
@@ -42,6 +43,9 @@ fun UserProfileScreen(
     var isLoading by remember { mutableStateOf(true) }
     var showImageViewer by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+    var showImageGallery by remember { mutableStateOf(false) }
+    var galleryImages by remember { mutableStateOf<List<String>>(emptyList()) }
+    var galleryInitialIndex by remember { mutableStateOf(0) }
 
     // Load user profile
     LaunchedEffect(userId) {
@@ -132,7 +136,12 @@ fun UserProfileScreen(
                     0 -> UserPostsTab(
                         userId = userId,
                         repository = repository,
-                        onPostClick = onPostClick
+                        onPostClick = onPostClick,
+                        onImageClick = { images, index ->
+                            galleryImages = images
+                            galleryInitialIndex = index
+                            showImageGallery = true
+                        }
                     )
 
                     1 -> {
@@ -147,7 +156,19 @@ fun UserProfileScreen(
             }
         }
         
-        // Image viewer dialog
+        // Image gallery dialog
+        ImageGalleryDialog(
+            visible = showImageGallery,
+            images = galleryImages,
+            initialIndex = galleryInitialIndex,
+            onDismiss = {
+                showImageGallery = false
+                galleryImages = emptyList()
+                galleryInitialIndex = 0
+            }
+        )
+        
+        // Image viewer dialog (kept for compatibility)
         ImageViewerDialog(
             visible = showImageViewer,
             imageUrl = selectedImageUrl,
@@ -163,7 +184,8 @@ fun UserProfileScreen(
 fun UserPostsTab(
     userId: Long,
     repository: ForumRepository,
-    onPostClick: (Long) -> Unit
+    onPostClick: (Long) -> Unit,
+    onImageClick: (List<String>, Int) -> Unit = { _, _ -> }
 ) {
     var posts by remember { mutableStateOf<List<GetPersonalPostListElement>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -202,7 +224,11 @@ fun UserPostsTab(
         verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
     ) {
         items(posts, key = { it.id }) { post ->
-            PersonalPostCard(post = post, onClick = { onPostClick(post.id) })
+            PersonalPostCard(
+                post = post, 
+                onClick = { onPostClick(post.id) },
+                onImageClick = { images, index -> onImageClick(images, index) }
+            )
         }
 
         if (isLoading && posts.isNotEmpty()) {
@@ -254,7 +280,8 @@ fun UserPostsTab(
 @Composable
 fun PersonalPostCard(
     post: GetPersonalPostListElement,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onImageClick: (List<String>, Int) -> Unit = { _, _ -> }
 ) {
     Card(
         modifier = Modifier
@@ -312,10 +339,14 @@ fun PersonalPostCard(
             // Images
             if (post.pictures.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
+                val imageUrls = post.pictures.map { it.url }
                 ImageGrid(
-                    images = post.pictures.map { it.url },
+                    images = imageUrls,
                     totalPictures = post.totalPictures,
-                    onClick = { _ -> }
+                    onClick = { clickedUrl ->
+                        val clickedIndex = imageUrls.indexOf(clickedUrl)
+                        onImageClick(imageUrls, if (clickedIndex >= 0) clickedIndex else 0)
+                    }
                 )
             }
 
