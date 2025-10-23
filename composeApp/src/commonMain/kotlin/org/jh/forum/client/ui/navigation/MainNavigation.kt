@@ -1,10 +1,7 @@
 package org.jh.forum.client.ui.navigation
 
+import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -85,7 +82,17 @@ fun MainNavigation(
     }
 
     // 如果显示主题设置页面
-    if (showThemeSettings) {
+    AnimatedVisibility(
+        visible = showThemeSettings,
+        enter = slideInHorizontally(
+            initialOffsetX = { fullWidth -> fullWidth },
+            animationSpec = tween(ANIMATION_DURATION)
+        ) + fadeIn(animationSpec = tween(ANIMATION_DURATION)),
+        exit = slideOutHorizontally(
+            targetOffsetX = { fullWidth -> fullWidth },
+            animationSpec = tween(ANIMATION_DURATION)
+        ) + fadeOut(animationSpec = tween(ANIMATION_DURATION))
+    ) {
         ThemeSettingsScreen(
             currentTheme = currentTheme,
             onThemeChanged = { themeMode ->
@@ -96,14 +103,38 @@ fun MainNavigation(
                 showThemeSettings = false
             }
         )
-    } else if (showNotificationSettings) {
+    }
+    
+    AnimatedVisibility(
+        visible = showNotificationSettings && !showThemeSettings,
+        enter = slideInHorizontally(
+            initialOffsetX = { fullWidth -> fullWidth },
+            animationSpec = tween(ANIMATION_DURATION)
+        ) + fadeIn(animationSpec = tween(ANIMATION_DURATION)),
+        exit = slideOutHorizontally(
+            targetOffsetX = { fullWidth -> fullWidth },
+            animationSpec = tween(ANIMATION_DURATION)
+        ) + fadeOut(animationSpec = tween(ANIMATION_DURATION))
+    ) {
         NotificationSettingsScreen(
             repository = repository,
             onNavigateBack = {
                 showNotificationSettings = false
             }
         )
-    } else if (showSettings) {
+    }
+    
+    AnimatedVisibility(
+        visible = showSettings && !showThemeSettings && !showNotificationSettings,
+        enter = slideInHorizontally(
+            initialOffsetX = { fullWidth -> fullWidth },
+            animationSpec = tween(ANIMATION_DURATION)
+        ) + fadeIn(animationSpec = tween(ANIMATION_DURATION)),
+        exit = slideOutHorizontally(
+            targetOffsetX = { fullWidth -> fullWidth },
+            animationSpec = tween(ANIMATION_DURATION)
+        ) + fadeOut(animationSpec = tween(ANIMATION_DURATION))
+    ) {
         SettingsScreen(
             authViewModel = authViewModel,
             onNavigateBack = {
@@ -112,7 +143,9 @@ fun MainNavigation(
             onNavigateToThemeSettings = { showThemeSettings = true },
             onNavigateToNotificationSettings = { showNotificationSettings = true }
         )
-    } else {
+    }
+    
+    if (!showSettings && !showThemeSettings && !showNotificationSettings) {
         NavigationSuiteScaffold(
             navigationSuiteItems = {
                 listOf(

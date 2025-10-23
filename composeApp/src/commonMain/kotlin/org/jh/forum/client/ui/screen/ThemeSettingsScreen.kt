@@ -1,5 +1,6 @@
 package org.jh.forum.client.ui.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -23,6 +24,11 @@ fun ThemeSettingsScreen(
     onNavigateBack: () -> Unit = {}
 ) {
     var selectedTheme by remember { mutableStateOf(currentTheme) }
+    
+    // Handle system back button/gesture
+    BackHandler {
+        onNavigateBack()
+    }
 
     Scaffold(
         topBar = {

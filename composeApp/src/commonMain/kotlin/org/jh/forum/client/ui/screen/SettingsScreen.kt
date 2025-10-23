@@ -1,5 +1,6 @@
 package org.jh.forum.client.ui.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +26,11 @@ fun SettingsScreen(
     onNavigateToNotificationSettings: () -> Unit = {}
 ) {
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+    
+    // Handle system back button/gesture
+    BackHandler {
+        onNavigateBack()
+    }
 
     Scaffold(
         topBar = {

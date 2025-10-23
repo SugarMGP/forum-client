@@ -78,12 +78,13 @@ fun PostDetailScreen(
             // 减少频繁触发：只在值发生变化时继续
             .distinctUntilChanged()
             .collect { (lastVisible, totalCount, visibleSize) ->
+                // Safety checks to prevent crashes
                 if (!commentHasMore || isCommentLoading) return@collect
-                if (totalCount <= 0) return@collect
-
-                // 当最后可见项索引接近总项数（比如还剩 3 个 item）时触发加载
+                if (totalCount <= 0 || lastVisible < 0) return@collect
+                
+                // Only trigger load if we're not already at the end and have more items to load
                 val threshold = 3
-                if (lastVisible >= totalCount - 1 - threshold) {
+                if (lastVisible >= totalCount - 1 - threshold && lastVisible < totalCount) {
                     // 调用加载下一页（你的 viewModel 应该负责分页状态）
                     commentViewModel.loadComments(postId)
                 }
