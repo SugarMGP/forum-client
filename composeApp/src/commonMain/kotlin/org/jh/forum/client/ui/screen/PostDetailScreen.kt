@@ -216,7 +216,7 @@ fun PostDetailScreen(
                         onPin = if (currentUserId != null && currentUserId == post?.publisherInfo?.id) {
                             { commentViewModel.pinComment(comment.commentId) }
                         } else null,
-                        onDelete = if (comment.isAuthor || (currentUserId != null && currentUserId == post?.publisherInfo?.id)) {
+                        onDelete = if (comment.isAuthor) {
                             { commentViewModel.deleteComment(comment.commentId) }
                         } else null,
                         onUserProfileClick = { userId ->
