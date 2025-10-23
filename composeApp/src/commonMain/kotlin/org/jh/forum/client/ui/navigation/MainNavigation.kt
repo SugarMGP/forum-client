@@ -301,7 +301,7 @@ fun MainNavigation(
                                 navController.popBackStack()
                             },
                             onNavigateToSettings = {
-                                showSettings = true
+                                navController.navigate("settings")
                             }
                         )
                     }
