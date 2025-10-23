@@ -405,12 +405,15 @@ fun PostItem(
         modifier = modifier
             .fillMaxWidth(),
         onClick = onClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = Dimensions.elevationSmall,
+            pressedElevation = Dimensions.elevationMedium
+        ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.large
     ) {
         Column(
             modifier = Modifier.padding(Dimensions.spaceMedium)

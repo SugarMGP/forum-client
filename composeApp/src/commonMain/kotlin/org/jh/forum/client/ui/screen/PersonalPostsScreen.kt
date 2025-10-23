@@ -192,30 +192,44 @@ fun PersonalPostItem(
     Card(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = Dimensions.elevationSmall,
+            pressedElevation = Dimensions.elevationMedium
+        ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.large
     ) {
         Column(
             modifier = Modifier.padding(Dimensions.spaceMedium)
         ) {
             // 置顶标识（如果有）
             if (post.isTopped) {
-                Surface(
-                    shape = MaterialTheme.shapes.small,
-                    color = MaterialTheme.colorScheme.primaryContainer
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
                 ) {
-                    Text(
-                        text = "置顶",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(
-                            horizontal = Dimensions.spaceSmall,
-                            vertical = Dimensions.spaceExtraSmall
-                        )
+                    Icon(
+                        imageVector = AppIcons.PushPin,
+                        contentDescription = "置顶",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(Dimensions.iconSmall)
                     )
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Text(
+                            text = "置顶",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(
+                                horizontal = Dimensions.spaceSmall,
+                                vertical = Dimensions.spaceExtraSmall
+                            )
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
             }

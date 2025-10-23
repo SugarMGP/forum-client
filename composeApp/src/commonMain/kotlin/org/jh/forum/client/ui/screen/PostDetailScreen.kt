@@ -349,16 +349,32 @@ fun PostDetailScreen(
                         }
                     }
                 } else {
-                    // 悬浮按钮状态
+                    // 悬浮按钮状态 - Enhanced design
                     FloatingActionButton(
                         onClick = { showCommentDialog = true },
-                        elevation = FloatingActionButtonDefaults.elevation(6.dp),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        elevation = FloatingActionButtonDefaults.elevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 8.dp,
+                            hoveredElevation = 8.dp
+                        ),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Icon(
-                            imageVector = AppIcons.Comment,
-                            contentDescription = "发表评论"
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = AppIcons.Comment,
+                                contentDescription = "发表评论"
+                            )
+                            Text(
+                                text = "评论",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
                     }
                 }
             }
@@ -600,11 +616,11 @@ fun PostContent(
                 }
             }
 
-            // 帖子统计信息已移至用户信息区域右侧，此处移除重复显示
+            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
-            // 底部操作按钮
+            // 底部操作按钮 - Enhanced with better visual hierarchy
             Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = Dimensions.spaceMedium, horizontal = Dimensions.spaceSmall)
@@ -616,6 +632,7 @@ fun PostContent(
                         onUpvote()
                     },
                     modifier = Modifier
+                        .weight(1f)
                         .height(Dimensions.buttonHeightSmall),
                     shape = MaterialTheme.shapes.small,
                     colors = ButtonDefaults.filledTonalButtonColors(
@@ -658,6 +675,7 @@ fun PostContent(
                         onShare()
                     },
                     modifier = Modifier
+                        .weight(1f)
                         .height(Dimensions.buttonHeightSmall),
                     shape = MaterialTheme.shapes.small,
                     colors = ButtonDefaults.filledTonalButtonColors(
