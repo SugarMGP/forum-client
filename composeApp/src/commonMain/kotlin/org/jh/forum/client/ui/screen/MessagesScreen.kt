@@ -54,7 +54,16 @@ fun MessagesScreen(
             val noticeResponse =
                 repository.getNoticeList(page = 1, pageSize = 20, type = selectedNoticeType)
             if (noticeResponse.code == 200 && noticeResponse.data != null) {
-                messages = noticeResponse.data.list
+                // Defensive deduplication - filter out any duplicate notices by ID
+                val newNotices = noticeResponse.data.list
+                val seenIds = mutableSetOf<Long>()
+                messages = newNotices.filter { notice ->
+                    if (notice.id in seenIds) false
+                    else {
+                        seenIds.add(notice.id)
+                        true
+                    }
+                }
             } else {
                 errorMessage = "加载通知失败"
             }
@@ -80,7 +89,16 @@ fun MessagesScreen(
             val announcementResponse =
                 repository.getAnnouncementList(page = 1, pageSize = 20, type = type)
             if (announcementResponse.code == 200 && announcementResponse.data != null) {
-                announcements = announcementResponse.data.list
+                // Defensive deduplication - filter out any duplicate announcements by ID
+                val newAnnouncements = announcementResponse.data.list
+                val seenIds = mutableSetOf<Long>()
+                announcements = newAnnouncements.filter { announcement ->
+                    if (announcement.id in seenIds) false
+                    else {
+                        seenIds.add(announcement.id)
+                        true
+                    }
+                }
             } else {
                 errorMessage = "加载公告失败"
             }

@@ -20,6 +20,7 @@ import org.jh.forum.client.ui.component.ImageViewerDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
+import org.jh.forum.client.util.TimeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -357,7 +358,7 @@ fun PersonalPostCard(
                 }
 
                 Text(
-                    text = post.createdAt,
+                    text = TimeUtils.formatTime(post.createdAt),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -573,7 +574,7 @@ fun PersonalCommentCard(
                 }
 
                 Text(
-                    text = comment.createdAt,
+                    text = TimeUtils.formatTime(comment.createdAt),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
