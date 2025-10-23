@@ -201,7 +201,10 @@ fun PostDetailScreen(
 
             // 正式渲染每条评论
             if (comments.isNotEmpty()) {
-                items(comments) { comment ->
+                items(
+                    items = comments,
+                    key = { comment -> comment.commentId }
+                ) { comment ->
                     CommentItem(
                         comment = comment,
                         onUpvote = { commentViewModel.upvoteComment(comment.commentId) },
