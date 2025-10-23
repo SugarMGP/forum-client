@@ -570,19 +570,11 @@ fun PostContent(
                     .padding(horizontal = Dimensions.spaceMedium)
                     .alpha(contentAlpha)
             ) {
-                // 标题（带置顶标识）
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
-                ) {
-                    // Note: GetPostInfoResponse doesn't have isPinned field, 
-                    // so we can't show pinned indicator here unless API is updated
-                    Text(
-                        text = post.title ?: "",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
-                    )
-                }
+                Text(
+                    text = post.title ?: "",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
+                )
 
                 // 帖子内容
                 Text(
