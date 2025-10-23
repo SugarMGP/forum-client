@@ -57,7 +57,10 @@ class CommentViewModel : ViewModel() {
                     val newComments = if (reset) {
                         response.list
                     } else {
-                        _comments.value + response.list
+                        // Merge new comments with existing ones, filtering out duplicates
+                        val existingIds = _comments.value.map { it.commentId }.toSet()
+                        val uniqueNewComments = response.list.filter { it.commentId !in existingIds }
+                        _comments.value + uniqueNewComments
                     }
                     _comments.value = newComments
                     _hasMore.value = response.page * response.pageSize < response.total

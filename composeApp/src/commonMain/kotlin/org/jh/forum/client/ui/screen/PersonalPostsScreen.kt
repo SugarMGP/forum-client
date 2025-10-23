@@ -43,7 +43,10 @@ fun PersonalPostsScreen(
                 posts = if (currentPage == 1) {
                     postList.list
                 } else {
-                    posts + postList.list
+                    // Merge new posts with existing ones, filtering out duplicates
+                    val existingIds = posts.map { it.id }.toSet()
+                    val uniqueNewPosts = postList.list.filter { it.id !in existingIds }
+                    posts + uniqueNewPosts
                 }
                 hasMore = postList.page * postList.pageSize < postList.total
                 errorMessage = null

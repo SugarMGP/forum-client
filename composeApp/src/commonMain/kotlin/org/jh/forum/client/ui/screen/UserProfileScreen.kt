@@ -181,7 +181,10 @@ fun UserPostsTab(
                 posts = if (currentPage == 1) {
                     postList.list
                 } else {
-                    posts + postList.list
+                    // Merge new posts with existing ones, filtering out duplicates
+                    val existingIds = posts.map { it.id }.toSet()
+                    val uniqueNewPosts = postList.list.filter { it.id !in existingIds }
+                    posts + uniqueNewPosts
                 }
                 hasMore = postList.page * postList.pageSize < postList.total
             }
@@ -413,7 +416,16 @@ fun UserCommentsTab(
                 comments = if (currentPage == 1) {
                     commentList.list
                 } else {
-                    comments + commentList.list
+                    // Merge new comments with existing ones, filtering out duplicates
+                    // Use combination of commentId and replyId for unique identification
+                    val existingKeys = comments.map { 
+                        if (it.replyId != 0L) "reply_${it.replyId}" else "comment_${it.commentId}"
+                    }.toSet()
+                    val uniqueNewComments = commentList.list.filter { comment ->
+                        val key = if (comment.replyId != 0L) "reply_${comment.replyId}" else "comment_${comment.commentId}"
+                        key !in existingKeys
+                    }
+                    comments + uniqueNewComments
                 }
                 hasMore = commentList.page * commentList.pageSize < commentList.total
             }
