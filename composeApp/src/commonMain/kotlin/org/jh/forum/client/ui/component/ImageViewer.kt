@@ -78,7 +78,7 @@ fun ImageViewer(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .statusBarsPadding()
-                .padding(top = 72.dp, end = 16.dp)
+                .padding(top = 16.dp, end = 16.dp)
         ) {
             Surface(
                 shape = CircleShape,
@@ -220,7 +220,7 @@ fun ImageGalleryViewer(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .statusBarsPadding()
-                .padding(top = 72.dp, end = 16.dp)
+                .padding(top = 16.dp, end = 16.dp)
         ) {
             Surface(
                 shape = CircleShape,
