@@ -51,9 +51,10 @@ private val slideOutPopTransition = slideOutHorizontally(
     animationSpec = tween(ANIMATION_DURATION)
 )
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveNavigationSuiteApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveNavigationSuiteApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun MainNavigation(
+    sharedTransitionScope: SharedTransitionScope,
     repository: ForumRepository = AppModule.forumRepository,
     onThemeChanged: (ThemeMode) -> Unit = { _ -> }
 ) {
@@ -114,21 +115,24 @@ fun MainNavigation(
                         val refresh =
                             backStackEntry.savedStateHandle.get<String>("refresh")?.toBoolean()
                                 ?: false
-                        PostListScreen(
-                            onPostClick = { postId: Long ->
-                                // 导航到帖子详情页
-                                navController.navigate("post_detail/$postId")
-                            },
-                            onNavigateToCreatePost = {
-                                // 导航到发帖页面
-                                navController.navigate("create_post")
-                            },
-                            onUserClick = { userId: Long ->
-                                // 导航到用户主页
-                                navController.navigate("user_profile/$userId")
-                            },
-                            refresh = refresh
-                        )
+                        with(sharedTransitionScope) {
+                            PostListScreen(
+                                animatedVisibilityScope = this@composable,
+                                onPostClick = { postId: Long ->
+                                    // 导航到帖子详情页
+                                    navController.navigate("post_detail/$postId")
+                                },
+                                onNavigateToCreatePost = {
+                                    // 导航到发帖页面
+                                    navController.navigate("create_post")
+                                },
+                                onUserClick = { userId: Long ->
+                                    // 导航到用户主页
+                                    navController.navigate("user_profile/$userId")
+                                },
+                                refresh = refresh
+                            )
+                        }
                     }
 
                     composable(

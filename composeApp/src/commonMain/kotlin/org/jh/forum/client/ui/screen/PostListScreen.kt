@@ -33,12 +33,15 @@ import org.jh.forum.client.util.TimeUtils
 import kotlin.enums.EnumEntries
 
 /**
- * Composable helper to create a clickable image thumbnail with press animation
+ * Composable helper to create a clickable image thumbnail with press animation and shared element support
  */
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-private fun ImageThumbnail(
+private fun SharedTransitionScope.ImageThumbnail(
     imageUrl: String?,
     contentDescription: String,
+    sharedElementKey: String,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     onClick: () -> Unit,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
@@ -60,6 +63,13 @@ private fun ImageThumbnail(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(MaterialTheme.shapes.medium)
+                .sharedBounds(
+                    sharedContentState = rememberSharedContentState(key = sharedElementKey),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    boundsTransform = { _, _ ->
+                        tween(durationMillis = 300)
+                    }
+                )
                 .clickable(
                     interactionSource = interactionSource,
                     indication = null,
@@ -70,9 +80,11 @@ private fun ImageThumbnail(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun ImageGrid(
+fun SharedTransitionScope.ImageGrid(
     images: List<String?>,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     totalPictures: Int = images.size,
     onClick: (String) -> Unit
 ) {
@@ -92,6 +104,8 @@ fun ImageGrid(
                 ImageThumbnail(
                     imageUrl = displayImages[0],
                     contentDescription = "帖子图片",
+                    sharedElementKey = "image_${displayImages[0]}",
+                    animatedVisibilityScope = animatedVisibilityScope,
                     onClick = { displayImages[0]?.let { onClick(it) } }
                 ) {
                     // 如果有更多图片，在图片上添加蒙版显示数量
@@ -131,6 +145,8 @@ fun ImageGrid(
                         ImageThumbnail(
                             imageUrl = imageUrl,
                             contentDescription = "帖子图片 $index",
+                            sharedElementKey = "image_${imageUrl}",
+                            animatedVisibilityScope = animatedVisibilityScope,
                             onClick = { imageUrl?.let { onClick(it) } }
                         ) {
                             // 如果是最后一张图片并且有更多图片未显示，添加蒙版显示数量
@@ -181,6 +197,8 @@ fun ImageGrid(
                                     ImageThumbnail(
                                         imageUrl = displayImages[index],
                                         contentDescription = "帖子图片 $index",
+                                        sharedElementKey = "image_${displayImages[index]}",
+                                        animatedVisibilityScope = animatedVisibilityScope,
                                         onClick = { displayImages[index]?.let { onClick(it) } }
                                     ) {
                                         // 如果是最后一张图片并且有更多图片未显示，添加蒙版显示数量
@@ -216,9 +234,161 @@ fun ImageGrid(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Non-shared element version of ImageGrid for backwards compatibility
+ */
 @Composable
-fun PostListScreen(
+fun ImageGrid(
+    images: List<String?>,
+    totalPictures: Int = images.size,
+    onClick: (String) -> Unit
+) {
+    // Simple version without shared elements
+    val displayImages = images.take(9)
+
+    if (displayImages.isEmpty()) return
+
+    when (displayImages.size) {
+        1 -> {
+            Box(
+                modifier = Modifier
+                    .sizeIn(maxWidth = 200.dp)
+                    .aspectRatio(1f)
+                    .clip(MaterialTheme.shapes.medium)
+                    .clickable { displayImages[0]?.let { onClick(it) } }
+            ) {
+                AsyncImage(
+                    model = displayImages[0],
+                    contentDescription = "帖子图片",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                if (totalPictures > 1) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
+                    ) {
+                        Text(
+                            text = "+${totalPictures - 1}",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+            }
+        }
+
+        in 2..3 -> {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
+            ) {
+                displayImages.forEachIndexed { index, imageUrl ->
+                    val isLastImage = index == displayImages.size - 1
+                    val hasMoreImages = totalPictures > displayImages.size
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .sizeIn(maxWidth = 200.dp)
+                            .aspectRatio(1f)
+                            .clip(MaterialTheme.shapes.medium)
+                            .clickable { imageUrl?.let { onClick(it) } }
+                    ) {
+                        AsyncImage(
+                            model = imageUrl,
+                            contentDescription = "帖子图片 $index",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+
+                        if (isLastImage && hasMoreImages) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
+                            ) {
+                                Text(
+                                    text = "+${totalPictures - displayImages.size}",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        else -> {
+            val gridColumns = if (displayImages.size == 4) 2 else 3
+            val gridRows = (displayImages.size + gridColumns - 1) / gridColumns
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
+            ) {
+                (0 until gridRows).forEach { row ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
+                    ) {
+                        (0 until gridColumns).forEach { col ->
+                            val index = row * gridColumns + col
+                            if (index < displayImages.size) {
+                                val isLastImage = index == displayImages.size - 1
+                                val hasMoreImages = totalPictures > displayImages.size
+
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f, fill = false)
+                                        .sizeIn(maxWidth = 200.dp)
+                                        .aspectRatio(1f)
+                                        .clip(MaterialTheme.shapes.medium)
+                                        .clickable { displayImages[index]?.let { onClick(it) } }
+                                ) {
+                                    AsyncImage(
+                                        model = displayImages[index],
+                                        contentDescription = "帖子图片 $index",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+
+                                    if (isLastImage && hasMoreImages) {
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(
+                                                    MaterialTheme.colorScheme.scrim.copy(
+                                                        alpha = 0.6f
+                                                    )
+                                                )
+                                        ) {
+                                            Text(
+                                                text = "+${totalPictures - displayImages.size}",
+                                                style = MaterialTheme.typography.titleLarge,
+                                                color = MaterialTheme.colorScheme.onPrimary
+                                            )
+                                        }
+                                    }
+                                }
+                            } else {
+                                Spacer(Modifier.weight(1f).aspectRatio(1f))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@Composable
+fun SharedTransitionScope.PostListScreen(
+    animatedVisibilityScope: AnimatedVisibilityScope,
     onPostClick: (Long) -> Unit,
     onNavigateToCreatePost: () -> Unit,
     onUserClick: (Long) -> Unit = {}, // New parameter for user profile navigation
@@ -402,6 +572,7 @@ fun PostListScreen(
                     items(posts) {
                         PostItem(
                             post = it,
+                            animatedVisibilityScope = animatedVisibilityScope,
                             onClick = { onPostClick(it.id) },
                             onUserClick = { userId -> onUserClick(userId) },
                             onUpvoteClick = { it -> viewModel.upvotePost(it) },
@@ -434,11 +605,12 @@ fun PostListScreen(
             }
         }
         
-        // Image gallery dialog
+        // Image gallery dialog with shared element transitions
         ImageGalleryDialog(
             visible = showImageGallery,
             images = galleryImages,
             initialIndex = galleryInitialIndex,
+            sharedTransitionScope = this,
             onDismiss = {
                 showImageGallery = false
                 galleryImages = emptyList()
@@ -450,9 +622,11 @@ fun PostListScreen(
 
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun PostItem(
+fun SharedTransitionScope.PostItem(
     post: GetPostListElement,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     onClick: () -> Unit,
     onUpvoteClick: (Long) -> Unit,
     onUserClick: (Long) -> Unit = {},
@@ -590,6 +764,7 @@ fun PostItem(
                 val imageUrls = post.pictures.mapNotNull { it.url }
                 ImageGrid(
                     images = imageUrls,
+                    animatedVisibilityScope = animatedVisibilityScope,
                     totalPictures = post.totalPictures,
                     onClick = { clickedUrl -> 
                         // Find index of clicked image and open gallery

@@ -37,7 +37,7 @@ import org.jh.forum.client.ui.viewmodel.CommentViewModel
 import org.jh.forum.client.ui.viewmodel.PostViewModel
 import org.jh.forum.client.util.TimeUtils
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun PostDetailScreen(
     postId: Long,

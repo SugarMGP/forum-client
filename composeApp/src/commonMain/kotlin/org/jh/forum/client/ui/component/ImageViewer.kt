@@ -25,13 +25,15 @@ import coil3.compose.AsyncImage
 import org.jh.forum.client.ui.theme.AppIcons
 
 /**
- * Gallery viewer with support for multiple images and swipe navigation
+ * Gallery viewer with support for multiple images, swipe navigation, and optional shared element transitions
  */
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun ImageGalleryViewer(
     images: List<String>,
     initialIndex: Int = 0,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -66,30 +68,48 @@ fun ImageGalleryViewer(
                     .fillMaxSize()
                     .clickable { if (scale == 1f) onDismiss() }
             ) {
+                val imageModifier = Modifier
+                    .fillMaxSize()
+                    .let { baseModifier ->
+                        // Add shared element bounds if both scopes are available
+                        if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                            with(sharedTransitionScope) {
+                                baseModifier.sharedBounds(
+                                    sharedContentState = rememberSharedContentState(key = "image_${images[page]}"),
+                                    animatedVisibilityScope = animatedVisibilityScope,
+                                    boundsTransform = { _, _ ->
+                                        tween(durationMillis = 300)
+                                    }
+                                )
+                            }
+                        } else {
+                            baseModifier
+                        }
+                    }
+                    .graphicsLayer(
+                        scaleX = scale,
+                        scaleY = scale,
+                        translationX = offsetX,
+                        translationY = offsetY
+                    )
+                    .pointerInput(Unit) {
+                        detectTransformGestures { _, pan, zoom, _ ->
+                            scale = (scale * zoom).coerceIn(1f, 5f)
+                            
+                            if (scale == 1f) {
+                                offsetX = 0f
+                                offsetY = 0f
+                            } else {
+                                offsetX += pan.x
+                                offsetY += pan.y
+                            }
+                        }
+                    }
+                
                 AsyncImage(
                     model = images[page],
                     contentDescription = "图片 ${page + 1}",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer(
-                            scaleX = scale,
-                            scaleY = scale,
-                            translationX = offsetX,
-                            translationY = offsetY
-                        )
-                        .pointerInput(Unit) {
-                            detectTransformGestures { _, pan, zoom, _ ->
-                                scale = (scale * zoom).coerceIn(1f, 5f)
-                                
-                                if (scale == 1f) {
-                                    offsetX = 0f
-                                    offsetY = 0f
-                                } else {
-                                    offsetX += pan.x
-                                    offsetY += pan.y
-                                }
-                            }
-                        },
+                    modifier = imageModifier,
                     contentScale = ContentScale.Fit
                 )
             }
@@ -136,29 +156,60 @@ fun ImageGalleryViewer(
 }
 
 /**
- * Gallery viewer dialog with full screen coverage and smooth animations
+ * Gallery viewer dialog with full screen coverage and optional shared element transitions
  */
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun ImageGalleryDialog(
     visible: Boolean,
     images: List<String>,
     initialIndex: Int = 0,
+    sharedTransitionScope: SharedTransitionScope? = null,
     onDismiss: () -> Unit
 ) {
-    if (visible && images.isNotEmpty()) {
-        Dialog(
-            onDismissRequest = onDismiss,
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                dismissOnBackPress = true,
-                dismissOnClickOutside = false
-            )
-        ) {
-            ImageGalleryViewer(
-                images = images,
-                initialIndex = initialIndex,
-                onDismiss = onDismiss
-            )
+    if (sharedTransitionScope != null) {
+        // Use shared element transitions when scope is provided
+        with(sharedTransitionScope) {
+            AnimatedVisibility(
+                visible = visible && images.isNotEmpty(),
+                enter = fadeIn(animationSpec = tween(300)),
+                exit = fadeOut(animationSpec = tween(300))
+            ) {
+                Dialog(
+                    onDismissRequest = onDismiss,
+                    properties = DialogProperties(
+                        usePlatformDefaultWidth = false,
+                        dismissOnBackPress = true,
+                        dismissOnClickOutside = false
+                    )
+                ) {
+                    ImageGalleryViewer(
+                        images = images,
+                        initialIndex = initialIndex,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedVisibilityScope = this@AnimatedVisibility,
+                        onDismiss = onDismiss
+                    )
+                }
+            }
+        }
+    } else {
+        // Fallback without shared elements for screens that don't provide the scope
+        if (visible && images.isNotEmpty()) {
+            Dialog(
+                onDismissRequest = onDismiss,
+                properties = DialogProperties(
+                    usePlatformDefaultWidth = false,
+                    dismissOnBackPress = true,
+                    dismissOnClickOutside = false
+                )
+            ) {
+                ImageGalleryViewer(
+                    images = images,
+                    initialIndex = initialIndex,
+                    onDismiss = onDismiss
+                )
+            }
         }
     }
 }

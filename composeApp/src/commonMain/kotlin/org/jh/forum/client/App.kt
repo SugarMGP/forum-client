@@ -1,5 +1,7 @@
 package org.jh.forum.client
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -11,6 +13,7 @@ import org.jh.forum.client.ui.screen.ThemeMode
 import org.jh.forum.client.ui.theme.ForumTheme
 import org.jh.forum.client.ui.theme.rememberThemeState
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun App() {
     val themeState = rememberThemeState()
@@ -28,11 +31,14 @@ fun App() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            MainNavigation(
-                onThemeChanged = { mode ->
-                    themeState.setThemeMode(mode)
-                }
-            )
+            SharedTransitionLayout {
+                MainNavigation(
+                    sharedTransitionScope = this,
+                    onThemeChanged = { mode ->
+                        themeState.setThemeMode(mode)
+                    }
+                )
+            }
         }
     }
 }
