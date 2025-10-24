@@ -717,7 +717,6 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                     maxLines = if (isExpanded) Int.MAX_VALUE else 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .weight(1f, fill = false)
                         .animateContentSize(
                             animationSpec = tween(
                                 durationMillis = 300,
@@ -725,23 +724,22 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                             )
                         )
                 )
+                
+                // Signatory below content when expanded or if short enough
+                if (isExpanded && !announcement.signatory.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                    Text(
+                        text = "—— ${announcement.signatory}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.align(Alignment.End)
+                    )
+                }
             }
-            
-            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-            
-            // Signatory on the right side (always visible if present)
-            if (!announcement.signatory.isNullOrBlank()) {
-                Text(
-                    text = "—— ${announcement.signatory}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
             
             // Expand/collapse icon indicator on the right side
             if (announcement.content.length > 50) {
+                Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                 Icon(
                     imageVector = if (isExpanded) AppIcons.ExpandLess else AppIcons.ExpandMore,
                     contentDescription = if (isExpanded) "收起" else "展开",
