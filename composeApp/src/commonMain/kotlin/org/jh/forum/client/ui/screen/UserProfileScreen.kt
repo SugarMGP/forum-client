@@ -1,8 +1,5 @@
 package org.jh.forum.client.ui.screen
 
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -624,7 +621,7 @@ fun PersonalCommentCard(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+
 @Composable
 fun SharedTransitionScope.UserInfoCard(
     userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?,

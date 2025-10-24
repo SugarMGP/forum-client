@@ -25,25 +25,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import org.jh.forum.client.ui.theme.AppIcons
 
 /**
- * Reusable clickable image thumbnail with SharedElement support and press animation
- * Use this component for all image thumbnails to ensure consistent SharedElement transitions
+ * Clickable image thumbnail with press animation
  */
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SharedTransitionScope.SharedElementImage(
+fun ClickableImage(
     imageUrl: String?,
     contentDescription: String,
     modifier: Modifier = Modifier,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     contentScale: ContentScale = ContentScale.Crop,
     shape: androidx.compose.ui.graphics.Shape = MaterialTheme.shapes.medium,
-    onClick: () -> Unit,
-    content: @Composable BoxScope.() -> Unit = {}
+    onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -52,42 +47,29 @@ fun SharedTransitionScope.SharedElementImage(
         animationSpec = tween(100)
     )
 
-    Box(modifier = modifier) {
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = contentDescription,
-            contentScale = contentScale,
-            modifier = Modifier
-                .fillMaxSize()
-                .scale(scale)
-                .clip(shape)
-                .sharedBounds(
-                    sharedContentState = rememberSharedContentState(key = "image_$imageUrl"),
-                    animatedVisibilityScope = animatedVisibilityScope,
-                    boundsTransform = { _,_ ->
-                        tween(durationMillis = 300)
-                    }
-                )
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = onClick
-                )
-        )
-        content()
-    }
+    AsyncImage(
+        model = imageUrl,
+        contentDescription = contentDescription,
+        contentScale = contentScale,
+        modifier = modifier
+            .scale(scale)
+            .clip(shape)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+    )
 }
 
 /**
- * Gallery viewer with support for multiple images, swipe navigation, and optional shared element transitions
+ * Gallery viewer with support for multiple images and swipe navigation
  */
-@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImageGalleryViewer(
     images: List<String>,
     initialIndex: Int = 0,
-    sharedTransitionScope: SharedTransitionScope? = null,
-    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -122,48 +104,30 @@ fun ImageGalleryViewer(
                     .fillMaxSize()
                     .clickable { if (scale == 1f) onDismiss() }
             ) {
-                val imageModifier = Modifier
-                    .fillMaxSize()
-                    .let { baseModifier ->
-                        // Add shared element bounds if both scopes are available
-                        if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                            with(sharedTransitionScope) {
-                                baseModifier.sharedBounds(
-                                    sharedContentState = rememberSharedContentState(key = "image_${images[page]}"),
-                                    animatedVisibilityScope = animatedVisibilityScope,
-                                    boundsTransform = { _, _ ->
-                                        tween(durationMillis = 300)
-                                    }
-                                )
-                            }
-                        } else {
-                            baseModifier
-                        }
-                    }
-                    .graphicsLayer(
-                        scaleX = scale,
-                        scaleY = scale,
-                        translationX = offsetX,
-                        translationY = offsetY
-                    )
-                    .pointerInput(Unit) {
-                        detectTransformGestures { _, pan, zoom, _ ->
-                            scale = (scale * zoom).coerceIn(1f, 5f)
-
-                            if (scale == 1f) {
-                                offsetX = 0f
-                                offsetY = 0f
-                            } else {
-                                offsetX += pan.x
-                                offsetY += pan.y
-                            }
-                        }
-                    }
-
                 AsyncImage(
                     model = images[page],
                     contentDescription = "图片 ${page + 1}",
-                    modifier = imageModifier,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer(
+                            scaleX = scale,
+                            scaleY = scale,
+                            translationX = offsetX,
+                            translationY = offsetY
+                        )
+                        .pointerInput(Unit) {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                scale = (scale * zoom).coerceIn(1f, 5f)
+
+                                if (scale == 1f) {
+                                    offsetX = 0f
+                                    offsetY = 0f
+                                } else {
+                                    offsetX += pan.x
+                                    offsetY += pan.y
+                                }
+                            }
+                        },
                     contentScale = ContentScale.Fit
                 )
             }
@@ -193,71 +157,48 @@ fun ImageGalleryViewer(
         }
 
         // Image counter at bottom
-        Surface(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-            shape = MaterialTheme.shapes.small
-        ) {
-            Text(
-                text = "${pagerState.currentPage + 1}/${images.size}",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
+        if (images.size > 1) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                shape = MaterialTheme.shapes.small
+            ) {
+                Text(
+                    text = "${pagerState.currentPage + 1}/${images.size}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
         }
     }
 }
 
 /**
- * Gallery viewer dialog with full screen coverage and SharedElement transition support
- * When sharedTransitionScope is provided, uses AnimatedVisibility for smooth SharedElement animations
- * Otherwise falls back to Dialog for backward compatibility
+ * Gallery viewer dialog with fade in/out animation
  */
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun ImageGalleryDialog(
     visible: Boolean,
     images: List<String>,
     initialIndex: Int = 0,
-    sharedTransitionScope: SharedTransitionScope? = null,
-    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     onDismiss: () -> Unit
 ) {
-    if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-        // Use AnimatedVisibility with SharedElement transitions
-        // NOTE: Cannot use Dialog with SharedElement as they create separate hierarchies
-        with(sharedTransitionScope) {
+    if (visible && images.isNotEmpty()) {
+        Dialog(
+            onDismissRequest = onDismiss,
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                dismissOnBackPress = true,
+                dismissOnClickOutside = false
+            )
+        ) {
+            // Fade in/out animation
             AnimatedVisibility(
-                visible = visible && images.isNotEmpty(),
+                visible = visible,
                 enter = fadeIn(animationSpec = tween(300)),
                 exit = fadeOut(animationSpec = tween(300))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .zIndex(Float.MAX_VALUE) // Ensure it appears above everything
-                ) {
-                    ImageGalleryViewer(
-                        images = images,
-                        initialIndex = initialIndex,
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = this@AnimatedVisibility,
-                        onDismiss = onDismiss
-                    )
-                }
-            }
-        }
-    } else {
-        // Fallback to Dialog for screens without SharedElement support
-        if (visible && images.isNotEmpty()) {
-            Dialog(
-                onDismissRequest = onDismiss,
-                properties = DialogProperties(
-                    usePlatformDefaultWidth = false,
-                    dismissOnBackPress = true,
-                    dismissOnClickOutside = false
-                )
             ) {
                 ImageGalleryViewer(
                     images = images,

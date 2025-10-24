@@ -53,12 +53,10 @@ private val slideOutPopTransition = slideOutHorizontally(
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3AdaptiveNavigationSuiteApi::class,
-    ExperimentalSharedTransitionApi::class
+    ExperimentalMaterial3AdaptiveNavigationSuiteApi::class
 )
 @Composable
 fun MainNavigation(
-    sharedTransitionScope: SharedTransitionScope,
     repository: ForumRepository = AppModule.forumRepository,
     onThemeChanged: (ThemeMode) -> Unit = { _ -> },
     onDynamicColorChanged: (Boolean) -> Unit = { _ -> },

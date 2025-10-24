@@ -33,7 +33,7 @@ import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
 import kotlin.enums.EnumEntries
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+
 @Composable
 fun SharedTransitionScope.ImageGrid(
     images: List<String?>,
@@ -574,7 +574,7 @@ fun SharedTransitionScope.PostListScreen(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+
 @Composable
 fun SharedTransitionScope.PostItem(
     post: GetPostListElement,

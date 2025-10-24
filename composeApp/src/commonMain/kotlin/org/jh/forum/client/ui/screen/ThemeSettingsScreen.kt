@@ -4,9 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -172,16 +169,13 @@ fun ThemeSettingsScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp),
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                 ) {
-                    items(ThemePreferences.availableColors) { themeColor ->
+                    ThemePreferences.availableColors.forEach { themeColor ->
                         ColorOption(
+                            modifier = Modifier.weight(1f),
                             name = themeColor.name,
                             color = themeColor.color,
                             isSelected = selectedSeedColor == themeColor.color,
@@ -312,62 +306,47 @@ fun ThemeOption(
 
 @Composable
 fun ColorOption(
+    modifier: Modifier = Modifier,
     name: String,
     color: Color,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            }
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isSelected) Dimensions.elevationMedium else Dimensions.elevationSmall
-        ),
-        shape = MaterialTheme.shapes.medium
+    Column(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(Dimensions.spaceSmall),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
     ) {
-        Column(
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(Dimensions.spaceSmall),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(color)
-                    .then(
-                        if (isSelected) {
-                            Modifier.border(
-                                width = 3.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = CircleShape
-                            )
-                        } else {
-                            Modifier
-                        }
-                    )
-            )
-            Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
-            Text(
-                text = name,
-                style = MaterialTheme.typography.bodySmall,
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
-            )
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(color)
+                .then(
+                    if (isSelected) {
+                        Modifier.border(
+                            width = 3.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = CircleShape
+                        )
+                    } else {
+                        Modifier
+                    }
+                )
+        )
+        Text(
+            text = name,
+            style = MaterialTheme.typography.labelSmall,
+            color = if (isSelected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
+        )
+    }
+}
         }
     }
 }
