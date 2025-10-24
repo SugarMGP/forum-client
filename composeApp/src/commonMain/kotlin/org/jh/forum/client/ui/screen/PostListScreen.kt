@@ -27,56 +27,11 @@ import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.data.model.SortType
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.component.ImageGalleryDialog
+import org.jh.forum.client.ui.component.SharedElementImage
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
 import kotlin.enums.EnumEntries
-
-/**
- * Composable helper to create a clickable image thumbnail with press animation and shared element support
- */
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Composable
-private fun SharedTransitionScope.ImageThumbnail(
-    imageUrl: String?,
-    contentDescription: String,
-    sharedElementKey: String,
-    animatedVisibilityScope: AnimatedVisibilityScope,
-    onClick: () -> Unit,
-    content: @Composable BoxScope.() -> Unit = {}
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
-        animationSpec = tween(100)
-    )
-
-    Box {
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = contentDescription,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .scale(scale) // Apply scale directly to avoid interfering with SharedElement
-                .clip(MaterialTheme.shapes.medium)
-                .sharedBounds(
-                    sharedContentState = rememberSharedContentState(key = sharedElementKey),
-                    animatedVisibilityScope = animatedVisibilityScope,
-                    boundsTransform = { _, _ ->
-                        tween(durationMillis = 300)
-                    }
-                )
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = onClick
-                )
-        )
-        content()
-    }
-}
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -99,10 +54,9 @@ fun SharedTransitionScope.ImageGrid(
                     .sizeIn(maxWidth = 200.dp)
                     .aspectRatio(1f)
             ) {
-                ImageThumbnail(
+                SharedElementImage(
                     imageUrl = displayImages[0],
                     contentDescription = "帖子图片",
-                    sharedElementKey = "image_${displayImages[0]}",
                     animatedVisibilityScope = animatedVisibilityScope,
                     onClick = { displayImages[0]?.let { onClick(it) } }
                 ) {
@@ -140,10 +94,9 @@ fun SharedTransitionScope.ImageGrid(
                             .sizeIn(maxWidth = 200.dp)
                             .aspectRatio(1f)
                     ) {
-                        ImageThumbnail(
+                        SharedElementImage(
                             imageUrl = imageUrl,
                             contentDescription = "帖子图片 $index",
-                            sharedElementKey = "image_${imageUrl}",
                             animatedVisibilityScope = animatedVisibilityScope,
                             onClick = { imageUrl?.let { onClick(it) } }
                         ) {
@@ -192,10 +145,9 @@ fun SharedTransitionScope.ImageGrid(
                                         .sizeIn(maxWidth = 200.dp)
                                         .aspectRatio(1f)
                                 ) {
-                                    ImageThumbnail(
+                                    SharedElementImage(
                                         imageUrl = displayImages[index],
                                         contentDescription = "帖子图片 $index",
-                                        sharedElementKey = "image_${displayImages[index]}",
                                         animatedVisibilityScope = animatedVisibilityScope,
                                         onClick = { displayImages[index]?.let { onClick(it) } }
                                     ) {
@@ -612,6 +564,7 @@ fun SharedTransitionScope.PostListScreen(
             images = galleryImages,
             initialIndex = galleryInitialIndex,
             sharedTransitionScope = this@PostListScreen,
+            animatedVisibilityScope = animatedVisibilityScope,
             onDismiss = {
                 showImageGallery = false
                 galleryImages = emptyList()

@@ -1,11 +1,14 @@
 package org.jh.forum.client.ui.component
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -14,6 +17,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -23,6 +28,55 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import org.jh.forum.client.ui.theme.AppIcons
+
+/**
+ * Reusable clickable image thumbnail with SharedElement support and press animation
+ * Use this component for all image thumbnails to ensure consistent SharedElement transitions
+ */
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+fun SharedTransitionScope.SharedElementImage(
+    imageUrl: String?,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    contentScale: ContentScale = ContentScale.Crop,
+    shape: androidx.compose.ui.graphics.Shape = MaterialTheme.shapes.medium,
+    onClick: () -> Unit,
+    content: @Composable BoxScope.() -> Unit = {}
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(100)
+    )
+
+    Box(modifier = modifier) {
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = contentDescription,
+            contentScale = contentScale,
+            modifier = Modifier
+                .fillMaxSize()
+                .scale(scale)
+                .clip(shape)
+                .sharedBounds(
+                    sharedContentState = rememberSharedContentState(key = "image_$imageUrl"),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    boundsTransform = { _, _ ->
+                        tween(durationMillis = 300)
+                    }
+                )
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onClick
+                )
+        )
+        content()
+    }
+}
 
 /**
  * Gallery viewer with support for multiple images, swipe navigation, and optional shared element transitions
@@ -156,7 +210,9 @@ fun ImageGalleryViewer(
 }
 
 /**
- * Gallery viewer dialog with full screen coverage and optional shared element transitions
+ * Gallery viewer dialog with full screen coverage and SharedElement transition support
+ * When sharedTransitionScope is provided, uses AnimatedVisibility for smooth SharedElement animations
+ * Otherwise falls back to Dialog for backward compatibility
  */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -165,12 +221,12 @@ fun ImageGalleryDialog(
     images: List<String>,
     initialIndex: Int = 0,
     sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     onDismiss: () -> Unit
 ) {
-    if (sharedTransitionScope != null) {
-        // Use shared element transitions when scope is provided
+    if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+        // Use AnimatedVisibility with SharedElement transitions
         // NOTE: Cannot use Dialog with SharedElement as they create separate hierarchies
-        // Use a full-screen Box overlay with high zIndex to appear above all content
         with(sharedTransitionScope) {
             AnimatedVisibility(
                 visible = visible && images.isNotEmpty(),
@@ -193,7 +249,7 @@ fun ImageGalleryDialog(
             }
         }
     } else {
-        // Fallback without shared elements for screens that don't provide the scope
+        // Fallback to Dialog for screens without SharedElement support
         if (visible && images.isNotEmpty()) {
             Dialog(
                 onDismissRequest = onDismiss,

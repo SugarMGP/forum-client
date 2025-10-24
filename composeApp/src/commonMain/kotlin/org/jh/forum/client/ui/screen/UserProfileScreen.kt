@@ -1,6 +1,8 @@
 package org.jh.forum.client.ui.screen
 
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +20,7 @@ import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.GetPersonalPostListElement
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.ui.component.ImageGalleryDialog
+import org.jh.forum.client.ui.component.SharedElementImage
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
@@ -25,10 +28,11 @@ import org.jh.forum.client.util.TimeUtils
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun UserProfileScreen(
+fun SharedTransitionScope.UserProfileScreen(
     userId: Long,
     authViewModel: AuthViewModel,
     repository: ForumRepository,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     onPostClick: (Long) -> Unit = {},
     onNavigateBack: (() -> Unit)? = null,
     onNavigateToSettings: () -> Unit = {}
@@ -104,6 +108,7 @@ fun UserProfileScreen(
                 // User Info Card at top
                 UserInfoCard(
                     userProfile = userProfile,
+                    animatedVisibilityScope = animatedVisibilityScope,
                     onAvatarClick = { avatarUrl ->
                         selectedImageUrl = avatarUrl
                         showImageViewer = true
@@ -165,6 +170,8 @@ fun UserProfileScreen(
                 galleryImages
             },
             initialIndex = if (showImageViewer) 0 else galleryInitialIndex,
+            sharedTransitionScope = this@UserProfileScreen,
+            animatedVisibilityScope = animatedVisibilityScope,
             onDismiss = {
                 showImageGallery = false
                 showImageViewer = false
@@ -613,9 +620,11 @@ fun PersonalCommentCard(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun UserInfoCard(
+fun SharedTransitionScope.UserInfoCard(
     userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     onAvatarClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -637,18 +646,20 @@ fun UserInfoCard(
             Surface(
                 shape = CircleShape,
                 shadowElevation = Dimensions.elevationSmall,
-                color = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.clickable {
-                    userProfile?.avatar?.let { onAvatarClick(it) }
-                }
+                color = MaterialTheme.colorScheme.surface
             ) {
-                AsyncImage(
-                    model = userProfile?.avatar,
+                SharedElementImage(
+                    imageUrl = userProfile?.avatar,
                     contentDescription = "用户头像",
                     modifier = Modifier
                         .size(72.dp)
-                        .padding(Dimensions.spaceExtraSmall)
-                        .clip(CircleShape)
+                        .padding(Dimensions.spaceExtraSmall),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    shape = CircleShape,
+                    onClick = {
+                        userProfile?.avatar?.let { onAvatarClick(it) }
+                    }
                 )
             }
 

@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,6 +31,7 @@ import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.component.CommentEditor
 import org.jh.forum.client.ui.component.CommentItem
 import org.jh.forum.client.ui.component.ImageGalleryDialog
+import org.jh.forum.client.ui.component.SharedElementImage
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.CommentViewModel
@@ -38,10 +40,11 @@ import org.jh.forum.client.util.TimeUtils
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun PostDetailScreen(
+fun SharedTransitionScope.PostDetailScreen(
     postId: Long,
     viewModel: PostViewModel,
     commentViewModel: CommentViewModel,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     onBack: () -> Unit,
     onUserClick: (Long) -> Unit = {}
 ) {
@@ -440,6 +443,8 @@ fun PostDetailScreen(
             visible = showImageViewer,
             images = if (selectedImageUrl != null) listOf(selectedImageUrl).filterNotNull() else emptyList(),
             initialIndex = 0,
+            sharedTransitionScope = this@PostDetailScreen,
+            animatedVisibilityScope = animatedVisibilityScope,
             onDismiss = {
                 showImageViewer = false
                 selectedImageUrl = null
@@ -584,16 +589,100 @@ fun PostContent(
                     modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
                 )
 
-                // 图片显示
+                // 图片显示 - using SharedElement for smooth transitions
                 if (post.pictures.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-                    ImageGrid(
-                        images = post.pictures.map { it.url },
-                        totalPictures = post.pictures.size,
-                        onClick = { imageUrl ->
-                            onImageClick(imageUrl)
+                    val displayImages = post.pictures.take(9)
+                    
+                    // Single image layout
+                    if (displayImages.size == 1) {
+                        Box(
+                            modifier = Modifier
+                                .sizeIn(maxWidth = 300.dp)
+                                .aspectRatio(1f)
+                        ) {
+                            SharedElementImage(
+                                imageUrl = displayImages[0].url,
+                                contentDescription = "帖子图片",
+                                animatedVisibilityScope = animatedVisibilityScope,
+                                onClick = { onImageClick(displayImages[0].url) }
+                            )
                         }
-                    )
+                    } 
+                    // 2 images horizontal layout
+                    else if (displayImages.size == 2) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            displayImages.forEach { picture ->
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f, fill = false)
+                                        .sizeIn(maxWidth = 200.dp)
+                                        .aspectRatio(1f)
+                                ) {
+                                    SharedElementImage(
+                                        imageUrl = picture.url,
+                                        contentDescription = "帖子图片",
+                                        animatedVisibilityScope = animatedVisibilityScope,
+                                        onClick = { onImageClick(picture.url) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    // Grid layout for 3+ images
+                    else {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            displayImages.chunked(3).forEach { rowImages ->
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    rowImages.forEachIndexed { index, picture ->
+                                        val globalIndex = displayImages.indexOf(picture)
+                                        val isLastImage = globalIndex == displayImages.size - 1
+                                        val hasMoreImages = post.pictures.size > displayImages.size
+                                        
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f, fill = false)
+                                                .sizeIn(maxWidth = 200.dp)
+                                                .aspectRatio(1f)
+                                        ) {
+                                            SharedElementImage(
+                                                imageUrl = picture.url,
+                                                contentDescription = "帖子图片",
+                                                animatedVisibilityScope = animatedVisibilityScope,
+                                                onClick = { onImageClick(picture.url) }
+                                            ) {
+                                                if (isLastImage && hasMoreImages) {
+                                                    Box(
+                                                        contentAlignment = Alignment.Center,
+                                                        modifier = Modifier
+                                                            .fillMaxSize()
+                                                            .background(
+                                                                MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f)
+                                                            )
+                                                    ) {
+                                                        Text(
+                                                            text = "+${post.pictures.size - displayImages.size}",
+                                                            style = MaterialTheme.typography.titleLarge,
+                                                            color = MaterialTheme.colorScheme.onPrimary
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // 话题标签

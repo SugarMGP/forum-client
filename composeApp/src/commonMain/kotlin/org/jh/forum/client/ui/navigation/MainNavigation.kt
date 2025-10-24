@@ -161,18 +161,21 @@ fun MainNavigation(
                     val isLoggedIn = authViewModel.isLoggedIn.collectAsState().value
 
                     if (isLoggedIn && currentUserId != null) {
-                        UserProfileScreen(
-                            userId = currentUserId,
-                            authViewModel = authViewModel,
-                            repository = repository,
-                            onPostClick = { postId ->
-                                navController.navigate("post_detail/$postId")
-                            },
-                            onNavigateBack = null, // No back button for bottom nav
-                            onNavigateToSettings = {
-                                navController.navigate("settings")
-                            }
-                        )
+                        with(sharedTransitionScope) {
+                            UserProfileScreen(
+                                userId = currentUserId,
+                                authViewModel = authViewModel,
+                                repository = repository,
+                                animatedVisibilityScope = this@composable,
+                                onPostClick = { postId ->
+                                    navController.navigate("post_detail/$postId")
+                                },
+                                onNavigateBack = null, // No back button for bottom nav
+                                onNavigateToSettings = {
+                                    navController.navigate("settings")
+                                }
+                            )
+                        }
                     }
                 }
 
@@ -275,15 +278,18 @@ fun MainNavigation(
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) {
                     val postId = it.savedStateHandle.get<String>("postId")?.toLongOrNull() ?: 0L
-                    PostDetailScreen(
-                        postId = postId,
-                        viewModel = AppModule.postViewModel,
-                        commentViewModel = AppModule.commentViewModel,
-                        onBack = { navController.popBackStack() },
-                        onUserClick = { userId ->
-                            navController.navigate("user_profile/$userId")
-                        }
-                    )
+                    with(sharedTransitionScope) {
+                        PostDetailScreen(
+                            postId = postId,
+                            viewModel = AppModule.postViewModel,
+                            commentViewModel = AppModule.commentViewModel,
+                            animatedVisibilityScope = this@composable,
+                            onBack = { navController.popBackStack() },
+                            onUserClick = { userId ->
+                                navController.navigate("user_profile/$userId")
+                            }
+                        )
+                    }
                 }
 
 
@@ -316,20 +322,23 @@ fun MainNavigation(
                 ) { backStackEntry ->
                     val userIdStr = backStackEntry.savedStateHandle.get<String>("userId") ?: "0"
                     val userId = userIdStr.toLongOrNull() ?: 0L
-                    UserProfileScreen(
-                        userId = userId,
-                        authViewModel = authViewModel,
-                        repository = repository,
-                        onPostClick = { postId ->
-                            navController.navigate("post_detail/$postId")
-                        },
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        },
-                        onNavigateToSettings = {
-                            navController.navigate("settings")
-                        }
-                    )
+                    with(sharedTransitionScope) {
+                        UserProfileScreen(
+                            userId = userId,
+                            authViewModel = authViewModel,
+                            repository = repository,
+                            animatedVisibilityScope = this@composable,
+                            onPostClick = { postId ->
+                                navController.navigate("post_detail/$postId")
+                            },
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            },
+                            onNavigateToSettings = {
+                                navController.navigate("settings")
+                            }
+                        )
+                    }
                 }
             }
         }
