@@ -176,7 +176,7 @@ fun ThemeSettingsScreen(
                     columns = GridCells.Fixed(3),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp),
+                        .height(100.dp),
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                     verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                 ) {
@@ -343,7 +343,7 @@ fun ColorOption(
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(36.dp)
                     .clip(CircleShape)
                     .background(color)
                     .then(

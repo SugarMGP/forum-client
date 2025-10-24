@@ -800,16 +800,21 @@ fun SharedTransitionScope.PostItem(
                         vertical = Dimensions.spaceSmall
                     )
                 ) {
-                    Icon(
-                        AppIcons.ThumbUp,
-                        contentDescription = "点赞",
-                        modifier = Modifier.size(Dimensions.iconSmall)
-                    )
-                    Spacer(modifier = Modifier.width(Dimensions.spaceExtraSmall))
-                    Text(
-                        text = "${post.likeCount}",
-                        style = MaterialTheme.typography.labelLarge
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            AppIcons.ThumbUp,
+                            contentDescription = "点赞",
+                            modifier = Modifier.size(Dimensions.iconSmall)
+                        )
+                        Spacer(modifier = Modifier.width(Dimensions.spaceExtraSmall))
+                        Text(
+                            text = "${post.likeCount}",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
                 }
             }
         }

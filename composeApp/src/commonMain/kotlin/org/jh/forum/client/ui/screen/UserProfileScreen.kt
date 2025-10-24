@@ -67,27 +67,28 @@ fun SharedTransitionScope.UserProfileScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(userProfile?.nickname ?: "用户主页") },
-                navigationIcon = {
-                    if (onNavigateBack != null) {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(AppIcons.ArrowBack, contentDescription = "返回")
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(userProfile?.nickname ?: "用户主页") },
+                    navigationIcon = {
+                        if (onNavigateBack != null) {
+                            IconButton(onClick = onNavigateBack) {
+                                Icon(AppIcons.ArrowBack, contentDescription = "返回")
+                            }
                         }
-                    }
-                },
-                actions = {
-                    if (isCurrentUser) {
-                        IconButton(onClick = onNavigateToSettings) {
-                            Icon(AppIcons.Settings, contentDescription = "设置")
+                    },
+                    actions = {
+                        if (isCurrentUser) {
+                            IconButton(onClick = onNavigateToSettings) {
+                                Icon(AppIcons.Settings, contentDescription = "设置")
+                            }
                         }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -162,26 +163,27 @@ fun SharedTransitionScope.UserProfileScreen(
                 }
             }
         }
+        }  // Close Scaffold content lambda
 
-        // Image gallery dialog - also used for avatar (single image)
-        ImageGalleryDialog(
-            visible = showImageGallery || showImageViewer,
-            images = if (showImageViewer && selectedImageUrl != null) {
-                listOf(selectedImageUrl).filterNotNull()
-            } else {
-                galleryImages
-            },
-            initialIndex = if (showImageViewer) 0 else galleryInitialIndex,
-            sharedTransitionScope = this@UserProfileScreen,
-            animatedVisibilityScope = animatedVisibilityScope,
-            onDismiss = {
-                showImageGallery = false
-                showImageViewer = false
-                galleryImages = emptyList()
-                galleryInitialIndex = 0
-                selectedImageUrl = null
-            }
-        )
+    // Image gallery dialog - placed outside Scaffold for proper z-order
+    ImageGalleryDialog(
+        visible = showImageGallery || showImageViewer,
+        images = if (showImageViewer && selectedImageUrl != null) {
+            listOf(selectedImageUrl).filterNotNull()
+        } else {
+            galleryImages
+        },
+        initialIndex = if (showImageViewer) 0 else galleryInitialIndex,
+        sharedTransitionScope = this@UserProfileScreen,
+        animatedVisibilityScope = animatedVisibilityScope,
+        onDismiss = {
+            showImageGallery = false
+            showImageViewer = false
+            galleryImages = emptyList()
+            galleryInitialIndex = 0
+            selectedImageUrl = null
+        }
+    )
     }
 }
 

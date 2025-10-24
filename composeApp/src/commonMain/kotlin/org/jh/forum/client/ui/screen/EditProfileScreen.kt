@@ -35,6 +35,8 @@ fun EditProfileScreen(
     var profile by remember { mutableStateOf(userProfile?.profile ?: "") }
     var email by remember { mutableStateOf(userProfile?.email ?: "") }
     var collegeId by remember { mutableStateOf(userProfile?.collegeId ?: "") }
+    var realname by remember { mutableStateOf(userProfile?.realname ?: "") }
+    var studentId by remember { mutableStateOf(userProfile?.studentId ?: "") }
     var birthday by remember { mutableStateOf(userProfile?.birthday ?: "") }
     var birthdayVisible by remember { mutableStateOf(userProfile?.birthdayVisible ?: false) }
     var realnameVisible by remember { mutableStateOf(userProfile?.realnameVisible ?: false) }
@@ -53,6 +55,8 @@ fun EditProfileScreen(
             profile = profileData.profile ?: ""
             email = profileData.email ?: ""
             collegeId = profileData.collegeId ?: ""
+            realname = profileData.realname ?: ""
+            studentId = profileData.studentId ?: ""
             birthday = profileData.birthday ?: ""
             birthdayVisible = profileData.birthdayVisible ?: false
             realnameVisible = profileData.realnameVisible ?: false
@@ -128,17 +132,38 @@ fun EditProfileScreen(
                                 .padding(Dimensions.spaceMedium),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            AsyncImage(
-                                model = avatar,
-                                contentDescription = "头像",
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        // TODO: Implement image picker
-                                    },
-                                contentScale = ContentScale.Crop
-                            )
+                            Box(
+                                contentAlignment = Alignment.BottomEnd
+                            ) {
+                                AsyncImage(
+                                    model = avatar,
+                                    contentDescription = "头像",
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .clip(CircleShape)
+                                        .clickable {
+                                            // TODO: Implement image picker
+                                        },
+                                    contentScale = ContentScale.Crop
+                                )
+                                // Camera icon overlay
+                                Surface(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .offset(x = (-4).dp, y = (-4).dp),
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primaryContainer
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            AppIcons.PhotoCamera,
+                                            contentDescription = "更换头像",
+                                            modifier = Modifier.size(20.dp),
+                                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
+                                }
+                            }
                             Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                             Text(
                                 text = "点击更换头像",
@@ -290,6 +315,16 @@ fun EditProfileScreen(
                                 value = email,
                                 onValueChange = { email = it },
                                 label = { Text("邮箱") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
+
+                            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+
+                            OutlinedTextField(
+                                value = collegeId,
+                                onValueChange = { collegeId = it },
+                                label = { Text("学院") },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true
                             )

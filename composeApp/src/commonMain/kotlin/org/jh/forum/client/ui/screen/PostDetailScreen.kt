@@ -111,26 +111,27 @@ fun SharedTransitionScope.PostDetailScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("帖子详情") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = AppIcons.ArrowBack,
-                            contentDescription = "返回"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("帖子详情") },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = AppIcons.ArrowBack,
+                                contentDescription = "返回"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
-            )
-        },
-        modifier = Modifier.fillMaxSize()
-    ) { paddingValues ->
+            },
+            modifier = Modifier.fillMaxSize()
+        ) { paddingValues ->
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -442,19 +443,20 @@ fun SharedTransitionScope.PostDetailScreen(
                 }
             )
         }
+        }  // Close Scaffold content lambda
 
-        // Image gallery dialog - used for single images as well
-        ImageGalleryDialog(
-            visible = showImageViewer,
-            images = if (selectedImageUrl != null) listOf(selectedImageUrl).filterNotNull() else emptyList(),
-            initialIndex = 0,
-            sharedTransitionScope = this@PostDetailScreen,
-            animatedVisibilityScope = animatedVisibilityScope,
-            onDismiss = {
-                showImageViewer = false
-                selectedImageUrl = null
-            }
-        )
+    // Image gallery dialog - placed outside Scaffold for proper z-order
+    ImageGalleryDialog(
+        visible = showImageViewer,
+        images = if (selectedImageUrl != null) listOf(selectedImageUrl).filterNotNull() else emptyList(),
+        initialIndex = 0,
+        sharedTransitionScope = this@PostDetailScreen,
+        animatedVisibilityScope = animatedVisibilityScope,
+        onDismiss = {
+            showImageViewer = false
+            selectedImageUrl = null
+        }
+    )
     }
 }
 

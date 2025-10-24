@@ -64,7 +64,7 @@ fun SharedTransitionScope.SharedElementImage(
                 .sharedBounds(
                     sharedContentState = rememberSharedContentState(key = "image_$imageUrl"),
                     animatedVisibilityScope = animatedVisibilityScope,
-                    boundsTransform = { _, _ ->
+                    boundsTransform = { _,_ ->
                         tween(durationMillis = 300)
                     }
                 )
