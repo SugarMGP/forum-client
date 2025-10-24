@@ -37,6 +37,8 @@ fun SharedTransitionScope.UserProfileScreen(
     onNavigateBack: (() -> Unit)? = null,
     onNavigateToSettings: () -> Unit = {}
 ) {
+    val sharedTransitionScope = this
+    
     var selectedTab by remember { mutableStateOf(0) }
     val isCurrentUser = authViewModel.userProfile.collectAsState().value?.userId == userId
     var userProfile by remember {

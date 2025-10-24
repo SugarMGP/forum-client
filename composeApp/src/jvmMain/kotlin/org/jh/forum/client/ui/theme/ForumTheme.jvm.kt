@@ -9,13 +9,19 @@ import com.materialkolor.dynamiccolor.ColorSpec
 actual fun ForumTheme(
     darkTheme: Boolean,
     dynamicColor: Boolean,
+    seedColor: Color,
     content: @Composable () -> Unit
 ) {
     DynamicMaterialTheme(
-        seedColor = Color.Red,
+        seedColor = seedColor,
         isDark = darkTheme,
         animate = true,
         content = content,
         specVersion = ColorSpec.SpecVersion.SPEC_2025
     )
+}
+
+actual fun supportsDynamicColor(): Boolean {
+    // Desktop/JVM doesn't support dynamic color from wallpaper
+    return false
 }

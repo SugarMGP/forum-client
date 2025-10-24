@@ -60,7 +60,11 @@ private val slideOutPopTransition = slideOutHorizontally(
 fun MainNavigation(
     sharedTransitionScope: SharedTransitionScope,
     repository: ForumRepository = AppModule.forumRepository,
-    onThemeChanged: (ThemeMode) -> Unit = { _ -> }
+    onThemeChanged: (ThemeMode) -> Unit = { _ -> },
+    onDynamicColorChanged: (Boolean) -> Unit = { _ -> },
+    onSeedColorChanged: (androidx.compose.ui.graphics.Color) -> Unit = { _ -> },
+    currentDynamicColor: Boolean = false,
+    currentSeedColor: androidx.compose.ui.graphics.Color = org.jh.forum.client.data.preferences.ThemePreferences.Red
 ) {
     val authViewModel = AppModule.authViewModel
     val navController = rememberNavController()
@@ -232,6 +236,10 @@ fun MainNavigation(
                             currentTheme = themeMode
                             onThemeChanged(themeMode)
                         },
+                        useDynamicColor = currentDynamicColor,
+                        onDynamicColorChanged = onDynamicColorChanged,
+                        seedColor = currentSeedColor,
+                        onSeedColorChanged = onSeedColorChanged,
                         onNavigateBack = {
                             navController.popBackStack()
                         }

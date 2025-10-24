@@ -48,6 +48,8 @@ fun SharedTransitionScope.PostDetailScreen(
     onBack: () -> Unit,
     onUserClick: (Long) -> Unit = {}
 ) {
+    val sharedTransitionScope = this
+    
     var post by remember { mutableStateOf<GetPostInfoResponse?>(null) }
     val errorMessage by viewModel.errorMessage.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -140,28 +142,31 @@ fun SharedTransitionScope.PostDetailScreen(
             item {
                 post?.let { currentPost ->
                     var localPost by remember { mutableStateOf(currentPost) }
-                    PostContent(
-                        post = localPost,
-                        onUpvote = {
-                            viewModel.upvotePost(postId) { isLiked ->
-                                localPost = localPost.copy(
-                                    isLiked = isLiked,
-                                    likeCount = if (isLiked) localPost.likeCount + 1 else localPost.likeCount - 1
-                                )
-                            }
-                        },
-                        onShare = { /* 复制/分享逻辑 */ },
-                        onUserProfileClick = {
-                            localPost.publisherInfo.id?.let { userId ->
-                                onUserClick(userId)
-                            }
-                        },
-                        onImageClick = { imageUrl ->
-                            selectedImageUrl = imageUrl
-                            showImageViewer = true
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    with(sharedTransitionScope) {
+                        PostContent(
+                            post = localPost,
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            onUpvote = {
+                                viewModel.upvotePost(postId) { isLiked ->
+                                    localPost = localPost.copy(
+                                        isLiked = isLiked,
+                                        likeCount = if (isLiked) localPost.likeCount + 1 else localPost.likeCount - 1
+                                    )
+                                }
+                            },
+                            onShare = { /* 复制/分享逻辑 */ },
+                            onUserProfileClick = {
+                                localPost.publisherInfo.id?.let { userId ->
+                                    onUserClick(userId)
+                                }
+                            },
+                            onImageClick = { imageUrl ->
+                                selectedImageUrl = imageUrl
+                                showImageViewer = true
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 } ?: run {
                     Box(
                         modifier = Modifier
@@ -453,16 +458,19 @@ fun SharedTransitionScope.PostDetailScreen(
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun PostContent(
+fun SharedTransitionScope.PostContent(
     post: GetPostInfoResponse,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     onUpvote: () -> Unit,
     onShare: () -> Unit,
     onUserProfileClick: () -> Unit,
     onImageClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val sharedTransitionScope = this
+    
     var showShareMessage by remember { mutableStateOf(false) }
 
     // 动画状态
@@ -601,12 +609,14 @@ fun PostContent(
                                 .sizeIn(maxWidth = 300.dp)
                                 .aspectRatio(1f)
                         ) {
-                            SharedElementImage(
-                                imageUrl = displayImages[0].url,
-                                contentDescription = "帖子图片",
-                                animatedVisibilityScope = animatedVisibilityScope,
-                                onClick = { onImageClick(displayImages[0].url) }
-                            )
+                            with(sharedTransitionScope) {
+                                SharedElementImage(
+                                    imageUrl = displayImages[0].url,
+                                    contentDescription = "帖子图片",
+                                    animatedVisibilityScope = animatedVisibilityScope,
+                                    onClick = { onImageClick(displayImages[0].url ?: "") }
+                                )
+                            }
                         }
                     } 
                     // 2 images horizontal layout
@@ -622,12 +632,14 @@ fun PostContent(
                                         .sizeIn(maxWidth = 200.dp)
                                         .aspectRatio(1f)
                                 ) {
-                                    SharedElementImage(
-                                        imageUrl = picture.url,
-                                        contentDescription = "帖子图片",
-                                        animatedVisibilityScope = animatedVisibilityScope,
-                                        onClick = { onImageClick(picture.url) }
-                                    )
+                                    with(sharedTransitionScope) {
+                                        SharedElementImage(
+                                            imageUrl = picture.url,
+                                            contentDescription = "帖子图片",
+                                            animatedVisibilityScope = animatedVisibilityScope,
+                                            onClick = { onImageClick(picture.url ?: "") }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -654,26 +666,28 @@ fun PostContent(
                                                 .sizeIn(maxWidth = 200.dp)
                                                 .aspectRatio(1f)
                                         ) {
-                                            SharedElementImage(
-                                                imageUrl = picture.url,
-                                                contentDescription = "帖子图片",
-                                                animatedVisibilityScope = animatedVisibilityScope,
-                                                onClick = { onImageClick(picture.url) }
-                                            ) {
-                                                if (isLastImage && hasMoreImages) {
-                                                    Box(
-                                                        contentAlignment = Alignment.Center,
-                                                        modifier = Modifier
-                                                            .fillMaxSize()
-                                                            .background(
-                                                                MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f)
+                                            with(sharedTransitionScope) {
+                                                SharedElementImage(
+                                                    imageUrl = picture.url,
+                                                    contentDescription = "帖子图片",
+                                                    animatedVisibilityScope = animatedVisibilityScope,
+                                                    onClick = { onImageClick(picture.url ?: "") }
+                                                ) {
+                                                    if (isLastImage && hasMoreImages) {
+                                                        Box(
+                                                            contentAlignment = Alignment.Center,
+                                                            modifier = Modifier
+                                                                .fillMaxSize()
+                                                                .background(
+                                                                    MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f)
+                                                                )
+                                                        ) {
+                                                            Text(
+                                                                text = "+${post.pictures.size - displayImages.size}",
+                                                                style = MaterialTheme.typography.titleLarge,
+                                                                color = MaterialTheme.colorScheme.onPrimary
                                                             )
-                                                    ) {
-                                                        Text(
-                                                            text = "+${post.pictures.size - displayImages.size}",
-                                                            style = MaterialTheme.typography.titleLarge,
-                                                            color = MaterialTheme.colorScheme.onPrimary
-                                                        )
+                                                        }
                                                     }
                                                 }
                                             }

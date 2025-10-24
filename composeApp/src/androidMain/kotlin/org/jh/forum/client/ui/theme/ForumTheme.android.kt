@@ -14,6 +14,7 @@ import com.materialkolor.rememberDynamicColorScheme
 actual fun ForumTheme(
     darkTheme: Boolean,
     dynamicColor: Boolean,
+    seedColor: Color,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -25,7 +26,7 @@ actual fun ForumTheme(
         }
 
         else -> rememberDynamicColorScheme(
-            seedColor = Color.Red,
+            seedColor = seedColor,
             isDark = darkTheme,
             specVersion = ColorSpec.SpecVersion.SPEC_2025
         )
@@ -35,4 +36,8 @@ actual fun ForumTheme(
         colorScheme = colorScheme,
         content = content
     )
+}
+
+actual fun supportsDynamicColor(): Boolean {
+    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 }
