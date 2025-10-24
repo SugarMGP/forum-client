@@ -270,24 +270,11 @@ fun ImageGalleryDialog(
                 dismissOnClickOutside = false
             )
         ) {
-            // Animate entry/exit with scale and fade
-            AnimatedVisibility(
-                visible = true,
-                enter = fadeIn(animationSpec = tween(300)) + scaleIn(
-                    initialScale = 0.9f,
-                    animationSpec = tween(300)
-                ),
-                exit = fadeOut(animationSpec = tween(200)) + scaleOut(
-                    targetScale = 0.9f,
-                    animationSpec = tween(200)
-                )
-            ) {
-                ImageGalleryViewer(
-                    images = images,
-                    initialIndex = initialIndex,
-                    onDismiss = onDismiss
-                )
-            }
+            ImageGalleryViewer(
+                images = images,
+                initialIndex = initialIndex,
+                onDismiss = onDismiss
+            )
         }
     }
 }

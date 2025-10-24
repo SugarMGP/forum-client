@@ -32,6 +32,44 @@ import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
 import kotlin.enums.EnumEntries
 
+/**
+ * Composable helper to create a clickable image thumbnail with press animation
+ */
+@Composable
+private fun ImageThumbnail(
+    imageUrl: String?,
+    contentDescription: String,
+    onClick: () -> Unit,
+    content: @Composable BoxScope.() -> Unit = {}
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(100)
+    )
+    
+    Box(
+        modifier = Modifier
+            .scale(scale)
+    ) {
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = contentDescription,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(MaterialTheme.shapes.medium)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onClick
+                )
+        )
+        content()
+    }
+}
+
 @Composable
 fun ImageGrid(
     images: List<String?>,
@@ -46,44 +84,30 @@ fun ImageGrid(
     when (displayImages.size) {
         1 -> {
             // 单图显示 - 改为正方形，并设置更合适的高度限制
-            val interactionSource = remember { MutableInteractionSource() }
-            val isPressed by interactionSource.collectIsPressedAsState()
-            val scale by animateFloatAsState(
-                targetValue = if (isPressed) 0.95f else 1f,
-                animationSpec = tween(100)
-            )
-            
             Box(
                 modifier = Modifier
                     .sizeIn(maxWidth = 200.dp)
                     .aspectRatio(1f)
-                    .scale(scale)
-                    .clip(MaterialTheme.shapes.medium)
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = null
-                    ) { displayImages[0]?.let { onClick(it) } }
             ) {
-                AsyncImage(
-                    model = displayImages[0],
+                ImageThumbnail(
+                    imageUrl = displayImages[0],
                     contentDescription = "帖子图片",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-
-                // 如果有更多图片，在图片上添加蒙版显示数量
-                if (totalPictures > 1) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                    ) {
-                        Text(
-                            text = "+${totalPictures - 1}",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
+                    onClick = { displayImages[0]?.let { onClick(it) } }
+                ) {
+                    // 如果有更多图片，在图片上添加蒙版显示数量
+                    if (totalPictures > 1) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
+                        ) {
+                            Text(
+                                text = "+${totalPictures - 1}",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
                 }
             }
@@ -97,45 +121,32 @@ fun ImageGrid(
                 displayImages.forEachIndexed { index, imageUrl ->
                     val isLastImage = index == displayImages.size - 1
                     val hasMoreImages = totalPictures > displayImages.size
-                    val interactionSource = remember { MutableInteractionSource() }
-                    val isPressed by interactionSource.collectIsPressedAsState()
-                    val scale by animateFloatAsState(
-                        targetValue = if (isPressed) 0.95f else 1f,
-                        animationSpec = tween(100)
-                    )
 
                     Box(
                         modifier = Modifier
                             .weight(1f, fill = false)
                             .sizeIn(maxWidth = 200.dp)
                             .aspectRatio(1f)
-                            .scale(scale)
-                            .clip(MaterialTheme.shapes.medium)
-                            .clickable(
-                                interactionSource = interactionSource,
-                                indication = null
-                            ) { imageUrl?.let { onClick(it) } }
                     ) {
-                        AsyncImage(
-                            model = imageUrl,
+                        ImageThumbnail(
+                            imageUrl = imageUrl,
                             contentDescription = "帖子图片 $index",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-
-                        // 如果是最后一张图片并且有更多图片未显示，添加蒙版显示数量
-                        if (isLastImage && hasMoreImages) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                            ) {
-                                Text(
-                                    text = "+${totalPictures - displayImages.size}",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
+                            onClick = { imageUrl?.let { onClick(it) } }
+                        ) {
+                            // 如果是最后一张图片并且有更多图片未显示，添加蒙版显示数量
+                            if (isLastImage && hasMoreImages) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
+                                ) {
+                                    Text(
+                                        text = "+${totalPictures - displayImages.size}",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
                             }
                         }
                     }
@@ -160,49 +171,36 @@ fun ImageGrid(
                             if (index < displayImages.size) {
                                 val isLastImage = index == displayImages.size - 1
                                 val hasMoreImages = totalPictures > displayImages.size
-                                val interactionSource = remember { MutableInteractionSource() }
-                                val isPressed by interactionSource.collectIsPressedAsState()
-                                val scale by animateFloatAsState(
-                                    targetValue = if (isPressed) 0.95f else 1f,
-                                    animationSpec = tween(100)
-                                )
 
                                 Box(
                                     modifier = Modifier
                                         .weight(1f, fill = false)
                                         .sizeIn(maxWidth = 200.dp)
                                         .aspectRatio(1f)
-                                        .scale(scale)
-                                        .clip(MaterialTheme.shapes.medium)
-                                        .clickable(
-                                            interactionSource = interactionSource,
-                                            indication = null
-                                        ) { displayImages[index]?.let { onClick(it) } }
                                 ) {
-                                    AsyncImage(
-                                        model = displayImages[index],
+                                    ImageThumbnail(
+                                        imageUrl = displayImages[index],
                                         contentDescription = "帖子图片 $index",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-
-                                    // 如果是最后一张图片并且有更多图片未显示，添加蒙版显示数量
-                                    if (isLastImage && hasMoreImages) {
-                                        Box(
-                                            contentAlignment = Alignment.Center,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .background(
-                                                    MaterialTheme.colorScheme.scrim.copy(
-                                                        alpha = 0.6f
+                                        onClick = { displayImages[index]?.let { onClick(it) } }
+                                    ) {
+                                        // 如果是最后一张图片并且有更多图片未显示，添加蒙版显示数量
+                                        if (isLastImage && hasMoreImages) {
+                                            Box(
+                                                contentAlignment = Alignment.Center,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(
+                                                        MaterialTheme.colorScheme.scrim.copy(
+                                                            alpha = 0.6f
+                                                        )
                                                     )
+                                            ) {
+                                                Text(
+                                                    text = "+${totalPictures - displayImages.size}",
+                                                    style = MaterialTheme.typography.titleLarge,
+                                                    color = MaterialTheme.colorScheme.onPrimary
                                                 )
-                                        ) {
-                                            Text(
-                                                text = "+${totalPictures - displayImages.size}",
-                                                style = MaterialTheme.typography.titleLarge,
-                                                color = MaterialTheme.colorScheme.onPrimary
-                                            )
+                                            }
                                         }
                                     }
                                 }
