@@ -52,16 +52,14 @@ private fun SharedTransitionScope.ImageThumbnail(
         animationSpec = tween(100)
     )
     
-    Box(
-        modifier = Modifier
-            .scale(scale)
-    ) {
+    Box {
         AsyncImage(
             model = imageUrl,
             contentDescription = contentDescription,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
+                .scale(scale) // Apply scale directly to avoid interfering with SharedElement
                 .clip(MaterialTheme.shapes.medium)
                 .sharedBounds(
                     sharedContentState = rememberSharedContentState(key = sharedElementKey),
@@ -73,6 +71,12 @@ private fun SharedTransitionScope.ImageThumbnail(
                 .clickable(
                     interactionSource = interactionSource,
                     indication = null,
+                    onClick = onClick
+                )
+        )
+        content()
+    }
+}
                     onClick = onClick
                 )
         )
