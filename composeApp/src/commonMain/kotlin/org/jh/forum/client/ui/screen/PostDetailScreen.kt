@@ -140,29 +140,29 @@ fun PostDetailScreen(
             item {
                 post?.let { currentPost ->
                     var localPost by remember { mutableStateOf(currentPost) }
-PostContent(
-                            post = localPost,
-                            onUpvote = {
-                                viewModel.upvotePost(postId) { isLiked ->
-                                    localPost = localPost.copy(
-                                        isLiked = isLiked,
-                                        likeCount = if (isLiked) localPost.likeCount + 1 else localPost.likeCount - 1
-                                    )
-                                }
-                            },
-                            onShare = { /* 复制/分享逻辑 */ },
-                            onUserProfileClick = {
-                                localPost.publisherInfo.id?.let { userId ->
-                                    onUserClick(userId)
-                                }
-                            },
-                            onImageClick = { imageUrl ->
-                                selectedImageUrl = imageUrl
-                                showImageViewer = true
-                            },
-                            modifier = Modifier.fillMaxWidth()
+                    PostContent(
+                        post = localPost,
+                        onUpvote = {
+                            viewModel.upvotePost(postId) { isLiked ->
+                                localPost = localPost.copy(
+                                    isLiked = isLiked,
+                                    likeCount = if (isLiked) localPost.likeCount + 1 else localPost.likeCount - 1
+                                )
+                            }
+                        },
+                        onShare = { /* 复制/分享逻辑 */ },
+                        onUserProfileClick = {
+                            localPost.publisherInfo.id?.let { userId ->
+                                onUserClick(userId)
+                            }
+                        },
+                        onImageClick = { imageUrl ->
+                            selectedImageUrl = imageUrl
+                            showImageViewer = true
+                        },
+                        modifier = Modifier.fillMaxWidth()
                         )
-                    }
+                }
                 } ?: run {
                     Box(
                         modifier = Modifier
@@ -434,7 +434,6 @@ PostContent(
                 dismissButton = {
                     OutlinedButton(onClick = { showDeleteDialog = false }) {
                         Text("取消")
-                    }
                 }
             )
         }
@@ -606,8 +605,6 @@ ClickableImage(
                                     contentDescription = "帖子图片",
                                     onClick = { onImageClick(displayImages[0].url ?: "") }
                                 )
-                            }
-                        }
                     } 
                     // 2 images horizontal layout
                     else if (displayImages.size == 2) {
@@ -627,7 +624,6 @@ ClickableImage(
                                             contentDescription = "帖子图片",
                                             onClick = { onImageClick(picture.url ?: "") }
                                         )
-                                    }
                                 }
                             }
                         }
