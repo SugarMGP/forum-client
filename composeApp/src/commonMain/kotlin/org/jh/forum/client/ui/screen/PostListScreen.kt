@@ -438,23 +438,24 @@ fun SharedTransitionScope.PostListScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // 顶栏始终显示在最上方
-                TopAppBar(
-                    title = { Text("精弘论坛") },
-                    actions = {
-                        IconButton(onClick = { viewModel.refresh() }) {
-                            Icon(AppIcons.Refresh, contentDescription = "刷新")
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // 顶栏始终显示在最上方
+                    TopAppBar(
+                        title = { Text("精弘论坛") },
+                        actions = {
+                            IconButton(onClick = { viewModel.refresh() }) {
+                                Icon(AppIcons.Refresh, contentDescription = "刷新")
+                            }
+                            IconButton(onClick = { showTabs = !showTabs }) {
+                                Icon(AppIcons.FilterList, contentDescription = "筛选")
+                            }
                         }
-                        IconButton(onClick = { showTabs = !showTabs }) {
-                            Icon(AppIcons.FilterList, contentDescription = "筛选")
-                        }
-                    }
-                )
+                    )
 
                 // 分类和排序选项卡 - 只有点击按钮后才显示，添加淡入淡出动画
                 // 选项卡组件放在顶栏下方的单独区域
@@ -606,11 +607,12 @@ fun SharedTransitionScope.PostListScreen(
         }
         
         // Image gallery dialog with shared element transitions
+        // Placed at root level to ensure proper hierarchy for SharedElement
         ImageGalleryDialog(
             visible = showImageGallery,
             images = galleryImages,
             initialIndex = galleryInitialIndex,
-            sharedTransitionScope = this,
+            sharedTransitionScope = this@PostListScreen,
             onDismiss = {
                 showImageGallery = false
                 galleryImages = emptyList()

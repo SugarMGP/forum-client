@@ -1,5 +1,6 @@
 package org.jh.forum.client.ui.component
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -169,19 +170,19 @@ fun ImageGalleryDialog(
 ) {
     if (sharedTransitionScope != null) {
         // Use shared element transitions when scope is provided
+        // NOTE: Cannot use Dialog with SharedElement as they create separate hierarchies
+        // Use a full-screen Box overlay instead
         with(sharedTransitionScope) {
             AnimatedVisibility(
                 visible = visible && images.isNotEmpty(),
                 enter = fadeIn(animationSpec = tween(300)),
                 exit = fadeOut(animationSpec = tween(300))
             ) {
-                Dialog(
-                    onDismissRequest = onDismiss,
-                    properties = DialogProperties(
-                        usePlatformDefaultWidth = false,
-                        dismissOnBackPress = true,
-                        dismissOnClickOutside = false
-                    )
+                // Handle back press to dismiss
+                BackHandler(onBack = onDismiss)
+                
+                Box(
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     ImageGalleryViewer(
                         images = images,
