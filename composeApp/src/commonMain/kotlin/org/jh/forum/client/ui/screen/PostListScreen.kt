@@ -35,7 +35,7 @@ import kotlin.enums.EnumEntries
 
 
 @Composable
-fun SharedTransitionScope.ImageGrid(
+fun ImageGrid(
     images: List<String?>,
     animatedVisibilityScope: AnimatedVisibilityScope,
     totalPictures: Int = images.size,
@@ -57,7 +57,6 @@ fun SharedTransitionScope.ImageGrid(
                 ClickableImage(
                     imageUrl = displayImages[0],
                     contentDescription = "帖子图片",
-                    animatedVisibilityScope = animatedVisibilityScope,
                     onClick = { displayImages[0]?.let { onClick(it) } }
                 ) {
                     // 如果有更多图片，在图片上添加蒙版显示数量
@@ -97,7 +96,6 @@ fun SharedTransitionScope.ImageGrid(
                         ClickableImage(
                             imageUrl = imageUrl,
                             contentDescription = "帖子图片 $index",
-                            animatedVisibilityScope = animatedVisibilityScope,
                             onClick = { imageUrl?.let { onClick(it) } }
                         ) {
                             // 如果是最后一张图片并且有更多图片未显示，添加蒙版显示数量
@@ -148,7 +146,6 @@ fun SharedTransitionScope.ImageGrid(
                                     ClickableImage(
                                         imageUrl = displayImages[index],
                                         contentDescription = "帖子图片 $index",
-                                        animatedVisibilityScope = animatedVisibilityScope,
                                         onClick = { displayImages[index]?.let { onClick(it) } }
                                     ) {
                                         // 如果是最后一张图片并且有更多图片未显示，添加蒙版显示数量
@@ -337,7 +334,7 @@ fun ImageGrid(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun SharedTransitionScope.PostListScreen(
+fun PostListScreen(
     animatedVisibilityScope: AnimatedVisibilityScope,
     onPostClick: (Long) -> Unit,
     onNavigateToCreatePost: () -> Unit,
@@ -563,8 +560,6 @@ fun SharedTransitionScope.PostListScreen(
             visible = showImageGallery,
             images = galleryImages,
             initialIndex = galleryInitialIndex,
-            sharedTransitionScope = this@PostListScreen,
-            animatedVisibilityScope = animatedVisibilityScope,
             onDismiss = {
                 showImageGallery = false
                 galleryImages = emptyList()
@@ -576,7 +571,7 @@ fun SharedTransitionScope.PostListScreen(
 
 
 @Composable
-fun SharedTransitionScope.PostItem(
+fun PostItem(
     post: GetPostListElement,
     animatedVisibilityScope: AnimatedVisibilityScope,
     onClick: () -> Unit,

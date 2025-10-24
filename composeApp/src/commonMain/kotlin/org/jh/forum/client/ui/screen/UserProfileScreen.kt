@@ -23,19 +23,16 @@ import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
 import org.jh.forum.client.util.TimeUtils
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SharedTransitionScope.UserProfileScreen(
+fun UserProfileScreen(
     userId: Long,
     authViewModel: AuthViewModel,
     repository: ForumRepository,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     onPostClick: (Long) -> Unit = {},
     onNavigateBack: (() -> Unit)? = null,
     onNavigateToSettings: () -> Unit = {}
 ) {
-    val sharedTransitionScope = this
-    
     var selectedTab by remember { mutableStateOf(0) }
     val isCurrentUser = authViewModel.userProfile.collectAsState().value?.userId == userId
     var userProfile by remember {
@@ -108,7 +105,6 @@ fun SharedTransitionScope.UserProfileScreen(
                 // User Info Card at top
                 UserInfoCard(
                     userProfile = userProfile,
-                    animatedVisibilityScope = animatedVisibilityScope,
                     onAvatarClick = { avatarUrl ->
                         selectedImageUrl = avatarUrl
                         showImageViewer = true
@@ -171,8 +167,6 @@ fun SharedTransitionScope.UserProfileScreen(
             galleryImages
         },
         initialIndex = if (showImageViewer) 0 else galleryInitialIndex,
-        sharedTransitionScope = this@UserProfileScreen,
-        animatedVisibilityScope = animatedVisibilityScope,
         onDismiss = {
             showImageGallery = false
             showImageViewer = false
@@ -623,9 +617,8 @@ fun PersonalCommentCard(
 
 
 @Composable
-fun SharedTransitionScope.UserInfoCard(
+fun UserInfoCard(
     userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     onAvatarClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -655,7 +648,6 @@ fun SharedTransitionScope.UserInfoCard(
                     modifier = Modifier
                         .size(72.dp)
                         .padding(Dimensions.spaceExtraSmall),
-                    animatedVisibilityScope = animatedVisibilityScope,
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                     shape = CircleShape,
                     onClick = {

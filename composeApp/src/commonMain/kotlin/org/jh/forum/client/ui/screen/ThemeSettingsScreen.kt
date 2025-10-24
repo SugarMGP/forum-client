@@ -347,6 +347,3 @@ fun ColorOption(
         )
     }
 }
-        }
-    }
-}

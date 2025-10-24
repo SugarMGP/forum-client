@@ -38,18 +38,15 @@ import org.jh.forum.client.ui.viewmodel.CommentViewModel
 import org.jh.forum.client.ui.viewmodel.PostViewModel
 import org.jh.forum.client.util.TimeUtils
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
-fun SharedTransitionScope.PostDetailScreen(
+fun PostDetailScreen(
     postId: Long,
     viewModel: PostViewModel,
     commentViewModel: CommentViewModel,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     onBack: () -> Unit,
     onUserClick: (Long) -> Unit = {}
 ) {
-    val sharedTransitionScope = this
-    
     var post by remember { mutableStateOf<GetPostInfoResponse?>(null) }
     val errorMessage by viewModel.errorMessage.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -143,10 +140,8 @@ fun SharedTransitionScope.PostDetailScreen(
             item {
                 post?.let { currentPost ->
                     var localPost by remember { mutableStateOf(currentPost) }
-                    with(sharedTransitionScope) {
-                        PostContent(
+PostContent(
                             post = localPost,
-                            animatedVisibilityScope = animatedVisibilityScope,
                             onUpvote = {
                                 viewModel.upvotePost(postId) { isLiked ->
                                     localPost = localPost.copy(
@@ -448,10 +443,8 @@ fun SharedTransitionScope.PostDetailScreen(
     // Image gallery dialog - placed outside Scaffold for proper z-order
     ImageGalleryDialog(
         visible = showImageViewer,
-        images = if (selectedImageUrl != null) listOf(selectedImageUrl).filterNotNull() else emptyList(),
+        images = selectedImageUrl?.let { listOf(it) } ?: emptyList(),
         initialIndex = 0,
-        sharedTransitionScope = this@PostDetailScreen,
-        animatedVisibilityScope = animatedVisibilityScope,
         onDismiss = {
             showImageViewer = false
             selectedImageUrl = null
@@ -460,19 +453,16 @@ fun SharedTransitionScope.PostDetailScreen(
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun SharedTransitionScope.PostContent(
+fun PostContent(
     post: GetPostInfoResponse,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     onUpvote: () -> Unit,
     onShare: () -> Unit,
     onUserProfileClick: () -> Unit,
     onImageClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val sharedTransitionScope = this
-    
     var showShareMessage by remember { mutableStateOf(false) }
 
     // 动画状态
@@ -611,11 +601,9 @@ fun SharedTransitionScope.PostContent(
                                 .sizeIn(maxWidth = 300.dp)
                                 .aspectRatio(1f)
                         ) {
-                            with(sharedTransitionScope) {
-                                ClickableImage(
+ClickableImage(
                                     imageUrl = displayImages[0].url,
                                     contentDescription = "帖子图片",
-                                    animatedVisibilityScope = animatedVisibilityScope,
                                     onClick = { onImageClick(displayImages[0].url ?: "") }
                                 )
                             }
@@ -634,11 +622,9 @@ fun SharedTransitionScope.PostContent(
                                         .sizeIn(maxWidth = 200.dp)
                                         .aspectRatio(1f)
                                 ) {
-                                    with(sharedTransitionScope) {
-                                        ClickableImage(
+ClickableImage(
                                             imageUrl = picture.url,
                                             contentDescription = "帖子图片",
-                                            animatedVisibilityScope = animatedVisibilityScope,
                                             onClick = { onImageClick(picture.url ?: "") }
                                         )
                                     }
@@ -668,11 +654,9 @@ fun SharedTransitionScope.PostContent(
                                                 .sizeIn(maxWidth = 200.dp)
                                                 .aspectRatio(1f)
                                         ) {
-                                            with(sharedTransitionScope) {
-                                                ClickableImage(
+ClickableImage(
                                                     imageUrl = picture.url,
                                                     contentDescription = "帖子图片",
-                                                    animatedVisibilityScope = animatedVisibilityScope,
                                                     onClick = { onImageClick(picture.url ?: "") }
                                                 ) {
                                                     if (isLastImage && hasMoreImages) {

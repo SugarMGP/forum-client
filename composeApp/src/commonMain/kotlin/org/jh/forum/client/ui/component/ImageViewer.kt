@@ -38,7 +38,8 @@ fun ClickableImage(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
     shape: androidx.compose.ui.graphics.Shape = MaterialTheme.shapes.medium,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    content: @Composable BoxScope.() -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -47,19 +48,23 @@ fun ClickableImage(
         animationSpec = tween(100)
     )
 
-    AsyncImage(
-        model = imageUrl,
-        contentDescription = contentDescription,
-        contentScale = contentScale,
-        modifier = modifier
-            .scale(scale)
-            .clip(shape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            )
-    )
+    Box(modifier = modifier) {
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = contentDescription,
+            contentScale = contentScale,
+            modifier = Modifier
+                .fillMaxSize()
+                .scale(scale)
+                .clip(shape)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onClick
+                )
+        )
+        content()
+    }
 }
 
 /**
