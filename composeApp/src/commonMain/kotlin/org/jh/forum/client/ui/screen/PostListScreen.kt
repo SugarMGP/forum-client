@@ -438,14 +438,15 @@ fun SharedTransitionScope.PostListScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // 顶栏始终显示在最上方
-                TopAppBar(
-                    title = { Text("精弘论坛") },
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // 顶栏始终显示在最上方
+                    TopAppBar(
+                        title = { Text("精弘论坛") },
                     actions = {
                         IconButton(onClick = { viewModel.refresh() }) {
                             Icon(AppIcons.Refresh, contentDescription = "刷新")
@@ -606,11 +607,12 @@ fun SharedTransitionScope.PostListScreen(
         }
         
         // Image gallery dialog with shared element transitions
+        // Placed outside Scaffold to ensure proper z-index above top bar
         ImageGalleryDialog(
             visible = showImageGallery,
             images = galleryImages,
             initialIndex = galleryInitialIndex,
-            sharedTransitionScope = this,
+            sharedTransitionScope = this@PostListScreen,
             onDismiss = {
                 showImageGallery = false
                 galleryImages = emptyList()
@@ -618,8 +620,6 @@ fun SharedTransitionScope.PostListScreen(
             }
         )
     }
-
-
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)

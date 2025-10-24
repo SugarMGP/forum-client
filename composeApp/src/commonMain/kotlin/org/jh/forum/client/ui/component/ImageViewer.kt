@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import org.jh.forum.client.ui.theme.AppIcons
 
@@ -170,7 +171,7 @@ fun ImageGalleryDialog(
     if (sharedTransitionScope != null) {
         // Use shared element transitions when scope is provided
         // NOTE: Cannot use Dialog with SharedElement as they create separate hierarchies
-        // Use a full-screen Box overlay instead
+        // Use a full-screen Box overlay with high zIndex to appear above all content
         with(sharedTransitionScope) {
             AnimatedVisibility(
                 visible = visible && images.isNotEmpty(),
@@ -178,7 +179,9 @@ fun ImageGalleryDialog(
                 exit = fadeOut(animationSpec = tween(300))
             ) {
                 Box(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .zIndex(Float.MAX_VALUE) // Ensure it appears above everything
                 ) {
                     ImageGalleryViewer(
                         images = images,
