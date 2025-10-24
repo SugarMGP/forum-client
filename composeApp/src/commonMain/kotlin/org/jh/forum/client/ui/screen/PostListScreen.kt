@@ -603,6 +603,7 @@ fun SharedTransitionScope.PostListScreen(
                 }
             }
         }
+        } // Close Scaffold content lambda
         
         // Image gallery dialog with shared element transitions
         // Placed outside Scaffold to ensure proper z-index above top bar
