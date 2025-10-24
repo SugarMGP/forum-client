@@ -37,7 +37,6 @@ import kotlin.enums.EnumEntries
 @Composable
 fun ImageGrid(
     images: List<String?>,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     totalPictures: Int = images.size,
     onClick: (String) -> Unit
 ) {
@@ -185,157 +184,7 @@ fun ImageGrid(
  * Non-shared element version of ImageGrid for backwards compatibility
  */
 @Composable
-fun ImageGrid(
-    images: List<String?>,
-    totalPictures: Int = images.size,
-    onClick: (String) -> Unit
-) {
-    // Simple version without shared elements
-    val displayImages = images.take(9)
-
-    if (displayImages.isEmpty()) return
-
-    when (displayImages.size) {
-        1 -> {
-            Box(
-                modifier = Modifier
-                    .sizeIn(maxWidth = 200.dp)
-                    .aspectRatio(1f)
-                    .clip(MaterialTheme.shapes.medium)
-                    .clickable { displayImages[0]?.let { onClick(it) } }
-            ) {
-                AsyncImage(
-                    model = displayImages[0],
-                    contentDescription = "帖子图片",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-
-                if (totalPictures > 1) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                    ) {
-                        Text(
-                            text = "+${totalPictures - 1}",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
-            }
-        }
-
-        in 2..3 -> {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
-            ) {
-                displayImages.forEachIndexed { index, imageUrl ->
-                    val isLastImage = index == displayImages.size - 1
-                    val hasMoreImages = totalPictures > displayImages.size
-
-                    Box(
-                        modifier = Modifier
-                            .weight(1f, fill = false)
-                            .sizeIn(maxWidth = 200.dp)
-                            .aspectRatio(1f)
-                            .clip(MaterialTheme.shapes.medium)
-                            .clickable { imageUrl?.let { onClick(it) } }
-                    ) {
-                        AsyncImage(
-                            model = imageUrl,
-                            contentDescription = "帖子图片 $index",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-
-                        if (isLastImage && hasMoreImages) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                            ) {
-                                Text(
-                                    text = "+${totalPictures - displayImages.size}",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        else -> {
-            val gridColumns = if (displayImages.size == 4) 2 else 3
-            val gridRows = (displayImages.size + gridColumns - 1) / gridColumns
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
-            ) {
-                (0 until gridRows).forEach { row ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
-                    ) {
-                        (0 until gridColumns).forEach { col ->
-                            val index = row * gridColumns + col
-                            if (index < displayImages.size) {
-                                val isLastImage = index == displayImages.size - 1
-                                val hasMoreImages = totalPictures > displayImages.size
-
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f, fill = false)
-                                        .sizeIn(maxWidth = 200.dp)
-                                        .aspectRatio(1f)
-                                        .clip(MaterialTheme.shapes.medium)
-                                        .clickable { displayImages[index]?.let { onClick(it) } }
-                                ) {
-                                    AsyncImage(
-                                        model = displayImages[index],
-                                        contentDescription = "帖子图片 $index",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-
-                                    if (isLastImage && hasMoreImages) {
-                                        Box(
-                                            contentAlignment = Alignment.Center,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .background(
-                                                    MaterialTheme.colorScheme.scrim.copy(
-                                                        alpha = 0.6f
-                                                    )
-                                                )
-                                        ) {
-                                            Text(
-                                                text = "+${totalPictures - displayImages.size}",
-                                                style = MaterialTheme.typography.titleLarge,
-                                                color = MaterialTheme.colorScheme.onPrimary
-                                            )
-                                        }
-                                    }
-                                }
-                            } else {
-                                Spacer(Modifier.weight(1f).aspectRatio(1f))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
-@Composable
 fun PostListScreen(
-    animatedVisibilityScope: AnimatedVisibilityScope,
     onPostClick: (Long) -> Unit,
     onNavigateToCreatePost: () -> Unit,
     onUserClick: (Long) -> Unit = {}, // New parameter for user profile navigation
@@ -520,7 +369,6 @@ fun PostListScreen(
                         items(posts) {
                             PostItem(
                                 post = it,
-                                animatedVisibilityScope = animatedVisibilityScope,
                                 onClick = { onPostClick(it.id) },
                                 onUserClick = { userId -> onUserClick(userId) },
                                 onUpvoteClick = { it -> viewModel.upvotePost(it) },
@@ -573,7 +421,6 @@ fun PostListScreen(
 @Composable
 fun PostItem(
     post: GetPostListElement,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     onClick: () -> Unit,
     onUpvoteClick: (Long) -> Unit,
     onUserClick: (Long) -> Unit = {},
@@ -711,9 +558,8 @@ fun PostItem(
                 val imageUrls = post.pictures.mapNotNull { it.url }
                 ImageGrid(
                     images = imageUrls,
-                    animatedVisibilityScope = animatedVisibilityScope,
                     totalPictures = post.totalPictures,
-                    onClick = { clickedUrl ->
+                    onClick = { clickedUrl: String ->
                         // Find index of clicked image and open gallery
                         val clickedIndex = imageUrls.indexOf(clickedUrl)
                         onImageClick(imageUrls, if (clickedIndex >= 0) clickedIndex else 0)

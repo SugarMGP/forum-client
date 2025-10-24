@@ -161,8 +161,7 @@ fun PostDetailScreen(
                             showImageViewer = true
                         },
                         modifier = Modifier.fillMaxWidth()
-                        )
-                }
+                    )
                 } ?: run {
                     Box(
                         modifier = Modifier
@@ -438,9 +437,10 @@ fun PostDetailScreen(
                 }
             )
         }
-    }  // Close Scaffold content lambda
+        }  // Close LazyColumn
+        }  // Close Scaffold content lambda
 
-    // Image gallery dialog - placed outside Scaffold for proper z-order
+    // Image gallery dialog - placed outside Scaffold but inside Box for proper z-order
     ImageGalleryDialog(
         visible = showImageViewer,
         images = selectedImageUrl?.let { listOf(it) } ?: emptyList(),
@@ -450,7 +450,8 @@ fun PostDetailScreen(
             selectedImageUrl = null
         }
     )
-}
+    }  // Close Box
+}  // Close PostDetailScreen
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -483,6 +484,7 @@ fun PostContent(
         animationSpec = spring(stiffness = Spring.StiffnessMedium)
     )
 
+    Box(modifier = modifier) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -600,14 +602,15 @@ fun PostContent(
                                 .sizeIn(maxWidth = 300.dp)
                                 .aspectRatio(1f)
                         ) {
-ClickableImage(
-                                    imageUrl = displayImages[0].url,
-                                    contentDescription = "帖子图片",
-                                    onClick = { onImageClick(displayImages[0].url ?: "") }
-                                )
-                }
-                // 2 images horizontal layout
-                else if (displayImages.size == 2) {
+                            ClickableImage(
+                                imageUrl = displayImages[0].url,
+                                contentDescription = "帖子图片",
+                                onClick = { onImageClick(displayImages[0].url ?: "") }
+                            )
+                        }
+                    }
+                    // 2 images horizontal layout
+                    else if (displayImages.size == 2) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                             modifier = Modifier.fillMaxWidth()
@@ -619,11 +622,11 @@ ClickableImage(
                                         .sizeIn(maxWidth = 200.dp)
                                         .aspectRatio(1f)
                                 ) {
-ClickableImage(
-                                            imageUrl = picture.url,
-                                            contentDescription = "帖子图片",
-                                            onClick = { onImageClick(picture.url ?: "") }
-                                        )
+                                    ClickableImage(
+                                        imageUrl = picture.url,
+                                        contentDescription = "帖子图片",
+                                        onClick = { onImageClick(picture.url ?: "") }
+                                    )
                                 }
                             }
                         }
@@ -650,11 +653,11 @@ ClickableImage(
                                                 .sizeIn(maxWidth = 200.dp)
                                                 .aspectRatio(1f)
                                         ) {
-ClickableImage(
-                                                    imageUrl = picture.url,
-                                                    contentDescription = "帖子图片",
-                                                    onClick = { onImageClick(picture.url ?: "") }
-                                                ) {
+                                            ClickableImage(
+                                                imageUrl = picture.url,
+                                                contentDescription = "帖子图片",
+                                                onClick = { onImageClick(picture.url ?: "") }
+                                            ) {
                                                     if (isLastImage && hasMoreImages) {
                                                         Box(
                                                             contentAlignment = Alignment.Center,
@@ -791,8 +794,8 @@ ClickableImage(
                 }
             }
         }
-    }
-
+    }  // Close Surface
+    
     // 分享提示
     AnimatedVisibility(
         visible = showShareMessage,
@@ -814,4 +817,4 @@ ClickableImage(
             showShareMessage = false
         }
     }
-}
+}  // Close Box wrapping PostContent

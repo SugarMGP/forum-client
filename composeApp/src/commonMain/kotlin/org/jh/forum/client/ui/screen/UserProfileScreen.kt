@@ -342,7 +342,7 @@ fun PersonalPostCard(
                     ImageGrid(
                         images = imageUrls,
                         totalPictures = post.totalPictures,
-                        onClick = { clickedUrl ->
+                        onClick = { clickedUrl: String ->
                             val clickedIndex = imageUrls.indexOf(clickedUrl)
                             onImageClick(imageUrls, if (clickedIndex >= 0) clickedIndex else 0)
                         }
