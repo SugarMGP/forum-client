@@ -31,7 +31,7 @@ import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.component.CommentEditor
 import org.jh.forum.client.ui.component.CommentItem
 import org.jh.forum.client.ui.component.ImageGalleryDialog
-import org.jh.forum.client.ui.component.SharedElementImage
+import org.jh.forum.client.ui.component.ClickableImage
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.CommentViewModel
@@ -612,7 +612,7 @@ fun SharedTransitionScope.PostContent(
                                 .aspectRatio(1f)
                         ) {
                             with(sharedTransitionScope) {
-                                SharedElementImage(
+                                ClickableImage(
                                     imageUrl = displayImages[0].url,
                                     contentDescription = "帖子图片",
                                     animatedVisibilityScope = animatedVisibilityScope,
@@ -635,7 +635,7 @@ fun SharedTransitionScope.PostContent(
                                         .aspectRatio(1f)
                                 ) {
                                     with(sharedTransitionScope) {
-                                        SharedElementImage(
+                                        ClickableImage(
                                             imageUrl = picture.url,
                                             contentDescription = "帖子图片",
                                             animatedVisibilityScope = animatedVisibilityScope,
@@ -669,7 +669,7 @@ fun SharedTransitionScope.PostContent(
                                                 .aspectRatio(1f)
                                         ) {
                                             with(sharedTransitionScope) {
-                                                SharedElementImage(
+                                                ClickableImage(
                                                     imageUrl = picture.url,
                                                     contentDescription = "帖子图片",
                                                     animatedVisibilityScope = animatedVisibilityScope,

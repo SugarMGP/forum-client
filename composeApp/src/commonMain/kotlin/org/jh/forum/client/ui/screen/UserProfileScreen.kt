@@ -17,7 +17,7 @@ import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.GetPersonalPostListElement
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.ui.component.ImageGalleryDialog
-import org.jh.forum.client.ui.component.SharedElementImage
+import org.jh.forum.client.ui.component.ClickableImage
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
@@ -649,7 +649,7 @@ fun SharedTransitionScope.UserInfoCard(
                 shadowElevation = Dimensions.elevationSmall,
                 color = MaterialTheme.colorScheme.surface
             ) {
-                SharedElementImage(
+                ClickableImage(
                     imageUrl = userProfile?.avatar,
                     contentDescription = "用户头像",
                     modifier = Modifier
