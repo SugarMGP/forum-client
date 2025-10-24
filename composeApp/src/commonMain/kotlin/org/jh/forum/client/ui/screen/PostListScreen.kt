@@ -1,8 +1,12 @@
 package org.jh.forum.client.ui.screen
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -41,12 +46,23 @@ fun ImageGrid(
     when (displayImages.size) {
         1 -> {
             // 单图显示 - 改为正方形，并设置更合适的高度限制
+            val interactionSource = remember { MutableInteractionSource() }
+            val isPressed by interactionSource.collectIsPressedAsState()
+            val scale by animateFloatAsState(
+                targetValue = if (isPressed) 0.95f else 1f,
+                animationSpec = tween(100)
+            )
+            
             Box(
                 modifier = Modifier
                     .sizeIn(maxWidth = 200.dp)
                     .aspectRatio(1f)
+                    .scale(scale)
                     .clip(MaterialTheme.shapes.medium)
-                    .clickable { displayImages[0]?.let { onClick(it) } }
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null
+                    ) { displayImages[0]?.let { onClick(it) } }
             ) {
                 AsyncImage(
                     model = displayImages[0],
@@ -81,14 +97,24 @@ fun ImageGrid(
                 displayImages.forEachIndexed { index, imageUrl ->
                     val isLastImage = index == displayImages.size - 1
                     val hasMoreImages = totalPictures > displayImages.size
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val isPressed by interactionSource.collectIsPressedAsState()
+                    val scale by animateFloatAsState(
+                        targetValue = if (isPressed) 0.95f else 1f,
+                        animationSpec = tween(100)
+                    )
 
                     Box(
                         modifier = Modifier
                             .weight(1f, fill = false)
                             .sizeIn(maxWidth = 200.dp)
                             .aspectRatio(1f)
+                            .scale(scale)
                             .clip(MaterialTheme.shapes.medium)
-                            .clickable { imageUrl?.let { onClick(it) } }
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null
+                            ) { imageUrl?.let { onClick(it) } }
                     ) {
                         AsyncImage(
                             model = imageUrl,
@@ -134,14 +160,24 @@ fun ImageGrid(
                             if (index < displayImages.size) {
                                 val isLastImage = index == displayImages.size - 1
                                 val hasMoreImages = totalPictures > displayImages.size
+                                val interactionSource = remember { MutableInteractionSource() }
+                                val isPressed by interactionSource.collectIsPressedAsState()
+                                val scale by animateFloatAsState(
+                                    targetValue = if (isPressed) 0.95f else 1f,
+                                    animationSpec = tween(100)
+                                )
 
                                 Box(
                                     modifier = Modifier
                                         .weight(1f, fill = false)
                                         .sizeIn(maxWidth = 200.dp)
                                         .aspectRatio(1f)
+                                        .scale(scale)
                                         .clip(MaterialTheme.shapes.medium)
-                                        .clickable { displayImages[index]?.let { onClick(it) } }
+                                        .clickable(
+                                            interactionSource = interactionSource,
+                                            indication = null
+                                        ) { displayImages[index]?.let { onClick(it) } }
                                 ) {
                                     AsyncImage(
                                         model = displayImages[index],

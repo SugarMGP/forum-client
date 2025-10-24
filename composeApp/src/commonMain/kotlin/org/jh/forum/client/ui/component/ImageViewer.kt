@@ -252,7 +252,7 @@ fun ImageGalleryViewer(
 }
 
 /**
- * Gallery viewer dialog with full screen coverage
+ * Gallery viewer dialog with full screen coverage and smooth animations
  */
 @Composable
 fun ImageGalleryDialog(
@@ -270,11 +270,24 @@ fun ImageGalleryDialog(
                 dismissOnClickOutside = false
             )
         ) {
-            ImageGalleryViewer(
-                images = images,
-                initialIndex = initialIndex,
-                onDismiss = onDismiss
-            )
+            // Animate entry/exit with scale and fade
+            AnimatedVisibility(
+                visible = true,
+                enter = fadeIn(animationSpec = tween(300)) + scaleIn(
+                    initialScale = 0.9f,
+                    animationSpec = tween(300)
+                ),
+                exit = fadeOut(animationSpec = tween(200)) + scaleOut(
+                    targetScale = 0.9f,
+                    animationSpec = tween(200)
+                )
+            ) {
+                ImageGalleryViewer(
+                    images = images,
+                    initialIndex = initialIndex,
+                    onDismiss = onDismiss
+                )
+            }
         }
     }
 }
