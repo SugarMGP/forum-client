@@ -1,6 +1,5 @@
 package org.jh.forum.client.ui.component
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -178,9 +177,6 @@ fun ImageGalleryDialog(
                 enter = fadeIn(animationSpec = tween(300)),
                 exit = fadeOut(animationSpec = tween(300))
             ) {
-                // Handle back press to dismiss
-                BackHandler(onBack = onDismiss)
-                
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
