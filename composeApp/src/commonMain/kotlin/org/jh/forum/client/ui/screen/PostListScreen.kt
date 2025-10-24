@@ -77,12 +77,6 @@ private fun SharedTransitionScope.ImageThumbnail(
         content()
     }
 }
-                    onClick = onClick
-                )
-        )
-        content()
-    }
-}
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
