@@ -434,10 +434,11 @@ fun PostDetailScreen(
                 dismissButton = {
                     OutlinedButton(onClick = { showDeleteDialog = false }) {
                         Text("取消")
+                    }
                 }
             )
         }
-        }  // Close Scaffold content lambda
+    }  // Close Scaffold content lambda
 
     // Image gallery dialog - placed outside Scaffold for proper z-order
     ImageGalleryDialog(
@@ -449,7 +450,6 @@ fun PostDetailScreen(
             selectedImageUrl = null
         }
     )
-    }
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -605,9 +605,9 @@ ClickableImage(
                                     contentDescription = "帖子图片",
                                     onClick = { onImageClick(displayImages[0].url ?: "") }
                                 )
-                    } 
-                    // 2 images horizontal layout
-                    else if (displayImages.size == 2) {
+                }
+                // 2 images horizontal layout
+                else if (displayImages.size == 2) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                             modifier = Modifier.fillMaxWidth()
