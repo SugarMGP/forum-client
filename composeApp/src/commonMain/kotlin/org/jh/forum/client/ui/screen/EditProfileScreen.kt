@@ -11,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.UpdateUserProfileRequest
@@ -28,7 +27,7 @@ fun EditProfileScreen(
     val userProfile by authViewModel.userProfile.collectAsState()
     val isLoading by authViewModel.isLoading.collectAsState()
     val errorMessage by authViewModel.errorMessage.collectAsState()
-    
+
     var avatar by remember { mutableStateOf(userProfile?.avatar ?: "") }
     var nickname by remember { mutableStateOf(userProfile?.nickname ?: "") }
     var signature by remember { mutableStateOf(userProfile?.signature ?: "") }
@@ -40,10 +39,10 @@ fun EditProfileScreen(
     var birthdayVisible by remember { mutableStateOf(userProfile?.birthdayVisible ?: false) }
     var realnameVisible by remember { mutableStateOf(userProfile?.realnameVisible ?: false) }
     var studentIdVisible by remember { mutableStateOf(userProfile?.studentIdVisible ?: false) }
-    
+
     var showSuccessMessage by remember { mutableStateOf(false) }
     var showGenderDialog by remember { mutableStateOf(false) }
-    
+
     // Update state when profile loads
     LaunchedEffect(userProfile) {
         userProfile?.let { profileData ->
@@ -60,7 +59,7 @@ fun EditProfileScreen(
             studentIdVisible = profileData.studentIdVisible ?: false
         }
     }
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -77,7 +76,7 @@ fun EditProfileScreen(
                             if (nickname.isBlank()) {
                                 return@TextButton
                             }
-                            
+
                             val request = UpdateUserProfileRequest(
                                 avatar = avatar,
                                 nickname = nickname,
@@ -91,7 +90,7 @@ fun EditProfileScreen(
                                 realnameVisible = realnameVisible,
                                 studentIdVisible = studentIdVisible
                             )
-                            
+
                             authViewModel.updateProfile(request)
                             showSuccessMessage = true
                         },
@@ -149,7 +148,7 @@ fun EditProfileScreen(
                         }
                     }
                 }
-                
+
                 // Basic Info
                 item {
                     Card(
@@ -170,7 +169,7 @@ fun EditProfileScreen(
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                             )
-                            
+
                             OutlinedTextField(
                                 value = nickname,
                                 onValueChange = { nickname = it },
@@ -179,9 +178,9 @@ fun EditProfileScreen(
                                 singleLine = true,
                                 isError = nickname.isBlank()
                             )
-                            
+
                             Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-                            
+
                             OutlinedTextField(
                                 value = signature,
                                 onValueChange = { signature = it },
@@ -189,9 +188,9 @@ fun EditProfileScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 maxLines = 3
                             )
-                            
+
                             Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-                            
+
                             // Gender selector
                             OutlinedCard(
                                 onClick = { showGenderDialog = true },
@@ -232,7 +231,7 @@ fun EditProfileScreen(
                         }
                     }
                 }
-                
+
                 // Extended Info
                 item {
                     Card(
@@ -253,7 +252,7 @@ fun EditProfileScreen(
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                             )
-                            
+
                             OutlinedTextField(
                                 value = profile,
                                 onValueChange = { profile = it },
@@ -265,7 +264,7 @@ fun EditProfileScreen(
                         }
                     }
                 }
-                
+
                 // Contact Info
                 item {
                     Card(
@@ -286,7 +285,7 @@ fun EditProfileScreen(
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                             )
-                            
+
                             OutlinedTextField(
                                 value = email,
                                 onValueChange = { email = it },
@@ -297,7 +296,7 @@ fun EditProfileScreen(
                         }
                     }
                 }
-                
+
                 // Privacy Settings
                 item {
                     Card(
@@ -318,7 +317,7 @@ fun EditProfileScreen(
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                             )
-                            
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -333,9 +332,9 @@ fun EditProfileScreen(
                                     onCheckedChange = { realnameVisible = it }
                                 )
                             }
-                            
+
                             Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-                            
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -350,9 +349,9 @@ fun EditProfileScreen(
                                     onCheckedChange = { studentIdVisible = it }
                                 )
                             }
-                            
+
                             Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-                            
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -371,14 +370,14 @@ fun EditProfileScreen(
                     }
                 }
             }
-            
+
             // Loading indicator
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-            
+
             // Success message
             AnimatedVisibility(
                 visible = showSuccessMessage,
@@ -411,13 +410,13 @@ fun EditProfileScreen(
                     }
                 }
             }
-            
+
             // Error message
             errorMessage?.let { error ->
                 LaunchedEffect(error) {
                     kotlinx.coroutines.delay(3000)
                 }
-                
+
                 Surface(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -445,7 +444,7 @@ fun EditProfileScreen(
                 }
             }
         }
-        
+
         // Gender selection dialog
         if (showGenderDialog) {
             AlertDialog(
@@ -489,7 +488,7 @@ fun EditProfileScreen(
             )
         }
     }
-    
+
     // Auto-hide success message
     LaunchedEffect(showSuccessMessage) {
         if (showSuccessMessage) {

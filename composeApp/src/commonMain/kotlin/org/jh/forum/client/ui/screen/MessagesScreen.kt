@@ -1,6 +1,6 @@
 package org.jh.forum.client.ui.screen
 
-import androidx.compose.animation.*
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -35,7 +35,7 @@ fun MessagesScreen(
     onUserClick: (Long) -> Unit = {}
 ) {
     val coroutineScope = rememberCoroutineScope()
-    
+
     // 消息相关状态
     var messages by remember { mutableStateOf<List<GetNoticeListElement>>(emptyList()) }
     var announcements by remember { mutableStateOf<List<GetAnnouncementListElement>>(emptyList()) }
@@ -44,7 +44,7 @@ fun MessagesScreen(
     var unreadNoticeCount by remember { mutableStateOf(0) }
     var unreadAnnouncementCount by remember { mutableStateOf(0) }
     var retryTrigger by remember { mutableStateOf(0) }
-    
+
     // Pagination state
     var noticeCurrentPage by remember { mutableStateOf(1) }
     var noticeHasMore by remember { mutableStateOf(true) }
@@ -59,7 +59,7 @@ fun MessagesScreen(
     // 加载互动消息
     suspend fun loadNotices(reset: Boolean = false) {
         if (!reset && !noticeHasMore) return // Don't load if no more data
-        
+
         isLoading = true
         errorMessage = null
         try {
@@ -70,7 +70,7 @@ fun MessagesScreen(
             if (noticeResponse.code == 200 && noticeResponse.data != null) {
                 val response = noticeResponse.data
                 val newNotices = response.list
-                
+
                 messages = if (reset) {
                     // Reset: replace with new data
                     noticeCurrentPage = 1
@@ -81,7 +81,7 @@ fun MessagesScreen(
                     val uniqueNewNotices = newNotices.filter { it.id !in existingIds }
                     messages + uniqueNewNotices
                 }
-                
+
                 // Update pagination state
                 noticeHasMore = response.page * response.pageSize < response.total
                 if (noticeHasMore) noticeCurrentPage++
@@ -99,7 +99,7 @@ fun MessagesScreen(
     // 加载公告列表
     suspend fun loadAnnouncements(reset: Boolean = false) {
         if (!reset && !announcementHasMore) return // Don't load if no more data
-        
+
         isLoading = true
         errorMessage = null
         try {
@@ -115,7 +115,7 @@ fun MessagesScreen(
             if (announcementResponse.code == 200 && announcementResponse.data != null) {
                 val response = announcementResponse.data
                 val newAnnouncements = response.list
-                
+
                 announcements = if (reset) {
                     // Reset: replace with new data
                     announcementCurrentPage = 1
@@ -126,7 +126,7 @@ fun MessagesScreen(
                     val uniqueNewAnnouncements = newAnnouncements.filter { it.id !in existingIds }
                     announcements + uniqueNewAnnouncements
                 }
-                
+
                 // Update pagination state
                 announcementHasMore = response.page * response.pageSize < response.total
                 if (announcementHasMore) announcementCurrentPage++
@@ -162,7 +162,7 @@ fun MessagesScreen(
         noticeHasMore = true
         announcementCurrentPage = 1
         announcementHasMore = true
-        
+
         if (selectedType == 0) {
             loadNotices(reset = true)
         } else {
@@ -403,22 +403,23 @@ fun MessagesScreen(
                 // 显示互动消息
                 selectedType == 0 -> {
                     val noticeListState = rememberLazyListState()
-                    
+
                     // Monitor scroll position for pagination
                     LaunchedEffect(noticeListState) {
                         snapshotFlow { noticeListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
                             .collect { lastVisibleIndex ->
-                                if (lastVisibleIndex != null && 
-                                    lastVisibleIndex >= messages.size - 3 && 
-                                    noticeHasMore && 
-                                    !isLoading) {
+                                if (lastVisibleIndex != null &&
+                                    lastVisibleIndex >= messages.size - 3 &&
+                                    noticeHasMore &&
+                                    !isLoading
+                                ) {
                                     coroutineScope.launch {
                                         loadNotices(reset = false)
                                     }
                                 }
                             }
                     }
-                    
+
                     LazyColumn(
                         state = noticeListState,
                         modifier = Modifier
@@ -432,7 +433,7 @@ fun MessagesScreen(
                                 onUserClick = onUserClick
                             )
                         }
-                        
+
                         // Loading indicator
                         if (isLoading && messages.isNotEmpty()) {
                             item {
@@ -450,22 +451,23 @@ fun MessagesScreen(
                 // 显示公告
                 else -> {
                     val announcementListState = rememberLazyListState()
-                    
+
                     // Monitor scroll position for pagination
                     LaunchedEffect(announcementListState) {
                         snapshotFlow { announcementListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
                             .collect { lastVisibleIndex ->
-                                if (lastVisibleIndex != null && 
-                                    lastVisibleIndex >= announcements.size - 3 && 
-                                    announcementHasMore && 
-                                    !isLoading) {
+                                if (lastVisibleIndex != null &&
+                                    lastVisibleIndex >= announcements.size - 3 &&
+                                    announcementHasMore &&
+                                    !isLoading
+                                ) {
                                     coroutineScope.launch {
                                         loadAnnouncements(reset = false)
                                     }
                                 }
                             }
                     }
-                    
+
                     LazyColumn(
                         state = announcementListState,
                         modifier = Modifier
@@ -476,7 +478,7 @@ fun MessagesScreen(
                         items(announcements) {
                             AnnouncementItem(announcement = it)
                         }
-                        
+
                         // Loading indicator
                         if (isLoading && announcements.isNotEmpty()) {
                             item {
@@ -686,7 +688,7 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                     )
 
                     Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-                    
+
                     // Time and unread indicator
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -724,9 +726,9 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                             )
                         )
                 )
-                
+
                 // Signatory below content when expanded or if short enough
-                if (isExpanded && !announcement.signatory.isNullOrBlank()) {
+                if (!announcement.signatory.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                     Text(
                         text = "—— ${announcement.signatory}",
@@ -736,7 +738,7 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                     )
                 }
             }
-            
+
             // Expand/collapse icon indicator on the right side
             if (announcement.content.length > 50) {
                 Spacer(modifier = Modifier.width(Dimensions.spaceSmall))

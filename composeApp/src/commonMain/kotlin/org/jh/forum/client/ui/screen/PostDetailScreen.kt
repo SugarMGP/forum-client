@@ -7,7 +7,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -58,7 +57,7 @@ fun PostDetailScreen(
     val commentError by commentViewModel.errorMessage.collectAsState()
 
     val listState = rememberLazyListState()
-    
+
     // Get current user ID to check if they're the post author
     val authViewModel = AppModule.authViewModel
     val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
@@ -89,7 +88,7 @@ fun PostDetailScreen(
                 // Safety checks to prevent crashes
                 if (!commentHasMore || isCommentLoading) return@collect
                 if (totalCount <= 0 || lastVisible < 0) return@collect
-                
+
                 // Only trigger load if we're not already at the end and have more items to load
                 val threshold = 3
                 if (lastVisible >= totalCount - 1 - threshold && lastVisible < totalCount) {
@@ -435,7 +434,7 @@ fun PostDetailScreen(
                 }
             )
         }
-        
+
         // Image gallery dialog - used for single images as well
         ImageGalleryDialog(
             visible = showImageViewer,
@@ -591,7 +590,7 @@ fun PostContent(
                     ImageGrid(
                         images = post.pictures.map { it.url },
                         totalPictures = post.pictures.size,
-                        onClick = { imageUrl -> 
+                        onClick = { imageUrl ->
                             onImageClick(imageUrl)
                         }
                     )
@@ -631,7 +630,8 @@ fun PostContent(
             // 底部操作按钮 - Compact design
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.fillMaxWidth().padding(vertical = Dimensions.spaceMedium, horizontal = Dimensions.spaceSmall)
+                modifier = Modifier.fillMaxWidth()
+                    .padding(vertical = Dimensions.spaceMedium, horizontal = Dimensions.spaceSmall)
             ) {
                 // 点赞按钮
                 FilledTonalButton(

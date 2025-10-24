@@ -14,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -43,12 +42,12 @@ fun ImageGalleryViewer(
         onDismiss()
         return
     }
-    
+
     val pagerState = rememberPagerState(
         initialPage = initialIndex.coerceIn(0, images.size - 1),
         pageCount = { images.size }
     )
-    
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -63,7 +62,7 @@ fun ImageGalleryViewer(
             var scale by remember { mutableStateOf(1f) }
             var offsetX by remember { mutableStateOf(0f) }
             var offsetY by remember { mutableStateOf(0f) }
-            
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -96,7 +95,7 @@ fun ImageGalleryViewer(
                     .pointerInput(Unit) {
                         detectTransformGestures { _, pan, zoom, _ ->
                             scale = (scale * zoom).coerceIn(1f, 5f)
-                            
+
                             if (scale == 1f) {
                                 offsetX = 0f
                                 offsetY = 0f
@@ -106,7 +105,7 @@ fun ImageGalleryViewer(
                             }
                         }
                     }
-                
+
                 AsyncImage(
                     model = images[page],
                     contentDescription = "图片 ${page + 1}",

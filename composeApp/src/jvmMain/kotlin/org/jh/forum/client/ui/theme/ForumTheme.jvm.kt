@@ -1,7 +1,9 @@
 package org.jh.forum.client.ui.theme
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import com.materialkolor.DynamicMaterialTheme
+import com.materialkolor.dynamiccolor.ColorSpec
 
 @Composable
 actual fun ForumTheme(
@@ -9,13 +11,11 @@ actual fun ForumTheme(
     dynamicColor: Boolean,
     content: @Composable () -> Unit
 ) {
-    // Desktop doesn't support dynamic color, always use static color scheme
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = ForumTypography,
-        shapes = ForumShapes,
-        content = content
+    DynamicMaterialTheme(
+        seedColor = Color.Red,
+        isDark = darkTheme,
+        animate = true,
+        content = content,
+        specVersion = ColorSpec.SpecVersion.SPEC_2025
     )
 }

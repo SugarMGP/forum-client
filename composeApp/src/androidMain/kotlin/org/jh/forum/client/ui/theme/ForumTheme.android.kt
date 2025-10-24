@@ -5,7 +5,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.materialkolor.dynamiccolor.ColorSpec
+import com.materialkolor.rememberDynamicColorScheme
 
 @Composable
 actual fun ForumTheme(
@@ -21,14 +24,15 @@ actual fun ForumTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        else -> rememberDynamicColorScheme(
+            seedColor = Color.Red,
+            isDark = darkTheme,
+            specVersion = ColorSpec.SpecVersion.SPEC_2025
+        )
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = ForumTypography,
-        shapes = ForumShapes,
         content = content
     )
 }

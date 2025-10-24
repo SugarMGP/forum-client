@@ -51,7 +51,7 @@ private fun SharedTransitionScope.ImageThumbnail(
         targetValue = if (isPressed) 0.95f else 1f,
         animationSpec = tween(100)
     )
-    
+
     Box {
         AsyncImage(
             model = imageUrl,
@@ -402,7 +402,7 @@ fun SharedTransitionScope.PostListScreen(
 
     val listState = rememberLazyListState()
     var showTabs by remember { mutableStateOf(false) }
-    
+
     // Image gallery state
     var showImageGallery by remember { mutableStateOf(false) }
     var galleryImages by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -445,166 +445,166 @@ fun SharedTransitionScope.PostListScreen(
                     // 顶栏始终显示在最上方
                     TopAppBar(
                         title = { Text("精弘论坛") },
-                    actions = {
-                        IconButton(onClick = { viewModel.refresh() }) {
-                            Icon(AppIcons.Refresh, contentDescription = "刷新")
+                        actions = {
+                            IconButton(onClick = { viewModel.refresh() }) {
+                                Icon(AppIcons.Refresh, contentDescription = "刷新")
+                            }
+                            IconButton(onClick = { showTabs = !showTabs }) {
+                                Icon(AppIcons.FilterList, contentDescription = "筛选")
+                            }
                         }
-                        IconButton(onClick = { showTabs = !showTabs }) {
-                            Icon(AppIcons.FilterList, contentDescription = "筛选")
-                        }
-                    }
-                )
+                    )
 
-                // 分类和排序选项卡 - 只有点击按钮后才显示，添加淡入淡出动画
-                // 选项卡组件放在顶栏下方的单独区域
-                AnimatedVisibility(
-                    visible = showTabs,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { -20 }),
-                    exit = fadeOut() + slideOutVertically(targetOffsetY = { -20 })
-                ) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth()
+                    // 分类和排序选项卡 - 只有点击按钮后才显示，添加淡入淡出动画
+                    // 选项卡组件放在顶栏下方的单独区域
+                    AnimatedVisibility(
+                        visible = showTabs,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { -20 }),
+                        exit = fadeOut() + slideOutVertically(targetOffsetY = { -20 })
                     ) {
-                        Column {
-                            // 排序选项卡
-                            SecondaryScrollableTabRow(
-                                selectedTabIndex = if (sortType == SortType.HOT) 1 else 0,
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                indicator = {
-                                    TabRowDefaults.SecondaryIndicator(
-                                        Modifier.tabIndicatorOffset(if (sortType == SortType.HOT) 1 else 0)
-                                    )
-                                }
-                            ) {
-                                Tab(
-                                    selected = sortType == SortType.NEWEST,
-                                    onClick = {
-                                        viewModel.setSortType(SortType.NEWEST)
-                                    },
-                                    text = { Text("最新") }
-                                )
-                                Tab(
-                                    selected = sortType == SortType.HOT,
-                                    onClick = {
-                                        viewModel.setSortType(SortType.HOT)
-                                    },
-                                    text = { Text("最热") }
-                                )
-                            }
-
-                            // 分类选项卡
-                            SecondaryScrollableTabRow(
-                                selectedTabIndex = selectedCategoryIndex(
-                                    selectedCategory,
-                                    categories
-                                ),
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                indicator = {
-                                    TabRowDefaults.SecondaryIndicator(
-                                        Modifier.tabIndicatorOffset(
-                                            selectedCategoryIndex(
-                                                selectedCategory,
-                                                categories
-                                            )
-                                        ),
-                                    )
-                                }
-                            ) {
-                                // 全部 Tab
-                                Tab(
-                                    selected = selectedCategory == null,
-                                    onClick = {
-                                        viewModel.selectCategory(null)
-                                    },
-                                    text = { Text("全部") }
-                                )
-
-                                // 分类 Tab
-                                categories.forEach { category ->
+                        Surface(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column {
+                                // 排序选项卡
+                                SecondaryScrollableTabRow(
+                                    selectedTabIndex = if (sortType == SortType.HOT) 1 else 0,
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                    indicator = {
+                                        TabRowDefaults.SecondaryIndicator(
+                                            Modifier.tabIndicatorOffset(if (sortType == SortType.HOT) 1 else 0)
+                                        )
+                                    }
+                                ) {
                                     Tab(
-                                        selected = selectedCategory == category.value,
+                                        selected = sortType == SortType.NEWEST,
                                         onClick = {
-                                            viewModel.selectCategory(category.value)
+                                            viewModel.setSortType(SortType.NEWEST)
                                         },
-                                        text = { Text(category.displayName) },
+                                        text = { Text("最新") }
                                     )
+                                    Tab(
+                                        selected = sortType == SortType.HOT,
+                                        onClick = {
+                                            viewModel.setSortType(SortType.HOT)
+                                        },
+                                        text = { Text("最热") }
+                                    )
+                                }
+
+                                // 分类选项卡
+                                SecondaryScrollableTabRow(
+                                    selectedTabIndex = selectedCategoryIndex(
+                                        selectedCategory,
+                                        categories
+                                    ),
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                    indicator = {
+                                        TabRowDefaults.SecondaryIndicator(
+                                            Modifier.tabIndicatorOffset(
+                                                selectedCategoryIndex(
+                                                    selectedCategory,
+                                                    categories
+                                                )
+                                            ),
+                                        )
+                                    }
+                                ) {
+                                    // 全部 Tab
+                                    Tab(
+                                        selected = selectedCategory == null,
+                                        onClick = {
+                                            viewModel.selectCategory(null)
+                                        },
+                                        text = { Text("全部") }
+                                    )
+
+                                    // 分类 Tab
+                                    categories.forEach { category ->
+                                        Tab(
+                                            selected = selectedCategory == category.value,
+                                            onClick = {
+                                                viewModel.selectCategory(category.value)
+                                            },
+                                            text = { Text(category.displayName) },
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToCreatePost) {
-                Icon(AppIcons.Add, contentDescription = "发帖")
-            }
-        }
-    ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (posts.isEmpty() && !isLoading) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        AppIcons.Inbox,
-                        contentDescription = "空列表",
-                        modifier = Modifier.size(Dimensions.iconExtraLarge + Dimensions.spaceMedium),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-                    Text(
-                        text = "暂无帖子",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            },
+            floatingActionButton = {
+                FloatingActionButton(onClick = onNavigateToCreatePost) {
+                    Icon(AppIcons.Add, contentDescription = "发帖")
                 }
-            } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(Dimensions.spaceMedium),
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
-                ) {
-                    items(posts) {
-                        PostItem(
-                            post = it,
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            onClick = { onPostClick(it.id) },
-                            onUserClick = { userId -> onUserClick(userId) },
-                            onUpvoteClick = { it -> viewModel.upvotePost(it) },
-                            onImageClick = { images, index ->
-                                galleryImages = images
-                                galleryInitialIndex = index
-                                showImageGallery = true
-                            }
+            }
+        ) { paddingValues ->
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+                if (posts.isEmpty() && !isLoading) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            AppIcons.Inbox,
+                            contentDescription = "空列表",
+                            modifier = Modifier.size(Dimensions.iconExtraLarge + Dimensions.spaceMedium),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
+                        Text(
+                            text = "暂无帖子",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(Dimensions.spaceMedium),
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
+                    ) {
+                        items(posts) {
+                            PostItem(
+                                post = it,
+                                animatedVisibilityScope = animatedVisibilityScope,
+                                onClick = { onPostClick(it.id) },
+                                onUserClick = { userId -> onUserClick(userId) },
+                                onUpvoteClick = { it -> viewModel.upvotePost(it) },
+                                onImageClick = { images, index ->
+                                    galleryImages = images
+                                    galleryInitialIndex = index
+                                    showImageGallery = true
+                                }
+                            )
+                        }
 
-                    if (isLoading) {
-                        item {
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
+                        if (isLoading) {
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // 错误提示
-            errorMessage?.let { message ->
-                LaunchedEffect(message) {
-                    // 可以显示一个Snackbar或Toast
+                // 错误提示
+                errorMessage?.let { message ->
+                    LaunchedEffect(message) {
+                        // 可以显示一个Snackbar或Toast
+                    }
                 }
             }
-        }
         } // Close Scaffold content lambda
-        
+
         // Image gallery dialog with shared element transitions
         // Placed outside Scaffold to ensure proper z-index above top bar
         ImageGalleryDialog(
@@ -765,14 +765,14 @@ fun SharedTransitionScope.PostItem(
                     images = imageUrls,
                     animatedVisibilityScope = animatedVisibilityScope,
                     totalPictures = post.totalPictures,
-                    onClick = { clickedUrl -> 
+                    onClick = { clickedUrl ->
                         // Find index of clicked image and open gallery
                         val clickedIndex = imageUrls.indexOf(clickedUrl)
                         onImageClick(imageUrls, if (clickedIndex >= 0) clickedIndex else 0)
                     }
                 )
             }
-            
+
             // Display post tags if available
             if (post.topics.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(Dimensions.spaceSmall))

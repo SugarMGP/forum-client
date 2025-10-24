@@ -155,7 +155,7 @@ fun UserProfileScreen(
                 }
             }
         }
-        
+
         // Image gallery dialog - also used for avatar (single image)
         ImageGalleryDialog(
             visible = showImageGallery || showImageViewer,
@@ -221,7 +221,7 @@ fun UserPostsTab(
     ) {
         items(posts, key = { it.id }) { post ->
             PersonalPostCard(
-                post = post, 
+                post = post,
                 onClick = { onPostClick(post.id) },
                 onImageClick = { images, index -> onImageClick(images, index) }
             )
@@ -448,11 +448,12 @@ fun UserCommentsTab(
                 } else {
                     // Merge new comments with existing ones, filtering out duplicates
                     // Use combination of commentId and replyId for unique identification
-                    val existingKeys = comments.map { 
+                    val existingKeys = comments.map {
                         if (it.replyId != 0L) "reply_${it.replyId}" else "comment_${it.commentId}"
                     }.toSet()
                     val uniqueNewComments = commentList.list.filter { comment ->
-                        val key = if (comment.replyId != 0L) "reply_${comment.replyId}" else "comment_${comment.commentId}"
+                        val key =
+                            if (comment.replyId != 0L) "reply_${comment.replyId}" else "comment_${comment.commentId}"
                         key !in existingKeys
                     }
                     comments + uniqueNewComments
@@ -473,7 +474,7 @@ fun UserCommentsTab(
     ) {
         items(
             items = comments,
-            key = { comment -> 
+            key = { comment ->
                 // Create unique key combining commentId and replyId
                 // If replyId is non-zero, it's a reply, otherwise it's a comment
                 if (comment.replyId != 0L) {
