@@ -57,7 +57,10 @@ class PostListViewModel : ViewModel() {
                         if (reset) {
                             _posts.value = response.list
                         } else {
-                            _posts.value = _posts.value + response.list
+                            // Merge new posts with existing ones, filtering out duplicates
+                            val existingIds = _posts.value.map { it.id }.toSet()
+                            val uniqueNewPosts = response.list.filter { it.id !in existingIds }
+                            _posts.value = _posts.value + uniqueNewPosts
                         }
 
                         _totalPages.value = ((response.total + 19) / 20).toInt() // 计算总页数

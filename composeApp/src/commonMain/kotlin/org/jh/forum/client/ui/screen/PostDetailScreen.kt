@@ -27,8 +27,10 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jh.forum.client.data.model.GetPostInfoResponse
 import org.jh.forum.client.data.model.PostCategory
+import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.component.CommentEditor
 import org.jh.forum.client.ui.component.CommentItem
+import org.jh.forum.client.ui.component.ImageViewerDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.CommentViewModel
@@ -47,6 +49,8 @@ fun PostDetailScreen(
     var post by remember { mutableStateOf<GetPostInfoResponse?>(null) }
     val errorMessage by viewModel.errorMessage.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showImageViewer by remember { mutableStateOf(false) }
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
     val comments by commentViewModel.comments.collectAsState()
     val isCommentLoading by commentViewModel.isLoading.collectAsState()
@@ -54,6 +58,10 @@ fun PostDetailScreen(
     val commentError by commentViewModel.errorMessage.collectAsState()
 
     val listState = rememberLazyListState()
+    
+    // Get current user ID to check if they're the post author
+    val authViewModel = AppModule.authViewModel
+    val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
 
     LaunchedEffect(postId) {
         viewModel.getPost(postId) { result ->
@@ -78,12 +86,13 @@ fun PostDetailScreen(
             // 减少频繁触发：只在值发生变化时继续
             .distinctUntilChanged()
             .collect { (lastVisible, totalCount, visibleSize) ->
+                // Safety checks to prevent crashes
                 if (!commentHasMore || isCommentLoading) return@collect
-                if (totalCount <= 0) return@collect
-
-                // 当最后可见项索引接近总项数（比如还剩 3 个 item）时触发加载
+                if (totalCount <= 0 || lastVisible < 0) return@collect
+                
+                // Only trigger load if we're not already at the end and have more items to load
                 val threshold = 3
-                if (lastVisible >= totalCount - 1 - threshold) {
+                if (lastVisible >= totalCount - 1 - threshold && lastVisible < totalCount) {
                     // 调用加载下一页（你的 viewModel 应该负责分页状态）
                     commentViewModel.loadComments(postId)
                 }
@@ -145,6 +154,10 @@ fun PostDetailScreen(
                                 onUserClick(userId)
                             }
                         },
+                        onImageClick = { imageUrl ->
+                            selectedImageUrl = imageUrl
+                            showImageViewer = true
+                        },
                         modifier = Modifier.fillMaxWidth()
                     )
                 } ?: run {
@@ -193,11 +206,14 @@ fun PostDetailScreen(
 
             // 正式渲染每条评论
             if (comments.isNotEmpty()) {
-                items(comments) { comment ->
+                items(
+                    items = comments,
+                    key = { comment -> comment.commentId }
+                ) { comment ->
                     CommentItem(
                         comment = comment,
                         onUpvote = { commentViewModel.upvoteComment(comment.commentId) },
-                        onPin = if (true) {
+                        onPin = if (currentUserId != null && currentUserId == post?.publisherInfo?.id) {
                             { commentViewModel.pinComment(comment.commentId) }
                         } else null,
                         onDelete = if (comment.isAuthor) {
@@ -205,6 +221,10 @@ fun PostDetailScreen(
                         } else null,
                         onUserProfileClick = { userId ->
                             onUserClick(userId)
+                        },
+                        onImageClick = { imageUrl ->
+                            selectedImageUrl = imageUrl
+                            showImageViewer = true
                         },
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -337,16 +357,32 @@ fun PostDetailScreen(
                         }
                     }
                 } else {
-                    // 悬浮按钮状态
+                    // 悬浮按钮状态 - Enhanced design
                     FloatingActionButton(
                         onClick = { showCommentDialog = true },
-                        elevation = FloatingActionButtonDefaults.elevation(6.dp),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        elevation = FloatingActionButtonDefaults.elevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 8.dp,
+                            hoveredElevation = 8.dp
+                        ),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Icon(
-                            imageVector = AppIcons.Comment,
-                            contentDescription = "发表评论"
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = AppIcons.Comment,
+                                contentDescription = "发表评论"
+                            )
+                            Text(
+                                text = "评论",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
                     }
                 }
             }
@@ -399,6 +435,16 @@ fun PostDetailScreen(
                 }
             )
         }
+        
+        // Image viewer dialog
+        ImageViewerDialog(
+            visible = showImageViewer,
+            imageUrl = selectedImageUrl,
+            onDismiss = {
+                showImageViewer = false
+                selectedImageUrl = null
+            }
+        )
     }
 }
 
@@ -409,6 +455,7 @@ fun PostContent(
     onUpvote: () -> Unit,
     onShare: () -> Unit,
     onUserProfileClick: () -> Unit,
+    onImageClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showShareMessage by remember { mutableStateOf(false) }
@@ -453,7 +500,7 @@ fun PostContent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .weight(1f)
+                        .weight(1f, fill = false)
                         .clickable {
                             onUserProfileClick()
                         }
@@ -468,7 +515,9 @@ fun PostContent(
                         contentScale = ContentScale.Crop
                     )
                     Spacer(modifier = Modifier.width(Dimensions.spaceMedium))
-                    Column {
+                    Column(
+                        modifier = Modifier.weight(1f, fill = false)
+                    ) {
                         Text(
                             text = post.publisherInfo.nickname ?: "未知用户",
                             style = MaterialTheme.typography.titleSmall,
@@ -541,58 +590,47 @@ fun PostContent(
                     ImageGrid(
                         images = post.pictures.map { it.url },
                         totalPictures = post.pictures.size,
-                        onClick = { /* 可以添加点击放大功能 */ }
+                        onClick = { imageUrl -> 
+                            onImageClick(imageUrl)
+                        }
                     )
                 }
 
                 // 话题标签
-                AnimatedVisibility(
-                    visible = post.topics.isNotEmpty(),
-                    enter = fadeIn() + expandHorizontally(),
-                    exit = fadeOut() + shrinkHorizontally()
-                ) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        tonalElevation = Dimensions.elevationSmall,
-                        shape = MaterialTheme.shapes.small,
-                        modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
+                if (post.topics.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
-                            contentPadding = PaddingValues(
-                                horizontal = Dimensions.spaceMedium,
-                                vertical = Dimensions.spaceSmall
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            items(post.topics) { tag ->
-                                FilterChip(
-                                    selected = false,
-                                    onClick = { },
-                                    label = {
-                                        Text(
-                                            tag,
-                                            style = MaterialTheme.typography.labelMedium
-                                        )
-                                    },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        post.topics.forEach { tag ->
+                            AssistChip(
+                                onClick = { },
+                                label = {
+                                    Text(
+                                        text = "#$tag",
+                                        style = MaterialTheme.typography.labelMedium
                                     )
-                                )
-                            }
+                                },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                border = null,
+                                modifier = Modifier.height(28.dp)
+                            )
                         }
                     }
+                    Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                 }
             }
 
-            // 帖子统计信息已移至用户信息区域右侧，此处移除重复显示
+            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
-            // 底部操作按钮
+            // 底部操作按钮 - Compact design
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = Dimensions.spaceMedium, horizontal = Dimensions.spaceSmall)
+                modifier = Modifier.fillMaxWidth().padding(vertical = Dimensions.spaceMedium, horizontal = Dimensions.spaceSmall)
             ) {
                 // 点赞按钮
                 FilledTonalButton(
@@ -600,8 +638,7 @@ fun PostContent(
                         isLikeAnimating = true
                         onUpvote()
                     },
-                    modifier = Modifier
-                        .height(Dimensions.buttonHeightSmall),
+                    modifier = Modifier.height(Dimensions.buttonHeightSmall),
                     shape = MaterialTheme.shapes.small,
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = if (post.isLiked) {
@@ -642,8 +679,7 @@ fun PostContent(
                         showShareMessage = true
                         onShare()
                     },
-                    modifier = Modifier
-                        .height(Dimensions.buttonHeightSmall),
+                    modifier = Modifier.height(Dimensions.buttonHeightSmall),
                     shape = MaterialTheme.shapes.small,
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,

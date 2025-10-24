@@ -1,5 +1,6 @@
 package org.jh.forum.client.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,9 +16,12 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.GetPersonalPostListElement
 import org.jh.forum.client.data.repository.ForumRepository
+import org.jh.forum.client.ui.component.ImageGalleryDialog
+import org.jh.forum.client.ui.component.ImageViewerDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
+import org.jh.forum.client.util.TimeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +41,11 @@ fun UserProfileScreen(
         )
     }
     var isLoading by remember { mutableStateOf(true) }
+    var showImageViewer by remember { mutableStateOf(false) }
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+    var showImageGallery by remember { mutableStateOf(false) }
+    var galleryImages by remember { mutableStateOf<List<String>>(emptyList()) }
+    var galleryInitialIndex by remember { mutableStateOf(0) }
 
     // Load user profile
     LaunchedEffect(userId) {
@@ -95,6 +104,10 @@ fun UserProfileScreen(
                 // User Info Card at top
                 UserInfoCard(
                     userProfile = userProfile,
+                    onAvatarClick = { avatarUrl ->
+                        selectedImageUrl = avatarUrl
+                        showImageViewer = true
+                    },
                     modifier = Modifier.padding(Dimensions.spaceMedium)
                 )
 
@@ -123,7 +136,12 @@ fun UserProfileScreen(
                     0 -> UserPostsTab(
                         userId = userId,
                         repository = repository,
-                        onPostClick = onPostClick
+                        onPostClick = onPostClick,
+                        onImageClick = { images, index ->
+                            galleryImages = images
+                            galleryInitialIndex = index
+                            showImageGallery = true
+                        }
                     )
 
                     1 -> {
@@ -137,6 +155,28 @@ fun UserProfileScreen(
                 }
             }
         }
+        
+        // Image gallery dialog
+        ImageGalleryDialog(
+            visible = showImageGallery,
+            images = galleryImages,
+            initialIndex = galleryInitialIndex,
+            onDismiss = {
+                showImageGallery = false
+                galleryImages = emptyList()
+                galleryInitialIndex = 0
+            }
+        )
+        
+        // Image viewer dialog (kept for compatibility)
+        ImageViewerDialog(
+            visible = showImageViewer,
+            imageUrl = selectedImageUrl,
+            onDismiss = {
+                showImageViewer = false
+                selectedImageUrl = null
+            }
+        )
     }
 }
 
@@ -144,7 +184,8 @@ fun UserProfileScreen(
 fun UserPostsTab(
     userId: Long,
     repository: ForumRepository,
-    onPostClick: (Long) -> Unit
+    onPostClick: (Long) -> Unit,
+    onImageClick: (List<String>, Int) -> Unit = { _, _ -> }
 ) {
     var posts by remember { mutableStateOf<List<GetPersonalPostListElement>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -163,7 +204,10 @@ fun UserPostsTab(
                 posts = if (currentPage == 1) {
                     postList.list
                 } else {
-                    posts + postList.list
+                    // Merge new posts with existing ones, filtering out duplicates
+                    val existingIds = posts.map { it.id }.toSet()
+                    val uniqueNewPosts = postList.list.filter { it.id !in existingIds }
+                    posts + uniqueNewPosts
                 }
                 hasMore = postList.page * postList.pageSize < postList.total
             }
@@ -180,7 +224,11 @@ fun UserPostsTab(
         verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
     ) {
         items(posts, key = { it.id }) { post ->
-            PersonalPostCard(post = post, onClick = { onPostClick(post.id) })
+            PersonalPostCard(
+                post = post, 
+                onClick = { onPostClick(post.id) },
+                onImageClick = { images, index -> onImageClick(images, index) }
+            )
         }
 
         if (isLoading && posts.isNotEmpty()) {
@@ -232,7 +280,8 @@ fun UserPostsTab(
 @Composable
 fun PersonalPostCard(
     post: GetPersonalPostListElement,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onImageClick: (List<String>, Int) -> Unit = { _, _ -> }
 ) {
     Card(
         modifier = Modifier
@@ -290,11 +339,17 @@ fun PersonalPostCard(
             // Images
             if (post.pictures.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-                ImageGrid(
-                    images = post.pictures.map { it.url },
-                    totalPictures = post.totalPictures,
-                    onClick = { }
-                )
+                val imageUrls = post.pictures.mapNotNull { it.url }
+                if (imageUrls.isNotEmpty()) {
+                    ImageGrid(
+                        images = imageUrls,
+                        totalPictures = post.totalPictures,
+                        onClick = { clickedUrl ->
+                            val clickedIndex = imageUrls.indexOf(clickedUrl)
+                            onImageClick(imageUrls, if (clickedIndex >= 0) clickedIndex else 0)
+                        }
+                    )
+                }
             }
 
             // Topic tags (below content)
@@ -336,7 +391,7 @@ fun PersonalPostCard(
                 }
 
                 Text(
-                    text = post.createdAt,
+                    text = TimeUtils.formatTime(post.createdAt),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -395,7 +450,16 @@ fun UserCommentsTab(
                 comments = if (currentPage == 1) {
                     commentList.list
                 } else {
-                    comments + commentList.list
+                    // Merge new comments with existing ones, filtering out duplicates
+                    // Use combination of commentId and replyId for unique identification
+                    val existingKeys = comments.map { 
+                        if (it.replyId != 0L) "reply_${it.replyId}" else "comment_${it.commentId}"
+                    }.toSet()
+                    val uniqueNewComments = commentList.list.filter { comment ->
+                        val key = if (comment.replyId != 0L) "reply_${comment.replyId}" else "comment_${comment.commentId}"
+                        key !in existingKeys
+                    }
+                    comments + uniqueNewComments
                 }
                 hasMore = commentList.page * commentList.pageSize < commentList.total
             }
@@ -411,7 +475,18 @@ fun UserCommentsTab(
         contentPadding = PaddingValues(Dimensions.spaceMedium),
         verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
     ) {
-        items(comments, key = { it.commentId }) { comment ->
+        items(
+            items = comments,
+            key = { comment -> 
+                // Create unique key combining commentId and replyId
+                // If replyId is non-zero, it's a reply, otherwise it's a comment
+                if (comment.replyId != 0L) {
+                    "reply_${comment.replyId}"
+                } else {
+                    "comment_${comment.commentId}"
+                }
+            }
+        ) { comment ->
             PersonalCommentCard(comment = comment)
         }
 
@@ -532,7 +607,7 @@ fun PersonalCommentCard(
                 }
 
                 Text(
-                    text = comment.createdAt,
+                    text = TimeUtils.formatTime(comment.createdAt),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -544,6 +619,7 @@ fun PersonalCommentCard(
 @Composable
 fun UserInfoCard(
     userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?,
+    onAvatarClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -560,11 +636,14 @@ fun UserInfoCard(
                 .padding(Dimensions.spaceMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar on the left
+            // Avatar on the left - clickable
             Surface(
                 shape = CircleShape,
                 shadowElevation = Dimensions.elevationSmall,
-                color = MaterialTheme.colorScheme.surface
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.clickable {
+                    userProfile?.avatar?.let { onAvatarClick(it) }
+                }
             ) {
                 AsyncImage(
                     model = userProfile?.avatar,

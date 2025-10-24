@@ -47,4 +47,6 @@ object AppIcons {
     val ExpandLess: ImageVector = Icons.Default.ExpandLess
     val ExpandMore: ImageVector = Icons.Default.ExpandMore
     val Image: ImageVector = Icons.Default.Image
+    val Send: ImageVector = Icons.AutoMirrored.Filled.Send
+    val PushPin: ImageVector = Icons.Default.PushPin
 }

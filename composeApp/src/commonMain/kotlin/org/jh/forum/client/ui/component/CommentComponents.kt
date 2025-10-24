@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.CommentElement
+import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
 
@@ -28,6 +29,7 @@ fun CommentItem(
     onPin: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
     onUserProfileClick: (Long) -> Unit = {},
+    onImageClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -46,11 +48,13 @@ fun CommentItem(
             // 头像和用户昵称
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable {
-                    comment.publisherInfo.id?.let {
-                        onUserProfileClick(it)
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable {
+                        comment.publisherInfo.id?.let {
+                            onUserProfileClick(it)
+                        }
                     }
-                }
             ) {
                 // 用户头像
                 AsyncImage(
@@ -75,13 +79,14 @@ fun CommentItem(
                     }
                     Text(
                         text = comment.publisherInfo.nickname ?: "未知用户",
-                        style = MaterialTheme.typography.titleSmall
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
                     )
                     if (comment.isAuthor) {
                         Spacer(Modifier.width(Dimensions.spaceExtraSmall))
                         Surface(
                             color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = MaterialTheme.shapes.extraSmall
+                            shape = MaterialTheme.shapes.small
                         ) {
                             Text(
                                 text = "楼主",
@@ -152,13 +157,16 @@ fun CommentItem(
                 horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                 contentPadding = PaddingValues(vertical = Dimensions.spaceExtraSmall)
             ) {
-                items(comment.pictures) {
+                items(comment.pictures) { picture ->
                     AsyncImage(
-                        model = it.url,
+                        model = picture.url,
                         contentDescription = "评论图片",
                         modifier = Modifier
                             .size(Dimensions.imagePreviewMedium)
-                            .clip(MaterialTheme.shapes.medium),
+                            .clip(MaterialTheme.shapes.medium)
+                            .clickable {
+                                picture.url?.let { onImageClick(it) }
+                            },
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -248,8 +256,8 @@ fun CommentEditor(
         // 缩小间距
         Spacer(Modifier.height(Dimensions.spaceSmall))
 
-        // 更紧凑的发布按钮
-        Button(
+        // 更紧凑的发布按钮 - Enhanced design
+        FilledTonalButton(
             onClick = {
                 if (text.isNotBlank()) {
                     onSubmit(text)
@@ -258,9 +266,23 @@ fun CommentEditor(
             },
             enabled = text.isNotBlank(),
             modifier = Modifier.align(Alignment.End),
-            shape = MaterialTheme.shapes.small
+            shape = MaterialTheme.shapes.medium,
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         ) {
-            Text("发布", style = MaterialTheme.typography.labelLarge)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
+            ) {
+                Icon(
+                    AppIcons.Send,
+                    contentDescription = "发布",
+                    modifier = Modifier.size(Dimensions.iconSmall)
+                )
+                Text("发布", style = MaterialTheme.typography.labelLarge)
+            }
         }
     }
 }

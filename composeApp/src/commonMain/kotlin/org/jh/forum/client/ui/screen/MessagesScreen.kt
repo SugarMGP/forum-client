@@ -1,10 +1,14 @@
 package org.jh.forum.client.ui.screen
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,6 +19,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.launch
 import org.jh.forum.client.data.model.GetAnnouncementListElement
 import org.jh.forum.client.data.model.GetNoticeListElement
 import org.jh.forum.client.data.repository.ForumRepository
@@ -29,6 +34,8 @@ fun MessagesScreen(
     repository: ForumRepository,
     onUserClick: (Long) -> Unit = {}
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    
     // 消息相关状态
     var messages by remember { mutableStateOf<List<GetNoticeListElement>>(emptyList()) }
     var announcements by remember { mutableStateOf<List<GetAnnouncementListElement>>(emptyList()) }
@@ -37,6 +44,12 @@ fun MessagesScreen(
     var unreadNoticeCount by remember { mutableStateOf(0) }
     var unreadAnnouncementCount by remember { mutableStateOf(0) }
     var retryTrigger by remember { mutableStateOf(0) }
+    
+    // Pagination state
+    var noticeCurrentPage by remember { mutableStateOf(1) }
+    var noticeHasMore by remember { mutableStateOf(true) }
+    var announcementCurrentPage by remember { mutableStateOf(1) }
+    var announcementHasMore by remember { mutableStateOf(true) }
 
     // UI状态
     var selectedNoticeType by remember { mutableStateOf(0) } // 0:全部, 1:点赞, 2:收藏, 3:评论和@
@@ -44,15 +57,34 @@ fun MessagesScreen(
     var selectedAnnouncementType by remember { mutableStateOf(0) } // 0:全部, 1:学校公告, 2:系统公告
 
     // 加载互动消息
-    suspend fun loadNoticesOnce() {
+    suspend fun loadNotices(reset: Boolean = false) {
+        if (!reset && !noticeHasMore) return // Don't load if no more data
+        
         isLoading = true
         errorMessage = null
         try {
+            val page = if (reset) 1 else noticeCurrentPage
             // 请求通知列表
             val noticeResponse =
-                repository.getNoticeList(page = 1, pageSize = 20, type = selectedNoticeType)
+                repository.getNoticeList(page = page, pageSize = 20, type = selectedNoticeType)
             if (noticeResponse.code == 200 && noticeResponse.data != null) {
-                messages = noticeResponse.data.list
+                val response = noticeResponse.data
+                val newNotices = response.list
+                
+                messages = if (reset) {
+                    // Reset: replace with new data
+                    noticeCurrentPage = 1
+                    newNotices
+                } else {
+                    // Append: merge with deduplication across pages
+                    val existingIds = messages.map { it.id }.toSet()
+                    val uniqueNewNotices = newNotices.filter { it.id !in existingIds }
+                    messages + uniqueNewNotices
+                }
+                
+                // Update pagination state
+                noticeHasMore = response.page * response.pageSize < response.total
+                if (noticeHasMore) noticeCurrentPage++
             } else {
                 errorMessage = "加载通知失败"
             }
@@ -65,10 +97,13 @@ fun MessagesScreen(
     }
 
     // 加载公告列表
-    suspend fun loadAnnouncementsOnce() {
+    suspend fun loadAnnouncements(reset: Boolean = false) {
+        if (!reset && !announcementHasMore) return // Don't load if no more data
+        
         isLoading = true
         errorMessage = null
         try {
+            val page = if (reset) 1 else announcementCurrentPage
             // 请求公告列表，根据选择的类型传递参数
             val type = when (selectedAnnouncementType) {
                 1 -> "scholastic"
@@ -76,9 +111,25 @@ fun MessagesScreen(
                 else -> ""
             }
             val announcementResponse =
-                repository.getAnnouncementList(page = 1, pageSize = 20, type = type)
+                repository.getAnnouncementList(page = page, pageSize = 20, type = type)
             if (announcementResponse.code == 200 && announcementResponse.data != null) {
-                announcements = announcementResponse.data.list
+                val response = announcementResponse.data
+                val newAnnouncements = response.list
+                
+                announcements = if (reset) {
+                    // Reset: replace with new data
+                    announcementCurrentPage = 1
+                    newAnnouncements
+                } else {
+                    // Append: merge with deduplication across pages
+                    val existingIds = announcements.map { it.id }.toSet()
+                    val uniqueNewAnnouncements = newAnnouncements.filter { it.id !in existingIds }
+                    announcements + uniqueNewAnnouncements
+                }
+                
+                // Update pagination state
+                announcementHasMore = response.page * response.pageSize < response.total
+                if (announcementHasMore) announcementCurrentPage++
             } else {
                 errorMessage = "加载公告失败"
             }
@@ -106,10 +157,16 @@ fun MessagesScreen(
     // 初始加载和重试加载（在 LaunchedEffect 中启动 suspend 加载）
     LaunchedEffect(Unit, retryTrigger, selectedNoticeType, selectedType, selectedAnnouncementType) {
         checkUnreadMessages()
+        // Reset pagination state when filters change
+        noticeCurrentPage = 1
+        noticeHasMore = true
+        announcementCurrentPage = 1
+        announcementHasMore = true
+        
         if (selectedType == 0) {
-            loadNoticesOnce()
+            loadNotices(reset = true)
         } else {
-            loadAnnouncementsOnce()
+            loadAnnouncements(reset = true)
         }
     }
 
@@ -345,7 +402,25 @@ fun MessagesScreen(
 
                 // 显示互动消息
                 selectedType == 0 -> {
+                    val noticeListState = rememberLazyListState()
+                    
+                    // Monitor scroll position for pagination
+                    LaunchedEffect(noticeListState) {
+                        snapshotFlow { noticeListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                            .collect { lastVisibleIndex ->
+                                if (lastVisibleIndex != null && 
+                                    lastVisibleIndex >= messages.size - 3 && 
+                                    noticeHasMore && 
+                                    !isLoading) {
+                                    coroutineScope.launch {
+                                        loadNotices(reset = false)
+                                    }
+                                }
+                            }
+                    }
+                    
                     LazyColumn(
+                        state = noticeListState,
                         modifier = Modifier
                             .fillMaxSize(),
                         contentPadding = PaddingValues(Dimensions.spaceMedium),
@@ -357,12 +432,42 @@ fun MessagesScreen(
                                 onUserClick = onUserClick
                             )
                         }
+                        
+                        // Loading indicator
+                        if (isLoading && messages.isNotEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+                        }
                     }
                 }
 
                 // 显示公告
                 else -> {
+                    val announcementListState = rememberLazyListState()
+                    
+                    // Monitor scroll position for pagination
+                    LaunchedEffect(announcementListState) {
+                        snapshotFlow { announcementListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                            .collect { lastVisibleIndex ->
+                                if (lastVisibleIndex != null && 
+                                    lastVisibleIndex >= announcements.size - 3 && 
+                                    announcementHasMore && 
+                                    !isLoading) {
+                                    coroutineScope.launch {
+                                        loadAnnouncements(reset = false)
+                                    }
+                                }
+                            }
+                    }
+                    
                     LazyColumn(
+                        state = announcementListState,
                         modifier = Modifier
                             .fillMaxSize(),
                         contentPadding = PaddingValues(Dimensions.spaceMedium),
@@ -370,6 +475,18 @@ fun MessagesScreen(
                     ) {
                         items(announcements) {
                             AnnouncementItem(announcement = it)
+                        }
+                        
+                        // Loading indicator
+                        if (isLoading && announcements.isNotEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
                         }
                     }
                 }
@@ -386,11 +503,14 @@ fun MessageItem(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = Dimensions.elevationSmall,
+            pressedElevation = Dimensions.elevationMedium
+        ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.large
     ) {
         Column(
             modifier = Modifier
@@ -407,7 +527,7 @@ fun MessageItem(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .weight(1f)
+                        .weight(1f, fill = false)
                         .clickable {
                             message.senderInfo.id?.let { onUserClick(it) }
                         }
@@ -423,7 +543,9 @@ fun MessageItem(
 
                     Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
 
-                    Column {
+                    Column(
+                        modifier = Modifier.weight(1f, fill = false)
+                    ) {
                         Text(
                             text = message.senderInfo.nickname ?: "用户",
                             style = MaterialTheme.typography.titleSmall,
@@ -520,11 +642,14 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = Dimensions.elevationSmall,
+            pressedElevation = Dimensions.elevationMedium
+        ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        shape = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.large,
         onClick = { isExpanded = !isExpanded }
     ) {
         Row(
@@ -560,6 +685,8 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                         modifier = Modifier.weight(1f)
                     )
 
+                    Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                    
                     // Time and unread indicator
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -582,25 +709,45 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
 
                 Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
 
-                // Show full content when expanded, otherwise show truncated with ellipsis
+                // Content with animated height transition
                 Text(
                     text = announcement.content,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = if (isExpanded) Int.MAX_VALUE else 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .animateContentSize(
+                            animationSpec = tween(
+                                durationMillis = 300,
+                                easing = FastOutSlowInEasing
+                            )
+                        )
                 )
-
-                // Show expand/collapse indicator when content is long
-                if (announcement.content.length > 50) {
-                    Spacer(modifier = Modifier.height(Dimensions.spaceExtraSmall))
-                    Text(
-                        text = if (isExpanded) "收起" else "展开",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = Dimensions.spaceExtraSmall)
-                    )
-                }
+            }
+            
+            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+            
+            // Signatory on the right side (always visible if present)
+            if (!announcement.signatory.isNullOrBlank()) {
+                Text(
+                    text = "—— ${announcement.signatory}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+            
+            // Expand/collapse icon indicator on the right side
+            if (announcement.content.length > 50) {
+                Icon(
+                    imageVector = if (isExpanded) AppIcons.ExpandLess else AppIcons.ExpandMore,
+                    contentDescription = if (isExpanded) "收起" else "展开",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }

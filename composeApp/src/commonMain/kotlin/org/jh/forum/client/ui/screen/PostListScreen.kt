@@ -21,6 +21,7 @@ import org.jh.forum.client.data.model.GetPostListElement
 import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.data.model.SortType
 import org.jh.forum.client.di.AppModule
+import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
@@ -30,7 +31,7 @@ import kotlin.enums.EnumEntries
 fun ImageGrid(
     images: List<String?>,
     totalPictures: Int = images.size,
-    onClick: () -> Unit
+    onClick: (String) -> Unit
 ) {
     // 最多显示9张图片
     val displayImages = images.take(9)
@@ -45,7 +46,7 @@ fun ImageGrid(
                     .sizeIn(maxWidth = 200.dp)
                     .aspectRatio(1f)
                     .clip(MaterialTheme.shapes.medium)
-                    .clickable(onClick = onClick)
+                    .clickable { displayImages[0]?.let { onClick(it) } }
             ) {
                 AsyncImage(
                     model = displayImages[0],
@@ -87,7 +88,7 @@ fun ImageGrid(
                             .sizeIn(maxWidth = 200.dp)
                             .aspectRatio(1f)
                             .clip(MaterialTheme.shapes.medium)
-                            .clickable(onClick = onClick)
+                            .clickable { imageUrl?.let { onClick(it) } }
                     ) {
                         AsyncImage(
                             model = imageUrl,
@@ -140,7 +141,7 @@ fun ImageGrid(
                                         .sizeIn(maxWidth = 200.dp)
                                         .aspectRatio(1f)
                                         .clip(MaterialTheme.shapes.medium)
-                                        .clickable(onClick = onClick)
+                                        .clickable { displayImages[index]?.let { onClick(it) } }
                                 ) {
                                     AsyncImage(
                                         model = displayImages[index],
@@ -199,6 +200,11 @@ fun PostListScreen(
 
     val listState = rememberLazyListState()
     var showTabs by remember { mutableStateOf(false) }
+    
+    // Image gallery state
+    var showImageGallery by remember { mutableStateOf(false) }
+    var galleryImages by remember { mutableStateOf<List<String>>(emptyList()) }
+    var galleryInitialIndex by remember { mutableStateOf(0) }
 
 
     val categories = PostCategory.entries
@@ -364,7 +370,12 @@ fun PostListScreen(
                             post = it,
                             onClick = { onPostClick(it.id) },
                             onUserClick = { userId -> onUserClick(userId) },
-                            onUpvoteClick = { it -> viewModel.upvotePost(it) }
+                            onUpvoteClick = { it -> viewModel.upvotePost(it) },
+                            onImageClick = { images, index ->
+                                galleryImages = images
+                                galleryInitialIndex = index
+                                showImageGallery = true
+                            }
                         )
                     }
 
@@ -388,6 +399,18 @@ fun PostListScreen(
                 }
             }
         }
+        
+        // Image gallery dialog
+        ImageGalleryDialog(
+            visible = showImageGallery,
+            images = galleryImages,
+            initialIndex = galleryInitialIndex,
+            onDismiss = {
+                showImageGallery = false
+                galleryImages = emptyList()
+                galleryInitialIndex = 0
+            }
+        )
     }
 
 
@@ -398,19 +421,23 @@ fun PostItem(
     post: GetPostListElement,
     onClick: () -> Unit,
     onUpvoteClick: (Long) -> Unit,
-    onUserClick: (Long) -> Unit = {}, // New parameter
+    onUserClick: (Long) -> Unit = {},
+    onImageClick: (List<String>, Int) -> Unit = { _, _ -> }, // New parameter for image gallery
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth(),
         onClick = onClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = Dimensions.elevationSmall,
+            pressedElevation = Dimensions.elevationMedium
+        ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.large
     ) {
         Column(
             modifier = Modifier.padding(Dimensions.spaceMedium)
@@ -420,11 +447,11 @@ fun PostItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 用户头像和名称 - 改为可点击
+                // 用户头像和名称 - 改为可点击，但不占满整行
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .weight(1f)
+                        .weight(1f, fill = false)
                         .clickable {
                             post.publisherInfo.id?.let { onUserClick(it) }
                         }
@@ -438,7 +465,9 @@ fun PostItem(
                         contentScale = ContentScale.Crop
                     )
                     Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-                    Column {
+                    Column(
+                        modifier = Modifier.weight(1f, fill = false)
+                    ) {
                         Text(
                             text = post.publisherInfo.nickname ?: "",
                             style = MaterialTheme.typography.titleSmall,
@@ -486,14 +515,28 @@ fun PostItem(
 
             Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
-            // 标题
-            Text(
-                text = post.title ?: "",
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.animateContentSize()
-            )
+            // 标题（带置顶标识）
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
+            ) {
+                // Show pin indicator for pinned posts before title
+                if (post.isPinned) {
+                    Icon(
+                        imageVector = AppIcons.PushPin,
+                        contentDescription = "置顶",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(Dimensions.iconSmall)
+                    )
+                }
+                Text(
+                    text = post.title ?: "",
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.animateContentSize()
+                )
+            }
 
             Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
 
@@ -510,11 +553,60 @@ fun PostItem(
             // 图片预览（如果有）
             if (post.pictures.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                val imageUrls = post.pictures.mapNotNull { it.url }
                 ImageGrid(
-                    images = post.pictures.map { it.url },
+                    images = imageUrls,
                     totalPictures = post.totalPictures,
-                    onClick = onClick
+                    onClick = { clickedUrl -> 
+                        // Find index of clicked image and open gallery
+                        val clickedIndex = imageUrls.indexOf(clickedUrl)
+                        onImageClick(imageUrls, if (clickedIndex >= 0) clickedIndex else 0)
+                    }
                 )
+            }
+            
+            // Display post tags if available
+            if (post.topics.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    post.topics.take(3).forEach { topicName ->
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = "#$topicName",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            ),
+                            border = null,
+                            modifier = Modifier.height(24.dp)
+                        )
+                    }
+                    if (post.topics.size > 3) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = "+${post.topics.size - 3}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            border = null,
+                            modifier = Modifier.height(24.dp)
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
