@@ -123,18 +123,15 @@ fun ImageViewerDialog(
     imageUrl: String?,
     onDismiss: () -> Unit
 ) {
-    AnimatedVisibility(
-        visible = visible && imageUrl != null,
-        enter = fadeIn(animationSpec = tween(300)) + scaleIn(
-            initialScale = 0.8f,
-            animationSpec = tween(300)
-        ),
-        exit = fadeOut(animationSpec = tween(300)) + scaleOut(
-            targetScale = 0.8f,
-            animationSpec = tween(300)
-        )
-    ) {
-        if (imageUrl != null) {
+    if (visible && imageUrl != null) {
+        Dialog(
+            onDismissRequest = onDismiss,
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                dismissOnBackPress = true,
+                dismissOnClickOutside = false
+            )
+        ) {
             ImageViewer(
                 imageUrl = imageUrl,
                 onDismiss = onDismiss

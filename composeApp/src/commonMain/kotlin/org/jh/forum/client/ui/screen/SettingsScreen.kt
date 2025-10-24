@@ -22,7 +22,8 @@ fun SettingsScreen(
     authViewModel: AuthViewModel,
     onNavigateBack: () -> Unit = {},
     onNavigateToThemeSettings: () -> Unit = {},
-    onNavigateToNotificationSettings: () -> Unit = {}
+    onNavigateToNotificationSettings: () -> Unit = {},
+    onNavigateToEditProfile: () -> Unit = {}
 ) {
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
 
@@ -64,7 +65,7 @@ fun SettingsScreen(
                             SettingsMenuItem(
                                 icon = AppIcons.Edit,
                                 title = "编辑资料",
-                                onClick = { /* Navigate to edit profile */ }
+                                onClick = onNavigateToEditProfile
                             )
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = Dimensions.spaceMedium),

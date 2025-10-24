@@ -17,7 +17,6 @@ import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.GetPersonalPostListElement
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.ui.component.ImageGalleryDialog
-import org.jh.forum.client.ui.component.ImageViewerDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
@@ -156,24 +155,20 @@ fun UserProfileScreen(
             }
         }
         
-        // Image gallery dialog
+        // Image gallery dialog - also used for avatar (single image)
         ImageGalleryDialog(
-            visible = showImageGallery,
-            images = galleryImages,
-            initialIndex = galleryInitialIndex,
+            visible = showImageGallery || showImageViewer,
+            images = if (showImageViewer && selectedImageUrl != null) {
+                listOf(selectedImageUrl).filterNotNull()
+            } else {
+                galleryImages
+            },
+            initialIndex = if (showImageViewer) 0 else galleryInitialIndex,
             onDismiss = {
                 showImageGallery = false
+                showImageViewer = false
                 galleryImages = emptyList()
                 galleryInitialIndex = 0
-            }
-        )
-        
-        // Image viewer dialog (kept for compatibility)
-        ImageViewerDialog(
-            visible = showImageViewer,
-            imageUrl = selectedImageUrl,
-            onDismiss = {
-                showImageViewer = false
                 selectedImageUrl = null
             }
         )

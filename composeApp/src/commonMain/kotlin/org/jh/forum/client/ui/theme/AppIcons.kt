@@ -49,4 +49,5 @@ object AppIcons {
     val Image: ImageVector = Icons.Default.Image
     val Send: ImageVector = Icons.AutoMirrored.Filled.Send
     val PushPin: ImageVector = Icons.Default.PushPin
+    val CheckCircle: ImageVector = Icons.Default.CheckCircle
 }

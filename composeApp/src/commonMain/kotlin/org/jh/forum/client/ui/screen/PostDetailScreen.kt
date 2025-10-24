@@ -30,7 +30,7 @@ import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.component.CommentEditor
 import org.jh.forum.client.ui.component.CommentItem
-import org.jh.forum.client.ui.component.ImageViewerDialog
+import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.CommentViewModel
@@ -436,10 +436,11 @@ fun PostDetailScreen(
             )
         }
         
-        // Image viewer dialog
-        ImageViewerDialog(
+        // Image gallery dialog - used for single images as well
+        ImageGalleryDialog(
             visible = showImageViewer,
-            imageUrl = selectedImageUrl,
+            images = if (selectedImageUrl != null) listOf(selectedImageUrl).filterNotNull() else emptyList(),
+            initialIndex = 0,
             onDismiss = {
                 showImageViewer = false
                 selectedImageUrl = null

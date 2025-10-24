@@ -186,6 +186,24 @@ fun MainNavigation(
                             },
                             onNavigateToNotificationSettings = {
                                 navController.navigate("notification_settings")
+                            },
+                            onNavigateToEditProfile = {
+                                navController.navigate("edit_profile")
+                            }
+                        )
+                    }
+                    
+                    composable(
+                        "edit_profile",
+                        enterTransition = { slideInTransition + fadeInTransition },
+                        exitTransition = { slideOutTransition + fadeOutTransition },
+                        popEnterTransition = { slideInPopTransition + fadeInTransition },
+                        popExitTransition = { slideOutPopTransition + fadeOutTransition }
+                    ) {
+                        EditProfileScreen(
+                            authViewModel = authViewModel,
+                            onNavigateBack = {
+                                navController.popBackStack()
                             }
                         )
                     }
