@@ -83,8 +83,14 @@ android {
         applicationId = "org.jh.forum.client"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = project.findProperty("app.version.code")?.toString()?.toIntOrNull() ?: 1
-        versionName = project.findProperty("app.version.name")?.toString() ?: "1.0.0"
+
+        val versionNameValue = project.findProperty("app.version.name")?.toString() ?: "1.0.0"
+
+        // 去掉 "." 后转成整数，例如 "1.2.3" -> 123
+        val versionCodeValue = versionNameValue.replace(".", "").toIntOrNull() ?: 1
+
+        versionCode = versionCodeValue
+        versionName = versionNameValue
     }
     packaging {
         resources {

@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import org.jh.forum.client.data.preferences.ThemePreferences
 import org.jh.forum.client.ui.screen.ThemeMode
 
 @Composable
@@ -33,7 +32,7 @@ data class ThemeState(
 fun rememberThemeState(): ThemeState {
     val themeMode = remember { mutableStateOf(ThemeMode.SYSTEM) }
     val useDynamicColor = remember { mutableStateOf(supportsDynamicColor()) }
-    val seedColor = remember { mutableStateOf( Color.Red) }
+    val seedColor = remember { mutableStateOf(Color.Red) }
 
     return ThemeState(
         themeMode = themeMode.value,
