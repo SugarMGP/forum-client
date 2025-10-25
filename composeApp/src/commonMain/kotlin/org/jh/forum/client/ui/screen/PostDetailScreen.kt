@@ -281,24 +281,53 @@ fun PostDetailScreen(
                 }
             }
 
-            // 使用AnimatedContent实现按钮到评论编辑器的变形动画
+            // 底部悬浮的评论组件
             Box(modifier = Modifier.fillMaxSize()) {
-                // 底部悬浮的评论组件
-                AnimatedContent(
-                    targetState = showCommentDialog,
-                    transitionSpec = {
-                        (
-                                slideInVertically(
-                                    initialOffsetY = { fullHeight -> fullHeight },
-                                    animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium)
-                                ) + fadeIn(animationSpec = spring(dampingRatio = 0.8f))
-                                ) togetherWith (
-                                slideOutVertically(
-                                    targetOffsetY = { fullHeight -> fullHeight },
-                                    animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium)
-                                ) + fadeOut(animationSpec = spring(dampingRatio = 0.8f))
-                                )
-                    },
+                // 悬浮按钮 - 无动画显示
+                if (!showCommentDialog) {
+                    FloatingActionButton(
+                        onClick = { showCommentDialog = true },
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        elevation = FloatingActionButtonDefaults.elevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 8.dp,
+                            hoveredElevation = 8.dp
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(
+                                horizontal = Dimensions.buttonHeightLarge,
+                                vertical = Dimensions.spaceMedium
+                            )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = AppIcons.Comment,
+                                contentDescription = "发表评论"
+                            )
+                            Text(
+                                text = "评论",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
+                    }
+                }
+
+                // 评论编辑器 - 从底部滑上来
+                AnimatedVisibility(
+                    visible = showCommentDialog,
+                    enter = slideInVertically(
+                        initialOffsetY = { fullHeight -> fullHeight }
+                    ),
+                    exit = slideOutVertically(
+                        targetOffsetY = { fullHeight -> fullHeight }
+                    ),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(
@@ -306,82 +335,51 @@ fun PostDetailScreen(
                             vertical = Dimensions.spaceMedium
                         )
                 ) {
-                    if (it) {
-                        // 评论编辑器状态 - 小而美设计，与界面边框保持间隔
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .align(Alignment.BottomCenter),
-                            shadowElevation = 8.dp,
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Surface(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                                Column {
-                                    // 顶部控制栏
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            "发表评论",
-                                            style = MaterialTheme.typography.titleLarge
-                                        )
-                                        // 美化的关闭按钮
-                                        Surface(
-                                            shape = CircleShape,
-                                            color = MaterialTheme.colorScheme.surfaceVariant,
-                                            modifier = Modifier.clickable { showCommentDialog = false }
-                                        ) {
-                                            Icon(
-                                                imageVector = AppIcons.Close,
-                                                contentDescription = "关闭",
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-
-                                    Spacer(Modifier.height(12.dp))
-
-                                    // 评论编辑器
-                                    CommentEditor(
-                                        onSubmit = { content ->
-                                            commentViewModel.publishComment(postId, content)
-                                            showCommentDialog = false
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
+                    // 评论编辑器状态 - 小而美设计，与界面边框保持间隔
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(),
+                        shadowElevation = 8.dp,
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Surface(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                            Column {
+                                // 顶部控制栏
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "发表评论",
+                                        style = MaterialTheme.typography.titleLarge
                                     )
+                                    // 美化的关闭按钮
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                        modifier = Modifier.clickable { showCommentDialog = false }
+                                    ) {
+                                        Icon(
+                                            imageVector = AppIcons.Close,
+                                            contentDescription = "关闭",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
-                            }
-                        }
-                    } else {
-                        // 悬浮按钮状态 - Enhanced design
-                        FloatingActionButton(
-                            onClick = { showCommentDialog = true },
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            elevation = FloatingActionButtonDefaults.elevation(
-                                defaultElevation = 6.dp,
-                                pressedElevation = 8.dp,
-                                hoveredElevation = 8.dp
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = AppIcons.Comment,
-                                    contentDescription = "发表评论"
-                                )
-                                Text(
-                                    text = "评论",
-                                    style = MaterialTheme.typography.labelLarge
+
+                                Spacer(Modifier.height(12.dp))
+
+                                // 评论编辑器
+                                CommentEditor(
+                                    onSubmit = { content ->
+                                        commentViewModel.publishComment(postId, content)
+                                        showCommentDialog = false
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
                                 )
                             }
                         }
@@ -686,7 +684,7 @@ fun PostContent(
 
                 // 话题标签
                 if (post.topics.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                    Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                         modifier = Modifier
@@ -715,7 +713,6 @@ fun PostContent(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                 }
 
                 Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
@@ -726,6 +723,7 @@ fun PostContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = Dimensions.spaceMedium)
+                        .padding(bottom = Dimensions.spaceMedium)
                 ) {
                     // 点赞按钮
                     FilledTonalButton(
