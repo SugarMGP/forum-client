@@ -577,7 +577,7 @@ fun PostContent(
                     Text(
                         text = post.title ?: "",
                         style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
+                        modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                     )
 
                     // 帖子内容
@@ -585,12 +585,12 @@ fun PostContent(
                         text = post.content ?: "",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
+                        modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                     )
 
                     // 图片显示 - using SharedElement for smooth transitions
                     if (post.pictures.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
+                        Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                         val displayImages = post.pictures.take(9)
 
                         // Single image layout
@@ -726,14 +726,15 @@ fun PostContent(
                         .padding(bottom = Dimensions.spaceMedium)
                 ) {
                     // 点赞按钮
-                    FilledTonalButton(
+                    OutlinedButton(
                         onClick = {
                             isLikeAnimating = true
                             onUpvote()
                         },
                         modifier = Modifier.height(Dimensions.buttonHeightSmall),
                         shape = MaterialTheme.shapes.small,
-                        colors = ButtonDefaults.filledTonalButtonColors(
+                        border = ButtonDefaults.outlinedButtonBorder(!post.isLiked),
+                        colors = ButtonDefaults.outlinedButtonColors(
                             containerColor = if (post.isLiked) {
                                 MaterialTheme.colorScheme.primaryContainer
                             } else {
