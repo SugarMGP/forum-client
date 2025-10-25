@@ -567,10 +567,11 @@ fun PostItem(
 
             // Display post tags if available
             if (post.topics.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = Dimensions.spaceSmall)
                 ) {
                     post.topics.take(3).forEach { topicName ->
                         AssistChip(
@@ -589,7 +590,7 @@ fun PostItem(
                                 width = 1.dp,
                                 color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
                             ),
-                            shape = RoundedCornerShape(Dimensions.cornerRadiusMedium),
+                            shape = RoundedCornerShape(Dimensions.cornerRadiusSmall),
                             modifier = Modifier.height(24.dp)
                         )
                     }
@@ -610,18 +611,18 @@ fun PostItem(
                                 width = 1.dp,
                                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                             ),
-                            shape = RoundedCornerShape(Dimensions.cornerRadiusMedium),
+                            shape = RoundedCornerShape(Dimensions.cornerRadiusSmall),
                             modifier = Modifier.height(24.dp)
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-
             // 底部信息 - 优化的点赞按钮设计
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = Dimensions.spaceSmall),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {

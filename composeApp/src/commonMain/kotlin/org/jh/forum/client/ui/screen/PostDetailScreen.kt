@@ -103,8 +103,8 @@ fun PostDetailScreen(
     }
 
     LaunchedEffect(errorMessage) {
-        if (errorMessage != null) {
-            // 一段时间后清除错误消息
+        if (errorMessage != null && post != null) {
+            // Only auto-clear error if post loaded successfully
             kotlinx.coroutines.delay(3000)
             viewModel.clearError()
         }
@@ -175,13 +175,40 @@ fun PostDetailScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
                     } ?: run {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
+                        // Show error message if post failed to load instead of loading spinner
+                        if (errorMessage != null) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(Dimensions.spaceLarge),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                                ) {
+                                    Icon(
+                                        imageVector = AppIcons.Error,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(48.dp),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                    Text(
+                                        text = errorMessage ?: "加载失败",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
                         }
                     }
                 }
@@ -230,7 +257,7 @@ fun PostDetailScreen(
                             onPin = if (currentUserId != null && currentUserId == post?.publisherInfo?.id) {
                                 { commentViewModel.pinComment(comment.commentId) }
                             } else null,
-                            onDelete = if (comment.isAuthor) {
+                            onDelete = if (currentUserId != null && currentUserId == comment.publisherInfo.id) {
                                 { commentViewModel.deleteComment(comment.commentId) }
                             } else null,
                             onUserProfileClick = { userId ->
@@ -337,10 +364,10 @@ fun PostDetailScreen(
                 AnimatedVisibility(
                     visible = showCommentDialog,
                     enter = slideInVertically(
-                        initialOffsetY = { fullHeight -> fullHeight }
+                        initialOffsetY = { fullHeight -> fullHeight + 100 }
                     ),
                     exit = slideOutVertically(
-                        targetOffsetY = { fullHeight -> fullHeight }
+                        targetOffsetY = { fullHeight -> fullHeight + 100 }
                     ),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -718,7 +745,7 @@ fun PostContent(
                                     width = 1.dp,
                                     color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
                                 ),
-                                shape = RoundedCornerShape(Dimensions.cornerRadiusMedium),
+                                shape = RoundedCornerShape(Dimensions.cornerRadiusSmall),
                                 modifier = Modifier.height(30.dp)
                             )
                         }

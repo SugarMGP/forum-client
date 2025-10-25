@@ -351,9 +351,10 @@ fun PersonalPostCard(
 
             // Topic tags (below content)
             if (post.topics.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = Dimensions.spaceSmall),
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                 ) {
                     post.topics.take(2).forEach { topic ->
@@ -373,7 +374,7 @@ fun PersonalPostCard(
                                 width = 1.dp,
                                 color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
                             ),
-                            shape = RoundedCornerShape(Dimensions.cornerRadiusMedium),
+                            shape = RoundedCornerShape(Dimensions.cornerRadiusSmall),
                             modifier = Modifier.height(24.dp)
                         )
                     }
@@ -381,9 +382,10 @@ fun PersonalPostCard(
             }
 
             // Stats row
-            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = Dimensions.spaceSmall),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
