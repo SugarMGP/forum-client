@@ -222,7 +222,7 @@ fun CreatePostScreen(
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                         )
-                        
+
                         // Clickable category selector with better visual design
                         Surface(
                             modifier = Modifier.fillMaxWidth(),

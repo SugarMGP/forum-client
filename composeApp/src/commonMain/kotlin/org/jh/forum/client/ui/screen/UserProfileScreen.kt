@@ -1,6 +1,5 @@
 package org.jh.forum.client.ui.screen
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,14 +9,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.GetPersonalPostListElement
 import org.jh.forum.client.data.repository.ForumRepository
+import org.jh.forum.client.ui.component.ClickableImage
 import org.jh.forum.client.ui.component.ImageGalleryDialog
-import org.jh.forum.client.ui.component.ImageViewerDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
@@ -61,119 +58,117 @@ fun UserProfileScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(userProfile?.nickname ?: "用户主页") },
-                navigationIcon = {
-                    if (onNavigateBack != null) {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(AppIcons.ArrowBack, contentDescription = "返回")
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(userProfile?.nickname ?: "用户主页") },
+                    navigationIcon = {
+                        if (onNavigateBack != null) {
+                            IconButton(onClick = onNavigateBack) {
+                                Icon(AppIcons.ArrowBack, contentDescription = "返回")
+                            }
                         }
-                    }
-                },
-                actions = {
-                    if (isCurrentUser) {
-                        IconButton(onClick = onNavigateToSettings) {
-                            Icon(AppIcons.Settings, contentDescription = "设置")
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        }
-    ) { paddingValues ->
-        if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                // User Info Card at top
-                UserInfoCard(
-                    userProfile = userProfile,
-                    onAvatarClick = { avatarUrl ->
-                        selectedImageUrl = avatarUrl
-                        showImageViewer = true
                     },
-                    modifier = Modifier.padding(Dimensions.spaceMedium)
-                )
-
-                // Tabs below user info
-                PrimaryTabRow(
-                    selectedTabIndex = selectedTab,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Tab(
-                        selected = selectedTab == 0,
-                        onClick = { selectedTab = 0 },
-                        text = { Text("帖子") }
-                    )
-                    // Only show Comments tab for current user
-                    if (isCurrentUser) {
-                        Tab(
-                            selected = selectedTab == 1,
-                            onClick = { selectedTab = 1 },
-                            text = { Text("评论") }
-                        )
-                    }
-                }
-
-                // Tab Content
-                when (selectedTab) {
-                    0 -> UserPostsTab(
-                        userId = userId,
-                        repository = repository,
-                        onPostClick = onPostClick,
-                        onImageClick = { images, index ->
-                            galleryImages = images
-                            galleryInitialIndex = index
-                            showImageGallery = true
-                        }
-                    )
-
-                    1 -> {
+                    actions = {
                         if (isCurrentUser) {
-                            UserCommentsTab(
-                                userId = userId,
-                                repository = repository
+                            IconButton(onClick = onNavigateToSettings) {
+                                Icon(AppIcons.Settings, contentDescription = "设置")
+                            }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            }
+        ) { paddingValues ->
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ) {
+                    // User Info Card at top
+                    UserInfoCard(
+                        userProfile = userProfile,
+                        onAvatarClick = { avatarUrl ->
+                            selectedImageUrl = avatarUrl
+                            showImageViewer = true
+                        },
+                        modifier = Modifier.padding(Dimensions.spaceMedium)
+                    )
+
+                    // Tabs below user info
+                    PrimaryTabRow(
+                        selectedTabIndex = selectedTab,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Tab(
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            text = { Text("帖子") }
+                        )
+                        // Only show Comments tab for current user
+                        if (isCurrentUser) {
+                            Tab(
+                                selected = selectedTab == 1,
+                                onClick = { selectedTab = 1 },
+                                text = { Text("评论") }
                             )
                         }
                     }
+
+                    // Tab Content
+                    when (selectedTab) {
+                        0 -> UserPostsTab(
+                            userId = userId,
+                            repository = repository,
+                            onPostClick = onPostClick,
+                            onImageClick = { images, index ->
+                                galleryImages = images
+                                galleryInitialIndex = index
+                                showImageGallery = true
+                            }
+                        )
+
+                        1 -> {
+                            if (isCurrentUser) {
+                                UserCommentsTab(
+                                    userId = userId,
+                                    repository = repository
+                                )
+                            }
+                        }
+                    }
                 }
             }
-        }
-        
-        // Image gallery dialog
+        }  // Close Scaffold content lambda
+
+        // Image gallery dialog - placed outside Scaffold for proper z-order
         ImageGalleryDialog(
-            visible = showImageGallery,
-            images = galleryImages,
-            initialIndex = galleryInitialIndex,
+            visible = showImageGallery || showImageViewer,
+            images = if (showImageViewer && selectedImageUrl != null) {
+                listOf(selectedImageUrl).filterNotNull()
+            } else {
+                galleryImages
+            },
+            initialIndex = if (showImageViewer) 0 else galleryInitialIndex,
             onDismiss = {
                 showImageGallery = false
+                showImageViewer = false
                 galleryImages = emptyList()
                 galleryInitialIndex = 0
-            }
-        )
-        
-        // Image viewer dialog (kept for compatibility)
-        ImageViewerDialog(
-            visible = showImageViewer,
-            imageUrl = selectedImageUrl,
-            onDismiss = {
-                showImageViewer = false
                 selectedImageUrl = null
             }
         )
@@ -225,7 +220,7 @@ fun UserPostsTab(
     ) {
         items(posts, key = { it.id }) { post ->
             PersonalPostCard(
-                post = post, 
+                post = post,
                 onClick = { onPostClick(post.id) },
                 onImageClick = { images, index -> onImageClick(images, index) }
             )
@@ -344,7 +339,7 @@ fun PersonalPostCard(
                     ImageGrid(
                         images = imageUrls,
                         totalPictures = post.totalPictures,
-                        onClick = { clickedUrl ->
+                        onClick = { clickedUrl: String ->
                             val clickedIndex = imageUrls.indexOf(clickedUrl)
                             onImageClick(imageUrls, if (clickedIndex >= 0) clickedIndex else 0)
                         }
@@ -452,11 +447,12 @@ fun UserCommentsTab(
                 } else {
                     // Merge new comments with existing ones, filtering out duplicates
                     // Use combination of commentId and replyId for unique identification
-                    val existingKeys = comments.map { 
+                    val existingKeys = comments.map {
                         if (it.replyId != 0L) "reply_${it.replyId}" else "comment_${it.commentId}"
                     }.toSet()
                     val uniqueNewComments = commentList.list.filter { comment ->
-                        val key = if (comment.replyId != 0L) "reply_${comment.replyId}" else "comment_${comment.commentId}"
+                        val key =
+                            if (comment.replyId != 0L) "reply_${comment.replyId}" else "comment_${comment.commentId}"
                         key !in existingKeys
                     }
                     comments + uniqueNewComments
@@ -477,7 +473,7 @@ fun UserCommentsTab(
     ) {
         items(
             items = comments,
-            key = { comment -> 
+            key = { comment ->
                 // Create unique key combining commentId and replyId
                 // If replyId is non-zero, it's a reply, otherwise it's a comment
                 if (comment.replyId != 0L) {
@@ -616,6 +612,7 @@ fun PersonalCommentCard(
     }
 }
 
+
 @Composable
 fun UserInfoCard(
     userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?,
@@ -640,18 +637,19 @@ fun UserInfoCard(
             Surface(
                 shape = CircleShape,
                 shadowElevation = Dimensions.elevationSmall,
-                color = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.clickable {
-                    userProfile?.avatar?.let { onAvatarClick(it) }
-                }
+                color = MaterialTheme.colorScheme.surface
             ) {
-                AsyncImage(
-                    model = userProfile?.avatar,
+                ClickableImage(
+                    imageUrl = userProfile?.avatar,
                     contentDescription = "用户头像",
                     modifier = Modifier
                         .size(72.dp)
-                        .padding(Dimensions.spaceExtraSmall)
-                        .clip(CircleShape)
+                        .padding(Dimensions.spaceExtraSmall),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    shape = CircleShape,
+                    onClick = {
+                        userProfile?.avatar?.let { onAvatarClick(it) }
+                    }
                 )
             }
 

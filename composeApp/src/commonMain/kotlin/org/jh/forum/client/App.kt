@@ -22,7 +22,8 @@ fun App() {
 
     ForumTheme(
         darkTheme = darkTheme,
-        dynamicColor = true // Enable dynamic color on Android 12+
+        dynamicColor = themeState.useDynamicColor,
+        seedColor = themeState.seedColor
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
@@ -31,7 +32,15 @@ fun App() {
             MainNavigation(
                 onThemeChanged = { mode ->
                     themeState.setThemeMode(mode)
-                }
+                },
+                onDynamicColorChanged = { useDynamic ->
+                    themeState.setUseDynamicColor(useDynamic)
+                },
+                onSeedColorChanged = { color ->
+                    themeState.setSeedColor(color)
+                },
+                currentDynamicColor = themeState.useDynamicColor,
+                currentSeedColor = themeState.seedColor
             )
         }
     }

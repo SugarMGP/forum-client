@@ -22,7 +22,8 @@ fun SettingsScreen(
     authViewModel: AuthViewModel,
     onNavigateBack: () -> Unit = {},
     onNavigateToThemeSettings: () -> Unit = {},
-    onNavigateToNotificationSettings: () -> Unit = {}
+    onNavigateToNotificationSettings: () -> Unit = {},
+    onNavigateToEditProfile: () -> Unit = {}
 ) {
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
 
@@ -64,7 +65,7 @@ fun SettingsScreen(
                             SettingsMenuItem(
                                 icon = AppIcons.Edit,
                                 title = "编辑资料",
-                                onClick = { /* Navigate to edit profile */ }
+                                onClick = onNavigateToEditProfile
                             )
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = Dimensions.spaceMedium),
@@ -116,7 +117,7 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationMedium),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
+                            containerColor = MaterialTheme.colorScheme.error
                         ),
                         shape = MaterialTheme.shapes.large
                     ) {
@@ -124,7 +125,7 @@ fun SettingsScreen(
                             icon = AppIcons.Logout,
                             title = "退出登录",
                             onClick = { authViewModel.logout() },
-                            textColor = MaterialTheme.colorScheme.onErrorContainer
+                            textColor = MaterialTheme.colorScheme.onError
                         )
                     }
                 }

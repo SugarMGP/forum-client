@@ -49,6 +49,8 @@ kotlin {
             implementation(libs.coil.network.cache.control)
 
             implementation(libs.navigation.compose)
+
+            implementation("com.materialkolor:material-kolor:4.0.2")
         }
 
         androidMain.dependencies {

@@ -21,11 +21,13 @@ import org.jh.forum.client.data.model.GetPostListElement
 import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.data.model.SortType
 import org.jh.forum.client.di.AppModule
+import org.jh.forum.client.ui.component.ClickableImage
 import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
 import kotlin.enums.EnumEntries
+
 
 @Composable
 fun ImageGrid(
@@ -45,29 +47,26 @@ fun ImageGrid(
                 modifier = Modifier
                     .sizeIn(maxWidth = 200.dp)
                     .aspectRatio(1f)
-                    .clip(MaterialTheme.shapes.medium)
-                    .clickable { displayImages[0]?.let { onClick(it) } }
             ) {
-                AsyncImage(
-                    model = displayImages[0],
+                ClickableImage(
+                    imageUrl = displayImages[0],
                     contentDescription = "帖子图片",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-
-                // 如果有更多图片，在图片上添加蒙版显示数量
-                if (totalPictures > 1) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                    ) {
-                        Text(
-                            text = "+${totalPictures - 1}",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
+                    onClick = { displayImages[0]?.let { onClick(it) } }
+                ) {
+                    // 如果有更多图片，在图片上添加蒙版显示数量
+                    if (totalPictures > 1) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
+                        ) {
+                            Text(
+                                text = "+${totalPictures - 1}",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
                 }
             }
@@ -87,29 +86,26 @@ fun ImageGrid(
                             .weight(1f, fill = false)
                             .sizeIn(maxWidth = 200.dp)
                             .aspectRatio(1f)
-                            .clip(MaterialTheme.shapes.medium)
-                            .clickable { imageUrl?.let { onClick(it) } }
                     ) {
-                        AsyncImage(
-                            model = imageUrl,
+                        ClickableImage(
+                            imageUrl = imageUrl,
                             contentDescription = "帖子图片 $index",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-
-                        // 如果是最后一张图片并且有更多图片未显示，添加蒙版显示数量
-                        if (isLastImage && hasMoreImages) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                            ) {
-                                Text(
-                                    text = "+${totalPictures - displayImages.size}",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
+                            onClick = { imageUrl?.let { onClick(it) } }
+                        ) {
+                            // 如果是最后一张图片并且有更多图片未显示，添加蒙版显示数量
+                            if (isLastImage && hasMoreImages) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
+                                ) {
+                                    Text(
+                                        text = "+${totalPictures - displayImages.size}",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
                             }
                         }
                     }
@@ -140,33 +136,30 @@ fun ImageGrid(
                                         .weight(1f, fill = false)
                                         .sizeIn(maxWidth = 200.dp)
                                         .aspectRatio(1f)
-                                        .clip(MaterialTheme.shapes.medium)
-                                        .clickable { displayImages[index]?.let { onClick(it) } }
                                 ) {
-                                    AsyncImage(
-                                        model = displayImages[index],
+                                    ClickableImage(
+                                        imageUrl = displayImages[index],
                                         contentDescription = "帖子图片 $index",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-
-                                    // 如果是最后一张图片并且有更多图片未显示，添加蒙版显示数量
-                                    if (isLastImage && hasMoreImages) {
-                                        Box(
-                                            contentAlignment = Alignment.Center,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .background(
-                                                    MaterialTheme.colorScheme.scrim.copy(
-                                                        alpha = 0.6f
+                                        onClick = { displayImages[index]?.let { onClick(it) } }
+                                    ) {
+                                        // 如果是最后一张图片并且有更多图片未显示，添加蒙版显示数量
+                                        if (isLastImage && hasMoreImages) {
+                                            Box(
+                                                contentAlignment = Alignment.Center,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(
+                                                        MaterialTheme.colorScheme.scrim.copy(
+                                                            alpha = 0.6f
+                                                        )
                                                     )
+                                            ) {
+                                                Text(
+                                                    text = "+${totalPictures - displayImages.size}",
+                                                    style = MaterialTheme.typography.titleLarge,
+                                                    color = MaterialTheme.colorScheme.onPrimary
                                                 )
-                                        ) {
-                                            Text(
-                                                text = "+${totalPictures - displayImages.size}",
-                                                style = MaterialTheme.typography.titleLarge,
-                                                color = MaterialTheme.colorScheme.onPrimary
-                                            )
+                                            }
                                         }
                                     }
                                 }
@@ -182,6 +175,9 @@ fun ImageGrid(
     }
 }
 
+/**
+ * Non-shared element version of ImageGrid for backwards compatibility
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostListScreen(
@@ -200,7 +196,7 @@ fun PostListScreen(
 
     val listState = rememberLazyListState()
     var showTabs by remember { mutableStateOf(false) }
-    
+
     // Image gallery state
     var showImageGallery by remember { mutableStateOf(false) }
     var galleryImages by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -234,173 +230,176 @@ fun PostListScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // 顶栏始终显示在最上方
-                TopAppBar(
-                    title = { Text("精弘论坛") },
-                    actions = {
-                        IconButton(onClick = { viewModel.refresh() }) {
-                            Icon(AppIcons.Refresh, contentDescription = "刷新")
-                        }
-                        IconButton(onClick = { showTabs = !showTabs }) {
-                            Icon(AppIcons.FilterList, contentDescription = "筛选")
-                        }
-                    }
-                )
-
-                // 分类和排序选项卡 - 只有点击按钮后才显示，添加淡入淡出动画
-                // 选项卡组件放在顶栏下方的单独区域
-                AnimatedVisibility(
-                    visible = showTabs,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { -20 }),
-                    exit = fadeOut() + slideOutVertically(targetOffsetY = { -20 })
-                ) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column {
-                            // 排序选项卡
-                            SecondaryScrollableTabRow(
-                                selectedTabIndex = if (sortType == SortType.HOT) 1 else 0,
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                indicator = {
-                                    TabRowDefaults.SecondaryIndicator(
-                                        Modifier.tabIndicatorOffset(if (sortType == SortType.HOT) 1 else 0)
-                                    )
-                                }
-                            ) {
-                                Tab(
-                                    selected = sortType == SortType.NEWEST,
-                                    onClick = {
-                                        viewModel.setSortType(SortType.NEWEST)
-                                    },
-                                    text = { Text("最新") }
-                                )
-                                Tab(
-                                    selected = sortType == SortType.HOT,
-                                    onClick = {
-                                        viewModel.setSortType(SortType.HOT)
-                                    },
-                                    text = { Text("最热") }
-                                )
-                            }
-
-                            // 分类选项卡
-                            SecondaryScrollableTabRow(
-                                selectedTabIndex = selectedCategoryIndex(
-                                    selectedCategory,
-                                    categories
-                                ),
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                indicator = {
-                                    TabRowDefaults.SecondaryIndicator(
-                                        Modifier.tabIndicatorOffset(
-                                            selectedCategoryIndex(
-                                                selectedCategory,
-                                                categories
-                                            )
-                                        ),
-                                    )
-                                }
-                            ) {
-                                // 全部 Tab
-                                Tab(
-                                    selected = selectedCategory == null,
-                                    onClick = {
-                                        viewModel.selectCategory(null)
-                                    },
-                                    text = { Text("全部") }
-                                )
-
-                                // 分类 Tab
-                                categories.forEach { category ->
-                                    Tab(
-                                        selected = selectedCategory == category.value,
-                                        onClick = {
-                                            viewModel.selectCategory(category.value)
-                                        },
-                                        text = { Text(category.displayName) },
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToCreatePost) {
-                Icon(AppIcons.Add, contentDescription = "发帖")
-            }
-        }
-    ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (posts.isEmpty() && !isLoading) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(
-                        AppIcons.Inbox,
-                        contentDescription = "空列表",
-                        modifier = Modifier.size(Dimensions.iconExtraLarge + Dimensions.spaceMedium),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-                    Text(
-                        text = "暂无帖子",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(Dimensions.spaceMedium),
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
-                ) {
-                    items(posts) {
-                        PostItem(
-                            post = it,
-                            onClick = { onPostClick(it.id) },
-                            onUserClick = { userId -> onUserClick(userId) },
-                            onUpvoteClick = { it -> viewModel.upvotePost(it) },
-                            onImageClick = { images, index ->
-                                galleryImages = images
-                                galleryInitialIndex = index
-                                showImageGallery = true
+                    // 顶栏始终显示在最上方
+                    TopAppBar(
+                        title = { Text("精弘论坛") },
+                        actions = {
+                            IconButton(onClick = { viewModel.refresh() }) {
+                                Icon(AppIcons.Refresh, contentDescription = "刷新")
                             }
+                            IconButton(onClick = { showTabs = !showTabs }) {
+                                Icon(AppIcons.FilterList, contentDescription = "筛选")
+                            }
+                        }
+                    )
+
+                    // 分类和排序选项卡 - 只有点击按钮后才显示，添加淡入淡出动画
+                    // 选项卡组件放在顶栏下方的单独区域
+                    AnimatedVisibility(
+                        visible = showTabs,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { -20 }),
+                        exit = fadeOut() + slideOutVertically(targetOffsetY = { -20 })
+                    ) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column {
+                                // 排序选项卡
+                                SecondaryScrollableTabRow(
+                                    selectedTabIndex = if (sortType == SortType.HOT) 1 else 0,
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                    indicator = {
+                                        TabRowDefaults.SecondaryIndicator(
+                                            Modifier.tabIndicatorOffset(if (sortType == SortType.HOT) 1 else 0)
+                                        )
+                                    }
+                                ) {
+                                    Tab(
+                                        selected = sortType == SortType.NEWEST,
+                                        onClick = {
+                                            viewModel.setSortType(SortType.NEWEST)
+                                        },
+                                        text = { Text("最新") }
+                                    )
+                                    Tab(
+                                        selected = sortType == SortType.HOT,
+                                        onClick = {
+                                            viewModel.setSortType(SortType.HOT)
+                                        },
+                                        text = { Text("最热") }
+                                    )
+                                }
+
+                                // 分类选项卡
+                                SecondaryScrollableTabRow(
+                                    selectedTabIndex = selectedCategoryIndex(
+                                        selectedCategory,
+                                        categories
+                                    ),
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                    indicator = {
+                                        TabRowDefaults.SecondaryIndicator(
+                                            Modifier.tabIndicatorOffset(
+                                                selectedCategoryIndex(
+                                                    selectedCategory,
+                                                    categories
+                                                )
+                                            ),
+                                        )
+                                    }
+                                ) {
+                                    // 全部 Tab
+                                    Tab(
+                                        selected = selectedCategory == null,
+                                        onClick = {
+                                            viewModel.selectCategory(null)
+                                        },
+                                        text = { Text("全部") }
+                                    )
+
+                                    // 分类 Tab
+                                    categories.forEach { category ->
+                                        Tab(
+                                            selected = selectedCategory == category.value,
+                                            onClick = {
+                                                viewModel.selectCategory(category.value)
+                                            },
+                                            text = { Text(category.displayName) },
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            floatingActionButton = {
+                FloatingActionButton(onClick = onNavigateToCreatePost) {
+                    Icon(AppIcons.Add, contentDescription = "发帖")
+                }
+            }
+        ) { paddingValues ->
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+                if (posts.isEmpty() && !isLoading) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            AppIcons.Inbox,
+                            contentDescription = "空列表",
+                            modifier = Modifier.size(Dimensions.iconExtraLarge + Dimensions.spaceMedium),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
+                        Text(
+                            text = "暂无帖子",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(Dimensions.spaceMedium),
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
+                    ) {
+                        items(posts) {
+                            PostItem(
+                                post = it,
+                                onClick = { onPostClick(it.id) },
+                                onUserClick = { userId -> onUserClick(userId) },
+                                onUpvoteClick = { it -> viewModel.upvotePost(it) },
+                                onImageClick = { images, index ->
+                                    galleryImages = images
+                                    galleryInitialIndex = index
+                                    showImageGallery = true
+                                }
+                            )
+                        }
 
-                    if (isLoading) {
-                        item {
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
+                        if (isLoading) {
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // 错误提示
-            errorMessage?.let { message ->
-                LaunchedEffect(message) {
-                    // 可以显示一个Snackbar或Toast
+                // 错误提示
+                errorMessage?.let { message ->
+                    LaunchedEffect(message) {
+                        // 可以显示一个Snackbar或Toast
+                    }
                 }
             }
-        }
-        
-        // Image gallery dialog
+        } // Close Scaffold content lambda
+
+        // Image gallery dialog with shared element transitions
+        // Placed outside Scaffold to ensure proper z-index above top bar
         ImageGalleryDialog(
             visible = showImageGallery,
             images = galleryImages,
@@ -412,9 +411,8 @@ fun PostListScreen(
             }
         )
     }
-
-
 }
+
 
 @Composable
 fun PostItem(
@@ -557,14 +555,14 @@ fun PostItem(
                 ImageGrid(
                     images = imageUrls,
                     totalPictures = post.totalPictures,
-                    onClick = { clickedUrl -> 
+                    onClick = { clickedUrl: String ->
                         // Find index of clicked image and open gallery
                         val clickedIndex = imageUrls.indexOf(clickedUrl)
                         onImageClick(imageUrls, if (clickedIndex >= 0) clickedIndex else 0)
                     }
                 )
             }
-            
+
             // Display post tags if available
             if (post.topics.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
@@ -618,11 +616,12 @@ fun PostItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 // 左侧：简洁的点赞按钮
-                FilledTonalButton(
+                OutlinedButton(
                     onClick = { onUpvoteClick(post.id) },
                     modifier = Modifier.height(Dimensions.buttonHeightSmall),
                     shape = MaterialTheme.shapes.small,
-                    colors = ButtonDefaults.filledTonalButtonColors(
+                    border = ButtonDefaults.outlinedButtonBorder(!post.isLiked),
+                    colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = if (post.isLiked) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
@@ -639,16 +638,21 @@ fun PostItem(
                         vertical = Dimensions.spaceSmall
                     )
                 ) {
-                    Icon(
-                        AppIcons.ThumbUp,
-                        contentDescription = "点赞",
-                        modifier = Modifier.size(Dimensions.iconSmall)
-                    )
-                    Spacer(modifier = Modifier.width(Dimensions.spaceExtraSmall))
-                    Text(
-                        text = "${post.likeCount}",
-                        style = MaterialTheme.typography.labelLarge
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            AppIcons.ThumbUp,
+                            contentDescription = "点赞",
+                            modifier = Modifier.size(Dimensions.iconSmall)
+                        )
+                        Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                        Text(
+                            text = "${post.likeCount}",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
                 }
             }
         }
