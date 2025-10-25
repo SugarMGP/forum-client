@@ -67,10 +67,15 @@ fun PostDetailScreen(
     val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
 
     LaunchedEffect(postId) {
+        // Clear any previous errors when navigating to a new post
+        viewModel.clearError()
         viewModel.getPost(postId) { result ->
             post = result
+            // Only load comments if post loaded successfully
+            if (result != null) {
+                commentViewModel.loadComments(postId, true)
+            }
         }
-        commentViewModel.loadComments(postId, true)
         listState.scrollToItem(0)
     }
 
@@ -269,7 +274,6 @@ fun PostDetailScreen(
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
-                        HorizontalDivider()
                     }
                 }
 
