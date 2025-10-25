@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -51,6 +52,7 @@ fun PostDetailScreen(
     val errorMessage by viewModel.errorMessage.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showImageViewer by remember { mutableStateOf(false) }
+    var selectedImageIndex by remember { mutableStateOf(0) }
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
     val comments by commentViewModel.comments.collectAsState()
@@ -65,10 +67,15 @@ fun PostDetailScreen(
     val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
 
     LaunchedEffect(postId) {
+        // Clear any previous errors when navigating to a new post
+        viewModel.clearError()
         viewModel.getPost(postId) { result ->
             post = result
+            // Only load comments if post loaded successfully
+            if (result != null) {
+                commentViewModel.loadComments(postId, true)
+            }
         }
-        commentViewModel.loadComments(postId, true)
         listState.scrollToItem(0)
     }
 
@@ -101,8 +108,8 @@ fun PostDetailScreen(
     }
 
     LaunchedEffect(errorMessage) {
-        if (errorMessage != null) {
-            // 一段时间后清除错误消息
+        if (errorMessage != null && post != null) {
+            // Only auto-clear error if post loaded successfully
             kotlinx.coroutines.delay(3000)
             viewModel.clearError()
         }
@@ -119,6 +126,17 @@ fun PostDetailScreen(
                                 imageVector = AppIcons.ArrowBack,
                                 contentDescription = "返回"
                             )
+                        }
+                    },
+                    actions = {
+                        // Only show delete option if current user is the post author
+                        if (currentUserId != null && currentUserId == post?.publisherInfo?.id) {
+                            IconButton(onClick = { showDeleteDialog = true }) {
+                                Icon(
+                                    imageVector = AppIcons.Delete,
+                                    contentDescription = "删除帖子"
+                                )
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -155,20 +173,47 @@ fun PostDetailScreen(
                                     onUserClick(userId)
                                 }
                             },
-                            onImageClick = { imageUrl ->
-                                selectedImageUrl = imageUrl
+                            onImageClick = { imageIndex ->
+                                selectedImageIndex = imageIndex
                                 showImageViewer = true
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
                     } ?: run {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
+                        // Show error message if post failed to load instead of loading spinner
+                        if (errorMessage != null) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(Dimensions.spaceLarge),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                                ) {
+                                    Icon(
+                                        imageVector = AppIcons.Error,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(48.dp),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                    Text(
+                                        text = errorMessage ?: "加载失败",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
                         }
                     }
                 }
@@ -217,7 +262,7 @@ fun PostDetailScreen(
                             onPin = if (currentUserId != null && currentUserId == post?.publisherInfo?.id) {
                                 { commentViewModel.pinComment(comment.commentId) }
                             } else null,
-                            onDelete = if (comment.isAuthor) {
+                            onDelete = if (currentUserId != null && currentUserId == comment.publisherInfo.id) {
                                 { commentViewModel.deleteComment(comment.commentId) }
                             } else null,
                             onUserProfileClick = { userId ->
@@ -229,7 +274,6 @@ fun PostDetailScreen(
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
-                        HorizontalDivider()
                     }
                 }
 
@@ -279,109 +323,104 @@ fun PostDetailScreen(
                 }
             }
 
-            // 使用AnimatedContent实现按钮到评论编辑器的变形动画
-            Box(modifier = Modifier.fillMaxSize()) {
-                // 底部悬浮的评论组件
-                AnimatedContent(
-                    targetState = showCommentDialog,
-                    transitionSpec = {
-                        (
-                                scaleIn(
-                                    initialScale = 0.9f,
-                                    animationSpec = spring(dampingRatio = 0.6f),
-                                    transformOrigin = TransformOrigin(0.5f, 1f)
-                                ) + fadeIn(animationSpec = spring(dampingRatio = 0.6f))
-                                ) togetherWith (
-                                scaleOut(
-                                    targetScale = 0.9f,
-                                    animationSpec = spring(dampingRatio = 0.6f),
-                                    transformOrigin = TransformOrigin(0.5f, 1f)
-                                ) + fadeOut(animationSpec = spring(dampingRatio = 0.6f))
-                                )
-                    },
+            // 底部悬浮的评论组件
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        horizontal = Dimensions.buttonHeightLarge,
+                        vertical = Dimensions.spaceMedium
+                    )
+            ) {
+                // 悬浮按钮 - 无动画显示
+                if (!showCommentDialog) {
+                    FloatingActionButton(
+                        onClick = { showCommentDialog = true },
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        elevation = FloatingActionButtonDefaults.elevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 8.dp,
+                            hoveredElevation = 8.dp
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = AppIcons.Comment,
+                                contentDescription = "发表评论"
+                            )
+                            Text(
+                                text = "评论",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
+                    }
+                }
+
+                // 评论编辑器 - 从底部滑上来
+                AnimatedVisibility(
+                    visible = showCommentDialog,
+                    enter = slideInVertically(
+                        initialOffsetY = { fullHeight -> fullHeight + 100 }
+                    ),
+                    exit = slideOutVertically(
+                        targetOffsetY = { fullHeight -> fullHeight + 100 }
+                    ),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(
-                            horizontal = Dimensions.buttonHeightLarge,
-                            vertical = Dimensions.spaceMedium
-                        )
                 ) {
-                    if (it) {
-                        // 评论编辑器状态 - 小而美设计，与界面边框保持间隔
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .align(Alignment.BottomCenter),
-                            shadowElevation = 8.dp,
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Surface(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                                Column {
-                                    // 顶部控制栏
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            "发表评论",
-                                            style = MaterialTheme.typography.titleLarge
-                                        )
-                                        // 美化的关闭按钮
-                                        Surface(
-                                            shape = CircleShape,
-                                            color = MaterialTheme.colorScheme.surfaceVariant,
-                                            modifier = Modifier.clickable { showCommentDialog = false }
-                                        ) {
-                                            Icon(
-                                                imageVector = AppIcons.Close,
-                                                contentDescription = "关闭",
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-
-                                    Spacer(Modifier.height(12.dp))
-
-                                    // 评论编辑器
-                                    CommentEditor(
-                                        onSubmit = { content ->
-                                            commentViewModel.publishComment(postId, content)
-                                            showCommentDialog = false
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
+                    // 评论编辑器状态 - 小而美设计，与界面边框保持间隔
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(),
+                        shadowElevation = 8.dp,
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Surface(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                            Column {
+                                // 顶部控制栏
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "发表评论",
+                                        style = MaterialTheme.typography.titleLarge
                                     )
+                                    // 美化的关闭按钮
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                        modifier = Modifier.clickable { showCommentDialog = false }
+                                    ) {
+                                        Icon(
+                                            imageVector = AppIcons.Close,
+                                            contentDescription = "关闭",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
-                            }
-                        }
-                    } else {
-                        // 悬浮按钮状态 - Enhanced design
-                        FloatingActionButton(
-                            onClick = { showCommentDialog = true },
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            elevation = FloatingActionButtonDefaults.elevation(
-                                defaultElevation = 6.dp,
-                                pressedElevation = 8.dp,
-                                hoveredElevation = 8.dp
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = AppIcons.Comment,
-                                    contentDescription = "发表评论"
-                                )
-                                Text(
-                                    text = "评论",
-                                    style = MaterialTheme.typography.labelLarge
+
+                                Spacer(Modifier.height(12.dp))
+
+                                // 评论编辑器
+                                CommentEditor(
+                                    onSubmit = { content ->
+                                        commentViewModel.publishComment(postId, content)
+                                        showCommentDialog = false
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
                                 )
                             }
                         }
@@ -442,10 +481,15 @@ fun PostDetailScreen(
     // Image gallery dialog - placed outside Scaffold but inside Box for proper z-order
     ImageGalleryDialog(
         visible = showImageViewer,
-        images = selectedImageUrl?.let { listOf(it) } ?: emptyList(),
-        initialIndex = 0,
+        images = if (selectedImageUrl != null) {
+            listOf(selectedImageUrl!!)
+        } else {
+            post?.pictures?.mapNotNull { it.url } ?: emptyList()
+        },
+        initialIndex = if (selectedImageUrl != null) 0 else selectedImageIndex,
         onDismiss = {
             showImageViewer = false
+            selectedImageIndex = 0
             selectedImageUrl = null
         }
     )
@@ -457,7 +501,7 @@ fun PostContent(
     post: GetPostInfoResponse,
     onUpvote: () -> Unit,
     onUserProfileClick: () -> Unit,
-    onImageClick: (String) -> Unit = {},
+    onImageClick: (Int) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // 动画状态
@@ -574,7 +618,7 @@ fun PostContent(
                     Text(
                         text = post.title ?: "",
                         style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
+                        modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                     )
 
                     // 帖子内容
@@ -582,12 +626,12 @@ fun PostContent(
                         text = post.content ?: "",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = Dimensions.spaceMedium)
+                        modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                     )
 
                     // 图片显示 - using SharedElement for smooth transitions
                     if (post.pictures.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
+                        Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                         val displayImages = post.pictures.take(9)
 
                         // Single image layout
@@ -600,7 +644,7 @@ fun PostContent(
                                 ClickableImage(
                                     imageUrl = displayImages[0].url,
                                     contentDescription = "帖子图片",
-                                    onClick = { onImageClick(displayImages[0].url ?: "") }
+                                    onClick = { onImageClick(0) }
                                 )
                             }
                         }
@@ -610,7 +654,7 @@ fun PostContent(
                                 horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                displayImages.forEach { picture ->
+                                displayImages.forEachIndexed { index, picture ->
                                     Box(
                                         modifier = Modifier
                                             .weight(1f, fill = false)
@@ -620,7 +664,7 @@ fun PostContent(
                                         ClickableImage(
                                             imageUrl = picture.url,
                                             contentDescription = "帖子图片",
-                                            onClick = { onImageClick(picture.url ?: "") }
+                                            onClick = { onImageClick(index) }
                                         )
                                     }
                                 }
@@ -651,7 +695,7 @@ fun PostContent(
                                                 ClickableImage(
                                                     imageUrl = picture.url,
                                                     contentDescription = "帖子图片",
-                                                    onClick = { onImageClick(picture.url ?: "") }
+                                                    onClick = { onImageClick(globalIndex) }
                                                 ) {
                                                     if (isLastImage && hasMoreImages) {
                                                         Box(
@@ -681,10 +725,12 @@ fun PostContent(
 
                 // 话题标签
                 if (post.topics.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = Dimensions.spaceMedium)
+                            .padding(top = Dimensions.spaceMedium)
                     ) {
                         post.topics.forEach { tag ->
                             AssistChip(
@@ -696,33 +742,38 @@ fun PostContent(
                                     )
                                 },
                                 colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    labelColor = MaterialTheme.colorScheme.onTertiaryContainer
                                 ),
-                                border = null,
-                                modifier = Modifier.height(28.dp)
+                                border = BorderStroke(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
+                                ),
+                                shape = RoundedCornerShape(Dimensions.cornerRadiusSmall),
+                                modifier = Modifier.height(30.dp)
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                 }
-
-                Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
 
                 // 底部操作按钮 - Compact design
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Dimensions.spaceMedium)
+                        .padding(top = Dimensions.spaceMedium, bottom = Dimensions.spaceMedium)
                 ) {
                     // 点赞按钮
-                    FilledTonalButton(
+                    OutlinedButton(
                         onClick = {
                             isLikeAnimating = true
                             onUpvote()
                         },
                         modifier = Modifier.height(Dimensions.buttonHeightSmall),
                         shape = MaterialTheme.shapes.small,
-                        colors = ButtonDefaults.filledTonalButtonColors(
+                        border = ButtonDefaults.outlinedButtonBorder(!post.isLiked),
+                        colors = ButtonDefaults.outlinedButtonColors(
                             containerColor = if (post.isLiked) {
                                 MaterialTheme.colorScheme.primaryContainer
                             } else {

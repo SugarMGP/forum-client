@@ -34,15 +34,23 @@ fun CommentItem(
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
-    Column(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(Dimensions.spaceMedium)
+            .padding(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = MaterialTheme.shapes.medium,
+        tonalElevation = Dimensions.elevationSmall
     ) {
-        // 用户信息和更多选项
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Dimensions.spaceMedium)
+        ) {
+            // 用户信息和更多选项
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 头像和用户昵称
@@ -222,6 +230,7 @@ fun CommentItem(
                     }
                 }
             }
+        }
         }
     }
 }

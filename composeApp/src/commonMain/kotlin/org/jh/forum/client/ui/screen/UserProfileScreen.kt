@@ -1,10 +1,12 @@
 package org.jh.forum.client.ui.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -349,31 +351,41 @@ fun PersonalPostCard(
 
             // Topic tags (below content)
             if (post.topics.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = Dimensions.spaceSmall),
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                 ) {
                     post.topics.take(2).forEach { topic ->
-                        Surface(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = MaterialTheme.shapes.extraSmall
-                        ) {
-                            Text(
-                                text = "#$topic",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = "#$topic",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                labelColor = MaterialTheme.colorScheme.onTertiaryContainer
+                            ),
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
+                            ),
+                            shape = RoundedCornerShape(Dimensions.cornerRadiusSmall),
+                            modifier = Modifier.height(24.dp)
+                        )
                     }
                 }
             }
 
             // Stats row
-            Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = Dimensions.spaceSmall),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {

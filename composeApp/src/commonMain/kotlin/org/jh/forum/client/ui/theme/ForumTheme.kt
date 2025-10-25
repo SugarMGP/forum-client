@@ -11,7 +11,7 @@ import org.jh.forum.client.ui.screen.ThemeMode
 expect fun ForumTheme(
     darkTheme: Boolean,
     dynamicColor: Boolean = false,
-    seedColor: Color = ThemePreferences.Red,
+    seedColor: Color = Color.Red,
     content: @Composable () -> Unit
 )
 
@@ -33,7 +33,7 @@ data class ThemeState(
 fun rememberThemeState(): ThemeState {
     val themeMode = remember { mutableStateOf(ThemeMode.SYSTEM) }
     val useDynamicColor = remember { mutableStateOf(supportsDynamicColor()) }
-    val seedColor = remember { mutableStateOf(ThemePreferences.Red) }
+    val seedColor = remember { mutableStateOf( Color.Red) }
 
     return ThemeState(
         themeMode = themeMode.value,
