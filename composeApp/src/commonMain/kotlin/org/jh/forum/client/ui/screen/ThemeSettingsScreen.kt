@@ -27,7 +27,7 @@ fun ThemeSettingsScreen(
     onThemeChanged: (ThemeMode) -> Unit = {},
     useDynamicColor: Boolean = false,
     onDynamicColorChanged: (Boolean) -> Unit = {},
-    seedColor: Color = ThemePreferences.Red,
+    seedColor: Color = Color.Red,
     onSeedColorChanged: (Color) -> Unit = {},
     onNavigateBack: () -> Unit = {}
 ) {

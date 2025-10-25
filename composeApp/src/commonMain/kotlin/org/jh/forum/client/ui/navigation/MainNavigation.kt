@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -63,9 +64,9 @@ fun MainNavigation(
     repository: ForumRepository = AppModule.forumRepository,
     onThemeChanged: (ThemeMode) -> Unit = { _ -> },
     onDynamicColorChanged: (Boolean) -> Unit = { _ -> },
-    onSeedColorChanged: (androidx.compose.ui.graphics.Color) -> Unit = { _ -> },
+    onSeedColorChanged: (Color) -> Unit = { _ -> },
     currentDynamicColor: Boolean = false,
-    currentSeedColor: androidx.compose.ui.graphics.Color = org.jh.forum.client.data.preferences.ThemePreferences.Red
+    currentSeedColor: Color = Color.Red
 ) {
     val authViewModel = AppModule.authViewModel
     val navController = rememberNavController()
