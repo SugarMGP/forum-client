@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -51,6 +52,7 @@ fun PostDetailScreen(
     val errorMessage by viewModel.errorMessage.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showImageViewer by remember { mutableStateOf(false) }
+    var selectedImageIndex by remember { mutableStateOf(0) }
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
     val comments by commentViewModel.comments.collectAsState()
@@ -155,8 +157,8 @@ fun PostDetailScreen(
                                     onUserClick(userId)
                                 }
                             },
-                            onImageClick = { imageUrl ->
-                                selectedImageUrl = imageUrl
+                            onImageClick = { imageIndex ->
+                                selectedImageIndex = imageIndex
                                 showImageViewer = true
                             },
                             modifier = Modifier.fillMaxWidth()
@@ -286,17 +288,15 @@ fun PostDetailScreen(
                     targetState = showCommentDialog,
                     transitionSpec = {
                         (
-                                scaleIn(
-                                    initialScale = 0.9f,
-                                    animationSpec = spring(dampingRatio = 0.6f),
-                                    transformOrigin = TransformOrigin(0.5f, 1f)
-                                ) + fadeIn(animationSpec = spring(dampingRatio = 0.6f))
+                                slideInVertically(
+                                    initialOffsetY = { fullHeight -> fullHeight },
+                                    animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium)
+                                ) + fadeIn(animationSpec = spring(dampingRatio = 0.8f))
                                 ) togetherWith (
-                                scaleOut(
-                                    targetScale = 0.9f,
-                                    animationSpec = spring(dampingRatio = 0.6f),
-                                    transformOrigin = TransformOrigin(0.5f, 1f)
-                                ) + fadeOut(animationSpec = spring(dampingRatio = 0.6f))
+                                slideOutVertically(
+                                    targetOffsetY = { fullHeight -> fullHeight },
+                                    animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium)
+                                ) + fadeOut(animationSpec = spring(dampingRatio = 0.8f))
                                 )
                     },
                     modifier = Modifier
@@ -442,10 +442,15 @@ fun PostDetailScreen(
     // Image gallery dialog - placed outside Scaffold but inside Box for proper z-order
     ImageGalleryDialog(
         visible = showImageViewer,
-        images = selectedImageUrl?.let { listOf(it) } ?: emptyList(),
-        initialIndex = 0,
+        images = if (selectedImageUrl != null) {
+            listOf(selectedImageUrl!!)
+        } else {
+            post?.pictures?.mapNotNull { it.url } ?: emptyList()
+        },
+        initialIndex = if (selectedImageUrl != null) 0 else selectedImageIndex,
         onDismiss = {
             showImageViewer = false
+            selectedImageIndex = 0
             selectedImageUrl = null
         }
     )
@@ -457,7 +462,7 @@ fun PostContent(
     post: GetPostInfoResponse,
     onUpvote: () -> Unit,
     onUserProfileClick: () -> Unit,
-    onImageClick: (String) -> Unit = {},
+    onImageClick: (Int) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // 动画状态
@@ -600,7 +605,7 @@ fun PostContent(
                                 ClickableImage(
                                     imageUrl = displayImages[0].url,
                                     contentDescription = "帖子图片",
-                                    onClick = { onImageClick(displayImages[0].url ?: "") }
+                                    onClick = { onImageClick(0) }
                                 )
                             }
                         }
@@ -610,7 +615,7 @@ fun PostContent(
                                 horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                displayImages.forEach { picture ->
+                                displayImages.forEachIndexed { index, picture ->
                                     Box(
                                         modifier = Modifier
                                             .weight(1f, fill = false)
@@ -620,7 +625,7 @@ fun PostContent(
                                         ClickableImage(
                                             imageUrl = picture.url,
                                             contentDescription = "帖子图片",
-                                            onClick = { onImageClick(picture.url ?: "") }
+                                            onClick = { onImageClick(index) }
                                         )
                                     }
                                 }
@@ -651,7 +656,7 @@ fun PostContent(
                                                 ClickableImage(
                                                     imageUrl = picture.url,
                                                     contentDescription = "帖子图片",
-                                                    onClick = { onImageClick(picture.url ?: "") }
+                                                    onClick = { onImageClick(globalIndex) }
                                                 ) {
                                                     if (isLastImage && hasMoreImages) {
                                                         Box(
@@ -684,7 +689,9 @@ fun PostContent(
                     Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = Dimensions.spaceMedium)
                     ) {
                         post.topics.forEach { tag ->
                             AssistChip(
@@ -696,11 +703,15 @@ fun PostContent(
                                     )
                                 },
                                 colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    labelColor = MaterialTheme.colorScheme.onTertiaryContainer
                                 ),
-                                border = null,
-                                modifier = Modifier.height(28.dp)
+                                border = BorderStroke(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
+                                ),
+                                shape = RoundedCornerShape(Dimensions.cornerRadiusMedium),
+                                modifier = Modifier.height(30.dp)
                             )
                         }
                     }
@@ -712,7 +723,9 @@ fun PostContent(
                 // 底部操作按钮 - Compact design
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Dimensions.spaceMedium)
                 ) {
                     // 点赞按钮
                     FilledTonalButton(
