@@ -1,12 +1,8 @@
 package org.jh.forum.client.ui.screen
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -26,8 +21,8 @@ import org.jh.forum.client.data.model.GetPostListElement
 import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.data.model.SortType
 import org.jh.forum.client.di.AppModule
-import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.component.ClickableImage
+import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
@@ -183,6 +178,7 @@ fun ImageGrid(
 /**
  * Non-shared element version of ImageGrid for backwards compatibility
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostListScreen(
     onPostClick: (Long) -> Unit,
@@ -620,11 +616,12 @@ fun PostItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 // 左侧：简洁的点赞按钮
-                FilledTonalButton(
+                OutlinedButton(
                     onClick = { onUpvoteClick(post.id) },
                     modifier = Modifier.height(Dimensions.buttonHeightSmall),
                     shape = MaterialTheme.shapes.small,
-                    colors = ButtonDefaults.filledTonalButtonColors(
+                    border = ButtonDefaults.outlinedButtonBorder(!post.isLiked),
+                    colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = if (post.isLiked) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
@@ -650,10 +647,10 @@ fun PostItem(
                             contentDescription = "点赞",
                             modifier = Modifier.size(Dimensions.iconSmall)
                         )
-                        Spacer(modifier = Modifier.width(Dimensions.spaceExtraSmall))
+                        Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                         Text(
                             text = "${post.likeCount}",
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.labelMedium
                         )
                     }
                 }

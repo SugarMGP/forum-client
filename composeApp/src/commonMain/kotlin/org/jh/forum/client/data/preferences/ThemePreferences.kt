@@ -13,7 +13,7 @@ object ThemePreferences {
     val Yellow = Color(0xFFFFFF00)
     val Cyan = Color(0xFF00FFFF)
     val Magenta = Color(0xFFFF00FF)
-    
+
     val availableColors = listOf(
         ThemeColor("红色", Red),
         ThemeColor("绿色", Green),
@@ -22,7 +22,7 @@ object ThemePreferences {
         ThemeColor("青色", Cyan),
         ThemeColor("品红", Magenta)
     )
-    
+
     data class ThemeColor(
         val name: String,
         val color: Color

@@ -1,6 +1,5 @@
 package org.jh.forum.client.ui.screen
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,14 +9,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.GetPersonalPostListElement
 import org.jh.forum.client.data.repository.ForumRepository
-import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.component.ClickableImage
+import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
@@ -83,98 +80,98 @@ fun UserProfileScreen(
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface,
                         titleContentColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
-            )
-        }
-    ) { paddingValues ->
-        if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
             }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                // User Info Card at top
-                UserInfoCard(
-                    userProfile = userProfile,
-                    onAvatarClick = { avatarUrl ->
-                        selectedImageUrl = avatarUrl
-                        showImageViewer = true
-                    },
-                    modifier = Modifier.padding(Dimensions.spaceMedium)
-                )
-
-                // Tabs below user info
-                PrimaryTabRow(
-                    selectedTabIndex = selectedTab,
-                    modifier = Modifier.fillMaxWidth()
+        ) { paddingValues ->
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Tab(
-                        selected = selectedTab == 0,
-                        onClick = { selectedTab = 0 },
-                        text = { Text("帖子") }
-                    )
-                    // Only show Comments tab for current user
-                    if (isCurrentUser) {
-                        Tab(
-                            selected = selectedTab == 1,
-                            onClick = { selectedTab = 1 },
-                            text = { Text("评论") }
-                        )
-                    }
+                    CircularProgressIndicator()
                 }
-
-                // Tab Content
-                when (selectedTab) {
-                    0 -> UserPostsTab(
-                        userId = userId,
-                        repository = repository,
-                        onPostClick = onPostClick,
-                        onImageClick = { images, index ->
-                            galleryImages = images
-                            galleryInitialIndex = index
-                            showImageGallery = true
-                        }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ) {
+                    // User Info Card at top
+                    UserInfoCard(
+                        userProfile = userProfile,
+                        onAvatarClick = { avatarUrl ->
+                            selectedImageUrl = avatarUrl
+                            showImageViewer = true
+                        },
+                        modifier = Modifier.padding(Dimensions.spaceMedium)
                     )
 
-                    1 -> {
+                    // Tabs below user info
+                    PrimaryTabRow(
+                        selectedTabIndex = selectedTab,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Tab(
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            text = { Text("帖子") }
+                        )
+                        // Only show Comments tab for current user
                         if (isCurrentUser) {
-                            UserCommentsTab(
-                                userId = userId,
-                                repository = repository
+                            Tab(
+                                selected = selectedTab == 1,
+                                onClick = { selectedTab = 1 },
+                                text = { Text("评论") }
                             )
                         }
                     }
+
+                    // Tab Content
+                    when (selectedTab) {
+                        0 -> UserPostsTab(
+                            userId = userId,
+                            repository = repository,
+                            onPostClick = onPostClick,
+                            onImageClick = { images, index ->
+                                galleryImages = images
+                                galleryInitialIndex = index
+                                showImageGallery = true
+                            }
+                        )
+
+                        1 -> {
+                            if (isCurrentUser) {
+                                UserCommentsTab(
+                                    userId = userId,
+                                    repository = repository
+                                )
+                            }
+                        }
+                    }
                 }
             }
-        }
         }  // Close Scaffold content lambda
 
-    // Image gallery dialog - placed outside Scaffold for proper z-order
-    ImageGalleryDialog(
-        visible = showImageGallery || showImageViewer,
-        images = if (showImageViewer && selectedImageUrl != null) {
-            listOf(selectedImageUrl).filterNotNull()
-        } else {
-            galleryImages
-        },
-        initialIndex = if (showImageViewer) 0 else galleryInitialIndex,
-        onDismiss = {
-            showImageGallery = false
-            showImageViewer = false
-            galleryImages = emptyList()
-            galleryInitialIndex = 0
-            selectedImageUrl = null
-        }
-    )
+        // Image gallery dialog - placed outside Scaffold for proper z-order
+        ImageGalleryDialog(
+            visible = showImageGallery || showImageViewer,
+            images = if (showImageViewer && selectedImageUrl != null) {
+                listOf(selectedImageUrl).filterNotNull()
+            } else {
+                galleryImages
+            },
+            initialIndex = if (showImageViewer) 0 else galleryInitialIndex,
+            onDismiss = {
+                showImageGallery = false
+                showImageViewer = false
+                galleryImages = emptyList()
+                galleryInitialIndex = 0
+                selectedImageUrl = null
+            }
+        )
     }
 }
 
