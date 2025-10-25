@@ -123,6 +123,17 @@ fun PostDetailScreen(
                             )
                         }
                     },
+                    actions = {
+                        // Only show delete option if current user is the post author
+                        if (currentUserId != null && currentUserId == post?.publisherInfo?.id) {
+                            IconButton(onClick = { showDeleteDialog = true }) {
+                                Icon(
+                                    imageVector = AppIcons.Delete,
+                                    contentDescription = "删除帖子"
+                                )
+                            }
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface,
                         titleContentColor = MaterialTheme.colorScheme.onSurface
@@ -282,7 +293,14 @@ fun PostDetailScreen(
             }
 
             // 底部悬浮的评论组件
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        horizontal = Dimensions.buttonHeightLarge,
+                        vertical = Dimensions.spaceMedium
+                    )
+            ) {
                 // 悬浮按钮 - 无动画显示
                 if (!showCommentDialog) {
                     FloatingActionButton(
@@ -297,10 +315,6 @@ fun PostDetailScreen(
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(
-                                horizontal = Dimensions.buttonHeightLarge,
-                                vertical = Dimensions.spaceMedium
-                            )
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 16.dp),
@@ -330,10 +344,6 @@ fun PostDetailScreen(
                     ),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(
-                            horizontal = Dimensions.buttonHeightLarge,
-                            vertical = Dimensions.spaceMedium
-                        )
                 ) {
                     // 评论编辑器状态 - 小而美设计，与界面边框保持间隔
                     Surface(
@@ -684,12 +694,12 @@ fun PostContent(
 
                 // 话题标签
                 if (post.topics.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = Dimensions.spaceMedium)
+                            .padding(top = Dimensions.spaceMedium)
                     ) {
                         post.topics.forEach { tag ->
                             AssistChip(
@@ -715,15 +725,13 @@ fun PostContent(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-
                 // 底部操作按钮 - Compact design
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = Dimensions.spaceMedium)
-                        .padding(bottom = Dimensions.spaceMedium)
+                        .padding(top = Dimensions.spaceMedium, bottom = Dimensions.spaceMedium)
                 ) {
                     // 点赞按钮
                     OutlinedButton(
