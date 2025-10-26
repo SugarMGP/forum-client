@@ -9,7 +9,7 @@ class ForumRepository(private val api: ForumApi) {
     suspend fun getProfile(id: Long? = null): AjaxResult<GetUserProfileResponse> =
         api.getProfile(id)
 
-    suspend fun updateProfile(request: UpdateUserProfileRequest): AjaxResultVoid =
+    suspend fun updateProfile(request: UpdateUserProfileRequest): AjaxResult<ModerationResultResponse> =
         api.updateMyProfile(request)
 
     suspend fun updateNoticeSettings(request: UpdateNoticeSettingsRequest): AjaxResultVoid =

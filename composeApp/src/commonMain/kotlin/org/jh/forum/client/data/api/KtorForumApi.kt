@@ -26,7 +26,7 @@ class KtorForumApi(private val client: HttpClient, private val baseUrl: String) 
             parameter("id", id)
         }.body()
 
-    override suspend fun updateMyProfile(request: UpdateUserProfileRequest): AjaxResultVoid =
+    override suspend fun updateMyProfile(request: UpdateUserProfileRequest): AjaxResult<ModerationResultResponse> =
         client.put(url("/api/user/profile")) {
             contentType(ContentType.Application.Json)
             setBody(request)
