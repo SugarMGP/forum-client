@@ -15,6 +15,7 @@ import org.jh.forum.client.ui.viewmodel.AuthViewModel
 import org.jh.forum.client.ui.viewmodel.CommentViewModel
 import org.jh.forum.client.ui.viewmodel.PostListViewModel
 import org.jh.forum.client.ui.viewmodel.PostViewModel
+import org.jh.forum.client.ui.viewmodel.ReplyViewModel
 
 object AppModule {
     // 基础URL，可根据环境配置修改
@@ -69,5 +70,10 @@ object AppModule {
     // CommentViewModel 单例，用于评论功能
     val commentViewModel: CommentViewModel by lazy {
         CommentViewModel()
+    }
+
+    // ReplyViewModel 单例，用于回复功能
+    val replyViewModel: ReplyViewModel by lazy {
+        ReplyViewModel()
     }
 }

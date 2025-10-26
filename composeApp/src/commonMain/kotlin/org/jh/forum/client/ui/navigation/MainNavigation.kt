@@ -289,6 +289,28 @@ fun MainNavigation(
                         onBack = { navController.popBackStack() },
                         onUserClick = { userId ->
                             navController.navigate("user_profile/$userId")
+                        },
+                        onCommentClick = { commentId ->
+                            navController.navigate("comment_replies/$commentId")
+                        }
+                    )
+                }
+
+                // 评论回复页面
+                composable(
+                    "comment_replies/{commentId}",
+                    enterTransition = { slideInTransition + fadeInTransition },
+                    exitTransition = { fadeOutTransition },
+                    popEnterTransition = { fadeInTransition },
+                    popExitTransition = { slideOutPopTransition + fadeOutTransition }
+                ) {
+                    val commentId = it.savedStateHandle.get<String>("commentId")?.toLongOrNull() ?: 0L
+                    CommentRepliesScreen(
+                        commentId = commentId,
+                        viewModel = AppModule.replyViewModel,
+                        onBack = { navController.popBackStack() },
+                        onUserClick = { userId ->
+                            navController.navigate("user_profile/$userId")
                         }
                     )
                 }

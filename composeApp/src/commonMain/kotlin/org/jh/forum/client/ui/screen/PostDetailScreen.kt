@@ -45,7 +45,8 @@ fun PostDetailScreen(
     viewModel: PostViewModel,
     commentViewModel: CommentViewModel,
     onBack: () -> Unit,
-    onUserClick: (Long) -> Unit = {}
+    onUserClick: (Long) -> Unit = {},
+    onCommentClick: (Long) -> Unit = {}
 ) {
     var post by remember { mutableStateOf<GetPostInfoResponse?>(null) }
     val errorMessage by viewModel.errorMessage.collectAsState()
@@ -270,6 +271,9 @@ fun PostDetailScreen(
                             onImageClick = { imageUrl ->
                                 selectedImageUrl = imageUrl
                                 showImageViewer = true
+                            },
+                            onViewReplies = {
+                                onCommentClick(comment.commentId)
                             },
                             modifier = Modifier.fillMaxWidth()
                         )

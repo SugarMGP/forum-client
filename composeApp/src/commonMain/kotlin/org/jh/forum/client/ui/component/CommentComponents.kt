@@ -34,6 +34,7 @@ fun CommentItem(
     onDelete: (() -> Unit)? = null,
     onUserProfileClick: (Long) -> Unit = {},
     onImageClick: (String) -> Unit = {},
+    onViewReplies: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -185,6 +186,62 @@ fun CommentItem(
                 }
             }
 
+            // Show preview of replies if any
+            if (comment.replies.isNotEmpty()) {
+                Spacer(Modifier.height(Dimensions.spaceSmall))
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Column(
+                        modifier = Modifier.padding(Dimensions.spaceSmall)
+                    ) {
+                        // Show first 2 replies
+                        comment.replies.take(2).forEach { reply ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Text(
+                                    text = "${reply.publisherInfo.nickname ?: "未知用户"}: ",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                                )
+                                Text(
+                                    text = reply.content,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                )
+                            }
+                            Spacer(Modifier.height(Dimensions.spaceExtraSmall))
+                        }
+                        
+                        // Show "view all replies" button if there are replies or if replyCount > 0
+                        if (comment.replyCount > 0 && onViewReplies != null) {
+                            TextButton(
+                                onClick = onViewReplies,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "查看全部 ${comment.replyCount} 条回复",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Icon(
+                                    AppIcons.KeyboardArrowRight,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(Dimensions.iconSmall)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             Spacer(Modifier.height(Dimensions.spaceMedium))
 
             // 时间和互动区
@@ -200,37 +257,63 @@ fun CommentItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                // 点赞按钮
-                FilledTonalIconButton(
-                    onClick = onUpvote,
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(
-                        containerColor = if (comment.isLiked) {
-                            MaterialTheme.colorScheme.primaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant
-                        },
-                        contentColor = if (comment.isLiked) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
-                        modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ThumbUp,
-                            contentDescription = "点赞",
-                            modifier = Modifier.size(Dimensions.iconSmall)
-                        )
-                        if (comment.upvoteCount > 0) {
-                            Text(
-                                text = "${comment.upvoteCount}",
-                                style = MaterialTheme.typography.labelMedium
+                    // Reply button (if callback provided)
+                    if (onViewReplies != null) {
+                        FilledTonalButton(
+                            onClick = onViewReplies,
+                            modifier = Modifier.height(Dimensions.buttonHeightSmall),
+                            shape = MaterialTheme.shapes.small
+                        ) {
+                            Icon(
+                                AppIcons.Comment,
+                                contentDescription = "回复",
+                                modifier = Modifier.size(Dimensions.iconSmall)
                             )
+                            if (comment.replyCount > 0) {
+                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                                Text(
+                                    text = "${comment.replyCount}",
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+                        }
+                    }
+
+                    // 点赞按钮
+                    FilledTonalIconButton(
+                        onClick = onUpvote,
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = if (comment.isLiked) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
+                            contentColor = if (comment.isLiked) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
+                            modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ThumbUp,
+                                contentDescription = "点赞",
+                                modifier = Modifier.size(Dimensions.iconSmall)
+                            )
+                            if (comment.upvoteCount > 0) {
+                                Text(
+                                    text = "${comment.upvoteCount}",
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
                         }
                     }
                 }
