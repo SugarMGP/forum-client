@@ -16,8 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.CommentElement
+import org.jh.forum.client.di.AppModule
+import org.jh.forum.client.ui.screen.ImagePicker
+import org.jh.forum.client.ui.screen.LocalImagePickerClick
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
@@ -237,10 +241,14 @@ fun CommentItem(
 
 @Composable
 fun CommentEditor(
-    onSubmit: (String) -> Unit,
+    onSubmit: (String, String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var text by remember { mutableStateOf("") }
+    var selectedImage by remember { mutableStateOf<String?>(null) }
+    var isUploadingImage by remember { mutableStateOf(false) }
+    
+    val postViewModel = AppModule.postViewModel
 
     // 使用紧凑布局的评论编辑器
     Column(
@@ -262,35 +270,110 @@ fun CommentEditor(
             )
         )
 
+        // 图片预览（如果有）
+        if (selectedImage != null) {
+            Spacer(Modifier.height(Dimensions.spaceSmall))
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(MaterialTheme.shapes.medium)
+            ) {
+                AsyncImage(
+                    model = selectedImage,
+                    contentDescription = "评论图片",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp),
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.9f),
+                    shape = CircleShape
+                ) {
+                    IconButton(
+                        onClick = { selectedImage = null },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            AppIcons.Close,
+                            contentDescription = "移除图片",
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+        }
+
         // 缩小间距
         Spacer(Modifier.height(Dimensions.spaceSmall))
 
-        // 更紧凑的发布按钮 - Enhanced design
-        FilledTonalButton(
-            onClick = {
-                if (text.isNotBlank()) {
-                    onSubmit(text)
-                    text = ""
-                }
-            },
-            enabled = text.isNotBlank(),
-            modifier = Modifier.align(Alignment.End),
-            shape = MaterialTheme.shapes.medium,
-            colors = ButtonDefaults.filledTonalButtonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+        // 底部按钮栏
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
+            // 添加图片按钮
+            ImagePicker(
+                onImageSelected = { bytes, filename ->
+                    isUploadingImage = true
+                    postViewModel.uploadImage(bytes, filename) { url ->
+                        isUploadingImage = false
+                        if (url != null) {
+                            selectedImage = url
+                        }
+                    }
+                },
+                enabled = !isUploadingImage && selectedImage == null
             ) {
-                Icon(
-                    AppIcons.Send,
-                    contentDescription = "发布",
-                    modifier = Modifier.size(Dimensions.iconSmall)
+                FilledTonalIconButton(
+                    onClick = LocalImagePickerClick.current,
+                    enabled = !isUploadingImage && selectedImage == null
+                ) {
+                    if (isUploadingImage) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            AppIcons.Image,
+                            contentDescription = "添加图片",
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+
+            // 更紧凑的发布按钮 - Enhanced design
+            FilledTonalButton(
+                onClick = {
+                    if (text.isNotBlank()) {
+                        onSubmit(text, selectedImage)
+                        text = ""
+                        selectedImage = null
+                    }
+                },
+                enabled = text.isNotBlank(),
+                shape = MaterialTheme.shapes.medium,
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-                Text("发布", style = MaterialTheme.typography.labelLarge)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
+                ) {
+                    Icon(
+                        AppIcons.Send,
+                        contentDescription = "发布",
+                        modifier = Modifier.size(Dimensions.iconSmall)
+                    )
+                    Text("发布", style = MaterialTheme.typography.labelLarge)
+                }
             }
         }
     }

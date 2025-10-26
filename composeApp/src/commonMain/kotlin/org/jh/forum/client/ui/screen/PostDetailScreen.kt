@@ -414,8 +414,8 @@ fun PostDetailScreen(
 
                                 // 评论编辑器
                                 CommentEditor(
-                                    onSubmit = { content ->
-                                        commentViewModel.publishComment(postId, content)
+                                    onSubmit = { content, picture ->
+                                        commentViewModel.publishComment(postId, content, picture)
                                         showCommentDialog = false
                                     },
                                     modifier = Modifier
