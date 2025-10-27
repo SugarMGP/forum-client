@@ -66,7 +66,7 @@ fun ImageGrid(
                             Text(
                                 text = "+${totalPictures - 1}",
                                 style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.onPrimary
+                                color = androidx.compose.ui.graphics.Color.White
                             )
                         }
                     }
@@ -105,7 +105,7 @@ fun ImageGrid(
                                     Text(
                                         text = "+${totalPictures - displayImages.size}",
                                         style = MaterialTheme.typography.titleLarge,
-                                        color = MaterialTheme.colorScheme.onPrimary
+                                        color = androidx.compose.ui.graphics.Color.White
                                     )
                                 }
                             }
@@ -159,7 +159,7 @@ fun ImageGrid(
                                                 Text(
                                                     text = "+${totalPictures - displayImages.size}",
                                                     style = MaterialTheme.typography.titleLarge,
-                                                    color = MaterialTheme.colorScheme.onPrimary
+                                                    color = androidx.compose.ui.graphics.Color.White
                                                 )
                                             }
                                         }

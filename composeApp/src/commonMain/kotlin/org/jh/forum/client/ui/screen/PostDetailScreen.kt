@@ -712,7 +712,7 @@ fun PostContent(
                                                             Text(
                                                                 text = "+${post.pictures.size - displayImages.size}",
                                                                 style = MaterialTheme.typography.titleLarge,
-                                                                color = MaterialTheme.colorScheme.onPrimary
+                                                                color = androidx.compose.ui.graphics.Color.White
                                                             )
                                                         }
                                                     }
