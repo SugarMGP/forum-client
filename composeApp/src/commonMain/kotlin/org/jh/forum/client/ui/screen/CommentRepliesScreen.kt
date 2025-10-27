@@ -1,10 +1,13 @@
 package org.jh.forum.client.ui.screen
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.More
 import androidx.compose.material.icons.filled.Delete
@@ -15,7 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jh.forum.client.data.model.CommentInfoResponse
 import org.jh.forum.client.data.model.ReplyElement
 import org.jh.forum.client.di.AppModule
@@ -25,7 +30,7 @@ import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.ReplyViewModel
 import org.jh.forum.client.util.TimeUtils
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun CommentRepliesScreen(
     commentId: Long,
@@ -45,163 +50,275 @@ fun CommentRepliesScreen(
     val authViewModel = AppModule.authViewModel
     val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
 
+    val listState = rememberLazyListState()
+
     LaunchedEffect(commentId) {
         viewModel.loadReplies(commentId, true)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("评论详情") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(AppIcons.ArrowBack, contentDescription = "返回")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
+    // Auto-pagination logic
+    LaunchedEffect(listState, isLoading, hasMore) {
+        snapshotFlow {
+            val layout = listState.layoutInfo
+            val visible = layout.visibleItemsInfo
+            val lastVisibleIndex = visible.lastOrNull()?.index ?: -1
+            val totalCount = layout.totalItemsCount
+            Triple(lastVisibleIndex, totalCount, visible.size)
         }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(bottom = Dimensions.spaceMedium),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
-        ) {
-            // Original comment
-            item {
-                commentInfo?.let { comment ->
-                    OriginalCommentItem(
-                        comment = comment,
-                        onUpvote = { viewModel.upvoteComment(commentId) },
-                        onUserProfileClick = {
-                            comment.publisherInfo.id?.let { onUserClick(it) }
-                        },
-                        onReply = {
-                            replyTarget = null
-                            showReplyDialog = true
-                        }
-                    )
+            .distinctUntilChanged()
+            .collect { (lastVisible, totalCount, visibleSize) ->
+                if (!hasMore || isLoading) return@collect
+                if (totalCount <= 0 || lastVisible < 0) return@collect
+
+                val threshold = 3
+                if (lastVisible >= totalCount - 1 - threshold && lastVisible < totalCount) {
+                    viewModel.loadReplies(commentId)
                 }
             }
+    }
 
-            // Replies header
-            item {
-                Text(
-                    text = "回复（${replies.size}）",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(
-                        horizontal = Dimensions.spaceMedium,
-                        vertical = Dimensions.spaceSmall
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("评论详情") },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(AppIcons.ArrowBack, contentDescription = "返回")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
-            }
-
-            // Replies list
-            if (replies.isEmpty() && !isLoading) {
+            },
+            modifier = Modifier.fillMaxSize()
+        ) { paddingValues ->
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentPadding = PaddingValues(bottom = Dimensions.spaceMedium),
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+            ) {
+                // Original comment
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(Dimensions.spaceMedium),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "暂无回复",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    commentInfo?.let { comment ->
+                        OriginalCommentItem(
+                            comment = comment,
+                            onUpvote = { viewModel.upvoteComment(commentId) },
+                            onUserProfileClick = {
+                                comment.publisherInfo.id?.let { onUserClick(it) }
+                            },
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
-            }
 
-            if (replies.isNotEmpty()) {
-                items(
-                    items = replies,
-                    key = { reply -> reply.replyId }
-                ) { reply ->
-                    ReplyItem(
-                        reply = reply,
-                        onUpvote = { viewModel.upvoteReply(reply.replyId) },
-                        onDelete = if (currentUserId != null && currentUserId == reply.publisherInfo.id) {
-                            { viewModel.deleteReply(reply.replyId) }
-                        } else null,
-                        onUserProfileClick = { userId ->
-                            onUserClick(userId)
-                        },
-                        onReply = {
-                            replyTarget = reply
-                            showReplyDialog = true
-                        }
+                // Replies header
+                item {
+                    Text(
+                        text = "回复（${replies.size}）",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(
+                            horizontal = Dimensions.spaceMedium,
+                            vertical = Dimensions.spaceSmall
+                        )
                     )
                 }
-            }
 
-            // Loading indicator
-            if (isLoading) {
+                // Empty state
+                if (replies.isEmpty() && !isLoading) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(Dimensions.spaceMedium),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "暂无回复",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                // Replies list
+                if (replies.isNotEmpty()) {
+                    items(
+                        items = replies,
+                        key = { reply -> reply.replyId }
+                    ) { reply ->
+                        ReplyItem(
+                            reply = reply,
+                            onUpvote = { viewModel.upvoteReply(reply.replyId) },
+                            onDelete = if (currentUserId != null && currentUserId == reply.publisherInfo.id) {
+                                { viewModel.deleteReply(reply.replyId) }
+                            } else null,
+                            onUserProfileClick = { userId ->
+                                onUserClick(userId)
+                            },
+                            onReply = {
+                                replyTarget = reply
+                                showReplyDialog = true
+                            }
+                        )
+                    }
+                }
+
+                // Bottom space for FAB
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(Dimensions.spaceMedium),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(Dimensions.avatarExtraLarge))
+                }
+
+                // Loading indicator
+                if (isLoading) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(Dimensions.spaceMedium),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+
+                // Error message
+                if (errorMessage != null) {
+                    item {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(Dimensions.spaceMedium),
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape = MaterialTheme.shapes.small
+                        ) {
+                            Text(
+                                errorMessage ?: "",
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(Dimensions.spaceMedium)
+                            )
+                        }
                     }
                 }
             }
 
-            // Error message
-            if (errorMessage != null) {
-                item {
+            // Floating reply editor - same pattern as PostDetailScreen
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        horizontal = Dimensions.buttonHeightLarge,
+                        vertical = Dimensions.spaceMedium
+                    )
+            ) {
+                // Floating action button
+                if (!showReplyDialog) {
+                    FloatingActionButton(
+                        onClick = {
+                            replyTarget = null
+                            showReplyDialog = true
+                        },
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        elevation = FloatingActionButtonDefaults.elevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 8.dp,
+                            hoveredElevation = 8.dp
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = AppIcons.Comment,
+                                contentDescription = "发表回复"
+                            )
+                            Text(
+                                text = "回复",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
+                    }
+                }
+
+                // Reply editor - slides up from bottom
+                AnimatedVisibility(
+                    visible = showReplyDialog,
+                    enter = slideInVertically(
+                        initialOffsetY = { fullHeight -> fullHeight + 100 }
+                    ),
+                    exit = slideOutVertically(
+                        targetOffsetY = { fullHeight -> fullHeight + 100 }
+                    ),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                ) {
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(Dimensions.spaceMedium),
-                        color = MaterialTheme.colorScheme.errorContainer,
-                        shape = MaterialTheme.shapes.small
+                            .wrapContentHeight(),
+                        shadowElevation = 8.dp,
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text(
-                            errorMessage ?: "",
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(Dimensions.spaceMedium)
-                        )
+                        Surface(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                            Column {
+                                // Header with title and close button
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        if (replyTarget != null) "回复 @${replyTarget?.publisherInfo?.nickname}" else "回复评论",
+                                        style = MaterialTheme.typography.titleLarge
+                                    )
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                        modifier = Modifier.clickable {
+                                            showReplyDialog = false
+                                            replyTarget = null
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = AppIcons.Close,
+                                            contentDescription = "关闭",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(8.dp)
+                                        )
+                                    }
+                                }
+
+                                Spacer(Modifier.height(12.dp))
+
+                                // Reply editor
+                                CommentEditor(
+                                    onSubmit = { content, picture ->
+                                        viewModel.publishReply(commentId, content, picture, replyTarget?.replyId)
+                                        showReplyDialog = false
+                                        replyTarget = null
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
-    }
-
-    // Reply dialog
-    if (showReplyDialog) {
-        AlertDialog(
-            onDismissRequest = { showReplyDialog = false },
-            title = {
-                Text(
-                    if (replyTarget != null) "回复 @${replyTarget?.publisherInfo?.nickname}" else "回复评论"
-                )
-            },
-            text = {
-                CommentEditor(
-                    onSubmit = { content, picture ->
-                        viewModel.publishReply(commentId, content, picture, replyTarget?.replyId)
-                        showReplyDialog = false
-                        replyTarget = null
-                    }
-                )
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { showReplyDialog = false }) {
-                    Text("取消")
-                }
-            }
-        )
     }
 }
 
@@ -210,7 +327,6 @@ fun OriginalCommentItem(
     comment: CommentInfoResponse,
     onUpvote: () -> Unit,
     onUserProfileClick: () -> Unit,
-    onReply: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -247,27 +363,36 @@ fun OriginalCommentItem(
                         contentScale = ContentScale.Crop
                     )
                     Spacer(Modifier.width(Dimensions.spaceSmall))
-                    Text(
-                        text = comment.publisherInfo.nickname ?: "未知用户",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
-                    )
-                    if (comment.isAuthor) {
-                        Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                        Surface(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = MaterialTheme.shapes.small
-                        ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "楼主",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(
-                                    horizontal = Dimensions.spaceSmall,
-                                    vertical = Dimensions.spaceExtraSmall
-                                )
+                                text = comment.publisherInfo.nickname ?: "未知用户",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
                             )
+                            if (comment.isAuthor) {
+                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                                Surface(
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    shape = MaterialTheme.shapes.small
+                                ) {
+                                    Text(
+                                        text = "楼主",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.padding(
+                                            horizontal = Dimensions.spaceSmall,
+                                            vertical = Dimensions.spaceExtraSmall
+                                        )
+                                    )
+                                }
+                            }
                         }
+                        Text(
+                            text = TimeUtils.formatTime(comment.createdAt),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -299,66 +424,41 @@ fun OriginalCommentItem(
 
             // Actions
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = TimeUtils.formatTime(comment.createdAt),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                // Upvote button
+                FilledTonalIconButton(
+                    onClick = onUpvote,
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = if (comment.isLiked) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
+                        contentColor = if (comment.isLiked) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
                 ) {
-                    // Reply button
-                    FilledTonalButton(
-                        onClick = onReply,
-                        modifier = Modifier.height(Dimensions.buttonHeightSmall),
-                        shape = MaterialTheme.shapes.small
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
+                        modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
                     ) {
                         Icon(
-                            AppIcons.Comment,
-                            contentDescription = "回复",
+                            imageVector = Icons.Default.ThumbUp,
+                            contentDescription = "点赞",
                             modifier = Modifier.size(Dimensions.iconSmall)
                         )
-                        Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                        Text("回复", style = MaterialTheme.typography.labelMedium)
-                    }
-
-                    // Upvote button
-                    FilledTonalIconButton(
-                        onClick = onUpvote,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = if (comment.isLiked) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant
-                            },
-                            contentColor = if (comment.isLiked) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            }
-                        )
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
-                            modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ThumbUp,
-                                contentDescription = "点赞",
-                                modifier = Modifier.size(Dimensions.iconSmall)
+                        if (comment.upvoteCount > 0) {
+                            Text(
+                                text = "${comment.upvoteCount}",
+                                style = MaterialTheme.typography.labelMedium
                             )
-                            if (comment.upvoteCount > 0) {
-                                Text(
-                                    text = "${comment.upvoteCount}",
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            }
                         }
                     }
                 }
@@ -391,7 +491,7 @@ fun ReplyItem(
                 .fillMaxWidth()
                 .padding(Dimensions.spaceMedium)
         ) {
-            // User info
+            // User info with menu
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -439,9 +539,23 @@ fun ReplyItem(
                                 }
                             }
                         }
-                        if (reply.targetUser != null) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (reply.targetUser != null) {
+                                Text(
+                                    text = "回复 @${reply.targetUser?.nickname}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                                Text(
+                                    text = "·",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                            }
                             Text(
-                                text = "回复 @${reply.targetUser?.nickname}",
+                                text = TimeUtils.formatTime(reply.createdAt),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -449,11 +563,15 @@ fun ReplyItem(
                     }
                 }
 
-                // More options
+                // More options menu
                 if (onDelete != null) {
                     Box {
                         IconButton(onClick = { showMenu = true }) {
-                            Icon(Icons.AutoMirrored.Filled.More, "更多选项")
+                            Icon(
+                                Icons.AutoMirrored.Filled.More,
+                                "更多选项",
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
 
                         DropdownMenu(
@@ -502,66 +620,57 @@ fun ReplyItem(
 
             // Actions
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall, Alignment.End),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = TimeUtils.formatTime(reply.createdAt),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                // Reply button
+                FilledTonalButton(
+                    onClick = onReply,
+                    modifier = Modifier.height(Dimensions.buttonHeightSmall),
+                    shape = MaterialTheme.shapes.small
                 ) {
-                    // Reply button
-                    TextButton(
-                        onClick = onReply,
-                        modifier = Modifier.height(Dimensions.buttonHeightSmall)
+                    Icon(
+                        AppIcons.Comment,
+                        contentDescription = "回复",
+                        modifier = Modifier.size(Dimensions.iconSmall)
+                    )
+                    Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                    Text("回复", style = MaterialTheme.typography.labelSmall)
+                }
+
+                // Upvote button
+                FilledTonalIconButton(
+                    onClick = onUpvote,
+                    modifier = Modifier.size(Dimensions.buttonHeightSmall),
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = if (reply.isLiked) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
+                        contentColor = if (reply.isLiked) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
+                        modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
                     ) {
                         Icon(
-                            AppIcons.Comment,
-                            contentDescription = "回复",
+                            imageVector = Icons.Default.ThumbUp,
+                            contentDescription = "点赞",
                             modifier = Modifier.size(Dimensions.iconSmall)
                         )
-                        Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                        Text("回复", style = MaterialTheme.typography.labelSmall)
-                    }
-
-                    // Upvote button
-                    FilledTonalIconButton(
-                        onClick = onUpvote,
-                        modifier = Modifier.size(Dimensions.buttonHeightSmall),
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = if (reply.isLiked) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant
-                            },
-                            contentColor = if (reply.isLiked) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            }
-                        )
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
-                            modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ThumbUp,
-                                contentDescription = "点赞",
-                                modifier = Modifier.size(Dimensions.iconSmall)
+                        if (reply.upvoteCount > 0) {
+                            Text(
+                                text = "${reply.upvoteCount}",
+                                style = MaterialTheme.typography.labelSmall
                             )
-                            if (reply.upvoteCount > 0) {
-                                Text(
-                                    text = "${reply.upvoteCount}",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
                         }
                     }
                 }
