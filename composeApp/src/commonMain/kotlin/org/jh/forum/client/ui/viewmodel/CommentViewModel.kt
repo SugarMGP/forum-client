@@ -53,7 +53,7 @@ class CommentViewModel : ViewModel() {
                     pageSize = 20,
                     id = postId,
                     sortType = "time",
-                    highlightCommentId = if (reset) highlightId else _highlightCommentId.value
+                    highlightCommentId = _highlightCommentId.value
                 )
                 _isLoading.value = false
                 if (result.code == 200 && result.data != null) {

@@ -67,7 +67,7 @@ fun CommentRepliesScreen(
     }
 
     // Auto-pagination logic
-    LaunchedEffect(listState, isLoading, hasMore) {
+    LaunchedEffect(listState, isLoading, hasMore, errorMessage) {
         snapshotFlow {
             val layout = listState.layoutInfo
             val visible = layout.visibleItemsInfo
@@ -77,7 +77,8 @@ fun CommentRepliesScreen(
         }
             .distinctUntilChanged()
             .collect { (lastVisible, totalCount, visibleSize) ->
-                if (!hasMore || isLoading) return@collect
+                // Prevent retry on error
+                if (!hasMore || isLoading || errorMessage != null) return@collect
                 if (totalCount <= 0 || lastVisible < 0) return@collect
 
                 val threshold = 3

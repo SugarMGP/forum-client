@@ -86,7 +86,7 @@ fun PostDetailScreen(
     var showCommentDialog by remember { mutableStateOf(false) }
 
     // 自动翻页逻辑：当最后可见项接近总数时触发加载下一页
-    LaunchedEffect(listState, isCommentLoading, commentHasMore) {
+    LaunchedEffect(listState, isCommentLoading, commentHasMore, commentError) {
         snapshotFlow {
             val layout = listState.layoutInfo
             val visible = layout.visibleItemsInfo
@@ -97,8 +97,8 @@ fun PostDetailScreen(
             // 减少频繁触发：只在值发生变化时继续
             .distinctUntilChanged()
             .collect { (lastVisible, totalCount, visibleSize) ->
-                // Safety checks to prevent crashes
-                if (!commentHasMore || isCommentLoading) return@collect
+                // Safety checks to prevent crashes and retries on error
+                if (!commentHasMore || isCommentLoading || commentError != null) return@collect
                 if (totalCount <= 0 || lastVisible < 0) return@collect
 
                 // Only trigger load if we're not already at the end and have more items to load
