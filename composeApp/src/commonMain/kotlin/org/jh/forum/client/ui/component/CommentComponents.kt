@@ -1,5 +1,6 @@
 package org.jh.forum.client.ui.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -20,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.delay
 import org.jh.forum.client.data.model.CommentElement
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.theme.AppIcons
@@ -35,9 +37,25 @@ fun CommentItem(
     onUserProfileClick: (Long) -> Unit = {},
     onImageClick: (String) -> Unit = {},
     onViewReplies: (() -> Unit)? = null,
+    isHighlighted: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    
+    // Blink animation for highlighted comment
+    var highlightAlpha by remember(isHighlighted) { mutableStateOf(if (isHighlighted) 1f else 0f) }
+    
+    LaunchedEffect(isHighlighted) {
+        if (isHighlighted) {
+            // Blink 3 times
+            repeat(3) {
+                highlightAlpha = 1f
+                kotlinx.coroutines.delay(300)
+                highlightAlpha = 0f
+                kotlinx.coroutines.delay(300)
+            }
+        }
+    }
 
     Surface(
         modifier = modifier
@@ -54,11 +72,12 @@ fun CommentItem(
         shape = MaterialTheme.shapes.medium,
         tonalElevation = Dimensions.elevationSmall
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimensions.spaceMedium)
-        ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Dimensions.spaceMedium)
+            ) {
             // 用户信息和更多选项
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -302,6 +321,19 @@ fun CommentItem(
                         )
                     }
                 }
+            }
+            }  // Close Column
+            
+            // Highlight overlay for blink animation
+            if (highlightAlpha > 0f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = highlightAlpha * 0.2f),
+                            shape = MaterialTheme.shapes.medium
+                        )
+                )
             }
         }
     }

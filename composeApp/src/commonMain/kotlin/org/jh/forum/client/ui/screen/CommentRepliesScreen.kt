@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -61,8 +62,8 @@ fun CommentRepliesScreen(
 
     val listState = rememberLazyListState()
 
-    LaunchedEffect(commentId) {
-        viewModel.loadReplies(commentId, true)
+    LaunchedEffect(commentId, highlightReplyId) {
+        viewModel.loadReplies(commentId, true, highlightReplyId)
     }
 
     // Auto-pagination logic
@@ -166,6 +167,7 @@ fun CommentRepliesScreen(
                         items = replies,
                         key = { reply -> reply.replyId }
                     ) { reply ->
+                        val isHighlighted = highlightReplyId != null && reply.replyId == highlightReplyId
                         ReplyItem(
                             reply = reply,
                             onUpvote = { viewModel.upvoteReply(reply.replyId) },
@@ -182,7 +184,8 @@ fun CommentRepliesScreen(
                             onReply = {
                                 replyTarget = reply
                                 showReplyDialog = true
-                            }
+                            },
+                            isHighlighted = isHighlighted
                         )
                     }
                 }
@@ -519,9 +522,25 @@ fun ReplyItem(
     onUserProfileClick: (Long) -> Unit = {},
     onImageClick: (String) -> Unit = {},
     onReply: () -> Unit,
+    isHighlighted: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    
+    // Blink animation for highlighted reply
+    var highlightAlpha by remember(isHighlighted) { mutableStateOf(if (isHighlighted) 1f else 0f) }
+    
+    LaunchedEffect(isHighlighted) {
+        if (isHighlighted) {
+            // Blink 3 times
+            repeat(3) {
+                highlightAlpha = 1f
+                kotlinx.coroutines.delay(300)
+                highlightAlpha = 0f
+                kotlinx.coroutines.delay(300)
+            }
+        }
+    }
 
     Surface(
         modifier = modifier
@@ -531,11 +550,12 @@ fun ReplyItem(
         shape = MaterialTheme.shapes.medium,
         tonalElevation = Dimensions.elevationSmall
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimensions.spaceMedium)
-        ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Dimensions.spaceMedium)
+            ) {
             // User info with menu
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -728,6 +748,19 @@ fun ReplyItem(
                         )
                     }
                 }
+            }
+            }  // Close Column
+            
+            // Highlight overlay for blink animation
+            if (highlightAlpha > 0f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = highlightAlpha * 0.2f),
+                            shape = MaterialTheme.shapes.medium
+                        )
+                )
             }
         }
     }

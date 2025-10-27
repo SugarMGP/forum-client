@@ -33,12 +33,16 @@ class ReplyViewModel : ViewModel() {
 
     private val _hasMore = MutableStateFlow(true)
     val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
+    
+    private val _highlightReplyId = MutableStateFlow<Long?>(null)
+    val highlightReplyId: StateFlow<Long?> = _highlightReplyId.asStateFlow()
 
-    fun loadReplies(commentId: Long, reset: Boolean = false) {
+    fun loadReplies(commentId: Long, reset: Boolean = false, highlightId: Long? = null) {
         if (reset) {
             _currentPage.value = 1
             _replies.value = emptyList()
             _hasMore.value = true
+            _highlightReplyId.value = highlightId
         }
 
         if (!_hasMore.value || _isLoading.value) return
@@ -52,7 +56,7 @@ class ReplyViewModel : ViewModel() {
                     page = _currentPage.value,
                     pageSize = 20,
                     id = commentId,
-                    highlightReplyId = null
+                    highlightReplyId = highlightId
                 )
                 _isLoading.value = false
                 if (result.code == 200 && result.data != null) {

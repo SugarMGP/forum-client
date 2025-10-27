@@ -68,14 +68,14 @@ fun PostDetailScreen(
     val authViewModel = AppModule.authViewModel
     val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
 
-    LaunchedEffect(postId) {
+    LaunchedEffect(postId, highlightCommentId) {
         // Clear any previous errors when navigating to a new post
         viewModel.clearError()
         viewModel.getPost(postId) { result ->
             post = result
             // Only load comments if post loaded successfully
             if (result != null) {
-                commentViewModel.loadComments(postId, true)
+                commentViewModel.loadComments(postId, true, highlightCommentId)
             }
         }
         listState.scrollToItem(0)
@@ -258,6 +258,7 @@ fun PostDetailScreen(
                         items = comments,
                         key = { comment -> comment.commentId }
                     ) { comment ->
+                        val isHighlighted = highlightCommentId != null && comment.commentId == highlightCommentId
                         CommentItem(
                             comment = comment,
                             onUpvote = { commentViewModel.upvoteComment(comment.commentId) },
@@ -277,6 +278,7 @@ fun PostDetailScreen(
                             onViewReplies = {
                                 onCommentClick(comment.commentId)
                             },
+                            isHighlighted = isHighlighted,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }

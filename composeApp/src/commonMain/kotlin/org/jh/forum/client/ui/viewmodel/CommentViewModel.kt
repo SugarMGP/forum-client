@@ -29,12 +29,16 @@ class CommentViewModel : ViewModel() {
 
     private val _hasMore = MutableStateFlow(true)
     val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
+    
+    private val _highlightCommentId = MutableStateFlow<Long?>(null)
+    val highlightCommentId: StateFlow<Long?> = _highlightCommentId.asStateFlow()
 
-    fun loadComments(postId: Long, reset: Boolean = false) {
+    fun loadComments(postId: Long, reset: Boolean = false, highlightId: Long? = null) {
         if (reset) {
             _currentPage.value = 1
             _comments.value = emptyList()
             _hasMore.value = true
+            _highlightCommentId.value = highlightId
         }
 
         if (!_hasMore.value || _isLoading.value) return
@@ -49,7 +53,7 @@ class CommentViewModel : ViewModel() {
                     pageSize = 20,
                     id = postId,
                     sortType = "hot",
-                    highlightCommentId = 0
+                    highlightCommentId = highlightId
                 )
                 _isLoading.value = false
                 if (result.code == 200 && result.data != null) {
