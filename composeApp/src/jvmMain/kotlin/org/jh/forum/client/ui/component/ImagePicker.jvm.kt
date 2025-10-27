@@ -1,4 +1,4 @@
-package org.jh.forum.client.ui.screen
+package org.jh.forum.client.ui.component
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope

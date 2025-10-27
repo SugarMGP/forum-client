@@ -22,8 +22,6 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.CommentElement
 import org.jh.forum.client.di.AppModule
-import org.jh.forum.client.ui.screen.ImagePicker
-import org.jh.forum.client.ui.screen.LocalImagePickerClick
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils

@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
 import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.ui.component.ImageGalleryDialog
+import org.jh.forum.client.ui.component.ImagePicker
+import org.jh.forum.client.ui.component.LocalImagePickerClick
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.PostViewModel
@@ -35,17 +37,6 @@ import org.jh.forum.client.ui.viewmodel.PostViewModel
 fun calculateRows(itemCount: Int): Int {
     return if (itemCount <= 3) 1 else if (itemCount <= 6) 2 else 3
 }
-
-// Platform-specific image picker implementation
-@Composable
-expect fun ImagePicker(
-    onImageSelected: (ByteArray, String) -> Unit,
-    enabled: Boolean = true,
-    content: @Composable () -> Unit
-)
-
-// CompositionLocal for providing the image picker click handler (for platforms that need it)
-expect val LocalImagePickerClick: androidx.compose.runtime.ProvidableCompositionLocal<() -> Unit>
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

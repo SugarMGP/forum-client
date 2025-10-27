@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.UpdateUserProfileRequest
 import org.jh.forum.client.di.AppModule
+import org.jh.forum.client.ui.component.ImagePicker
+import org.jh.forum.client.ui.component.LocalImagePickerClick
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
