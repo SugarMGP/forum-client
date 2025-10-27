@@ -162,6 +162,12 @@ fun MainNavigation(
                         repository = repository,
                         onUserClick = { userId ->
                             navController.navigate("user_profile/$userId")
+                        },
+                        onPostClick = { postId ->
+                            navController.navigate("post_detail/$postId")
+                        },
+                        onCommentClick = { commentId ->
+                            navController.navigate("comment_replies/$commentId")
                         }
                     )
                 }

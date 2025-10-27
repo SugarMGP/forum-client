@@ -32,7 +32,9 @@ import kotlin.time.ExperimentalTime
 @Composable
 fun MessagesScreen(
     repository: ForumRepository,
-    onUserClick: (Long) -> Unit = {}
+    onUserClick: (Long) -> Unit = {},
+    onPostClick: (Long) -> Unit = {},
+    onCommentClick: (Long) -> Unit = {}
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -430,7 +432,9 @@ fun MessagesScreen(
                         items(messages) {
                             MessageItem(
                                 message = it,
-                                onUserClick = onUserClick
+                                onUserClick = onUserClick,
+                                onPostClick = onPostClick,
+                                onCommentClick = onCommentClick
                             )
                         }
 
@@ -501,10 +505,20 @@ fun MessagesScreen(
 @Composable
 fun MessageItem(
     message: GetNoticeListElement,
-    onUserClick: (Long) -> Unit = {}
+    onUserClick: (Long) -> Unit = {},
+    onPostClick: (Long) -> Unit = {},
+    onCommentClick: (Long) -> Unit = {}
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                // Navigate based on the message content
+                when {
+                    message.commentId != null -> onCommentClick(message.commentId)
+                    message.postId != null -> onPostClick(message.postId)
+                }
+            },
         elevation = CardDefaults.cardElevation(
             defaultElevation = Dimensions.elevationSmall,
             pressedElevation = Dimensions.elevationMedium
