@@ -524,7 +524,7 @@ fun MessageItem(
             pressedElevation = Dimensions.elevationMedium
         ),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = MaterialTheme.shapes.large
     ) {
@@ -620,7 +620,7 @@ fun MessageItem(
                         .width(2.dp)
                         .height(36.dp)
                         .background(
-                            color = MaterialTheme.colorScheme.outlineVariant,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                             shape = MaterialTheme.shapes.extraSmall
                         )
                 )
@@ -663,7 +663,7 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
             pressedElevation = Dimensions.elevationMedium
         ),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = MaterialTheme.shapes.large,
         onClick = { isExpanded = !isExpanded }
