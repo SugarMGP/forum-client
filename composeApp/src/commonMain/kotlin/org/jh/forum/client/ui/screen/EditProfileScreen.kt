@@ -45,6 +45,7 @@ fun EditProfileScreen(
 
     var showSuccessMessage by remember { mutableStateOf(false) }
     var showGenderDialog by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
     var isUploadingImage by remember { mutableStateOf(false) }
 
     val postViewModel = AppModule.postViewModel
@@ -354,6 +355,26 @@ fun EditProfileScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true
                             )
+
+                            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+
+                            // Birthday field with click to open date picker
+                            OutlinedTextField(
+                                value = birthday,
+                                onValueChange = { },
+                                label = { Text("生日") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showDatePicker = true },
+                                enabled = false,
+                                readOnly = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                ),
+                                placeholder = { Text("选择生日日期") }
+                            )
                         }
                     }
                 }
@@ -506,6 +527,102 @@ fun EditProfileScreen(
             }
         }
 
+        // Date picker dialog for birthday
+        if (showDatePicker) {
+            var selectedYear by remember { mutableStateOf(2000) }
+            var selectedMonth by remember { mutableStateOf(1) }
+            var selectedDay by remember { mutableStateOf(1) }
+
+            // Parse current birthday if exists
+            LaunchedEffect(birthday) {
+                if (birthday.isNotBlank()) {
+                    try {
+                        val parts = birthday.split("-")
+                        if (parts.size == 3) {
+                            selectedYear = parts[0].toInt()
+                            selectedMonth = parts[1].toInt()
+                            selectedDay = parts[2].toInt()
+                        }
+                    } catch (e: Exception) {
+                        // Use defaults if parsing fails
+                    }
+                }
+            }
+
+            AlertDialog(
+                onDismissRequest = { showDatePicker = false },
+                title = { Text("选择生日") },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                    ) {
+                        // Year selector (1900 to current year)
+                        val currentYear = java.time.LocalDate.now().year
+                        OutlinedTextField(
+                            value = selectedYear.toString(),
+                            onValueChange = {
+                                it.toIntOrNull()?.let { year ->
+                                    if (year in 1900..currentYear) selectedYear = year
+                                }
+                            },
+                            label = { Text("年") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+
+                        // Month selector (1-12)
+                        OutlinedTextField(
+                            value = selectedMonth.toString(),
+                            onValueChange = {
+                                it.toIntOrNull()?.let { month ->
+                                    if (month in 1..12) selectedMonth = month
+                                }
+                            },
+                            label = { Text("月") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+
+                        // Day selector (1-31)
+                        OutlinedTextField(
+                            value = selectedDay.toString(),
+                            onValueChange = {
+                                it.toIntOrNull()?.let { day ->
+                                    if (day in 1..31) selectedDay = day
+                                }
+                            },
+                            label = { Text("日") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            // Validate date is not today or in the future
+                            val selectedDate = java.time.LocalDate.of(selectedYear, selectedMonth, selectedDay)
+                            val yesterday = java.time.LocalDate.now().minusDays(1)
+                            val minDate = java.time.LocalDate.of(1900, 1, 2)
+                            
+                            if (!selectedDate.isAfter(yesterday) && !selectedDate.isBefore(minDate)) {
+                                birthday = String.format("%04d-%02d-%02d", selectedYear, selectedMonth, selectedDay)
+                                showDatePicker = false
+                            }
+                        }
+                    ) {
+                        Text("确定")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text("取消")
+                    }
+                }
+            )
+        }
+
         // Gender selection dialog
         if (showGenderDialog) {
             AlertDialog(
@@ -555,7 +672,6 @@ fun EditProfileScreen(
         if (showSuccessMessage) {
             kotlinx.coroutines.delay(2000)
             showSuccessMessage = false
-            onNavigateBack()
         }
     }
 }

@@ -317,6 +317,7 @@ fun CommentEditor(
     var text by remember { mutableStateOf("") }
     var selectedImage by remember { mutableStateOf<String?>(null) }
     var isUploadingImage by remember { mutableStateOf(false) }
+    var showImageViewer by remember { mutableStateOf(false) }
 
     val postViewModel = AppModule.postViewModel
 
@@ -347,6 +348,7 @@ fun CommentEditor(
                 modifier = Modifier
                     .size(100.dp)
                     .clip(MaterialTheme.shapes.medium)
+                    .clickable { showImageViewer = true }
             ) {
                 AsyncImage(
                     model = selectedImage,
@@ -446,5 +448,15 @@ fun CommentEditor(
                 }
             }
         }
+    }
+
+    // Image viewer dialog
+    if (selectedImage != null) {
+        ImageGalleryDialog(
+            visible = showImageViewer,
+            images = listOf(selectedImage!!),
+            initialIndex = 0,
+            onDismiss = { showImageViewer = false }
+        )
     }
 }
