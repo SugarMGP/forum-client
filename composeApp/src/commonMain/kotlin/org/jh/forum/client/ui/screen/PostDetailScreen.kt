@@ -76,7 +76,7 @@ fun PostDetailScreen(
             post = result
             // Only load comments if post loaded successfully
             if (result != null) {
-                commentViewModel.loadComments(postId, true, highlightCommentId)
+                commentViewModel.loadComments(postId, true, if (highlightCommentId > 0) highlightCommentId else null)
             }
         }
         listState.scrollToItem(0)
