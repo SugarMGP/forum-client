@@ -33,8 +33,8 @@ import kotlin.time.ExperimentalTime
 fun MessagesScreen(
     repository: ForumRepository,
     onUserClick: (Long) -> Unit = {},
-    onPostClick: (Long) -> Unit = {},
-    onCommentClick: (Long) -> Unit = {}
+    onNavigateToPost: (postId: Long, highlightCommentId: Long?) -> Unit = { _, _ -> },
+    onNavigateToComment: (commentId: Long, highlightReplyId: Long?) -> Unit = { _, _ -> }
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -433,8 +433,8 @@ fun MessagesScreen(
                             MessageItem(
                                 message = it,
                                 onUserClick = onUserClick,
-                                onPostClick = onPostClick,
-                                onCommentClick = onCommentClick
+                                onNavigateToPost = onNavigateToPost,
+                                onNavigateToComment = onNavigateToComment
                             )
                         }
 
@@ -506,17 +506,31 @@ fun MessagesScreen(
 fun MessageItem(
     message: GetNoticeListElement,
     onUserClick: (Long) -> Unit = {},
-    onPostClick: (Long) -> Unit = {},
-    onCommentClick: (Long) -> Unit = {}
+    onNavigateToPost: (postId: Long, highlightCommentId: Long?) -> Unit = { _, _ -> },
+    onNavigateToComment: (commentId: Long, highlightReplyId: Long?) -> Unit = { _, _ -> }
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
                 // Navigate based on the message content
+                // Logic based on web frontend:
+                // If positionType is 'reply', navigate to comment with highlightReplyId
+                // If positionType is 'comment', navigate to post with highlightCommentId
+                // Otherwise navigate to post
                 when {
-                    message.commentId != null -> onCommentClick(message.commentId)
-                    message.postId != null -> onPostClick(message.postId)
+                    message.positionType == "reply" && message.commentId != null -> {
+                        // This is a reply to a reply, navigate to comment replies with highlight
+                        onNavigateToComment(message.commentId, message.newCommentId)
+                    }
+                    message.positionType == "comment" && message.postId != null -> {
+                        // This is a reply to a comment, navigate to post with highlight
+                        onNavigateToPost(message.postId, message.newCommentId)
+                    }
+                    message.postId != null -> {
+                        // Default: navigate to post
+                        onNavigateToPost(message.postId, null)
+                    }
                 }
             },
         elevation = CardDefaults.cardElevation(
@@ -524,7 +538,7 @@ fun MessageItem(
             pressedElevation = Dimensions.elevationMedium
         ),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = MaterialTheme.shapes.large
     ) {

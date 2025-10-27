@@ -43,6 +43,7 @@ import org.jh.forum.client.util.TimeUtils
 @Composable
 fun PostDetailScreen(
     postId: Long,
+    highlightCommentId: Long? = null,
     viewModel: PostViewModel,
     commentViewModel: CommentViewModel,
     onBack: () -> Unit,

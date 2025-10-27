@@ -224,6 +224,13 @@ fun PostListScreen(
     // Pull-to-refresh state
     var isRefreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullToRefreshState()
+    
+    // Monitor loading state to update refresh indicator
+    LaunchedEffect(isLoading) {
+        if (!isLoading && isRefreshing) {
+            isRefreshing = false
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -332,8 +339,6 @@ fun PostListScreen(
                 onRefresh = {
                     isRefreshing = true
                     viewModel.refresh()
-                    // Wait for loading to complete
-                    isRefreshing = false
                 },
                 state = pullRefreshState,
                 modifier = Modifier.fillMaxSize().padding(paddingValues)

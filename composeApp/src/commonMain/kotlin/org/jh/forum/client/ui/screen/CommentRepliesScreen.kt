@@ -40,6 +40,7 @@ import org.jh.forum.client.util.TimeUtils
 @Composable
 fun CommentRepliesScreen(
     commentId: Long,
+    highlightReplyId: Long? = null,
     viewModel: ReplyViewModel,
     onBack: () -> Unit,
     onUserClick: (Long) -> Unit = {}
