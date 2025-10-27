@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.More
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,7 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import kotlinx.coroutines.delay
 import org.jh.forum.client.data.model.CommentElement
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.theme.AppIcons
@@ -41,10 +39,10 @@ fun CommentItem(
     modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
-    
+
     // Blink animation for highlighted comment
     var highlightAlpha by remember(isHighlighted) { mutableStateOf(if (isHighlighted) 1f else 0f) }
-    
+
     LaunchedEffect(isHighlighted) {
         if (isHighlighted) {
             // Blink 3 times
@@ -68,7 +66,7 @@ fun CommentItem(
                     Modifier
                 }
             ),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shape = MaterialTheme.shapes.medium,
         tonalElevation = Dimensions.elevationSmall
     ) {
@@ -78,252 +76,252 @@ fun CommentItem(
                     .fillMaxWidth()
                     .padding(Dimensions.spaceMedium)
             ) {
-            // 用户信息和更多选项
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 头像和用户昵称
+                // 用户信息和更多选项
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .weight(1f, fill = false)
-                        .clickable {
-                            comment.publisherInfo.id?.let {
-                                onUserProfileClick(it)
-                            }
-                        }
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 用户头像
-                    AsyncImage(
-                        model = comment.publisherInfo.avatar,
-                        contentDescription = "用户头像",
+                    // 头像和用户昵称
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .size(Dimensions.avatarMedium)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(Modifier.width(Dimensions.spaceSmall))
-
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (comment.isPinned) {
-                                Icon(
-                                    imageVector = Icons.Default.PushPin,
-                                    contentDescription = "置顶",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(Dimensions.iconSmall)
-                                )
-                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                            }
-                            Text(
-                                text = comment.publisherInfo.nickname ?: "未知用户",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            if (comment.isAuthor) {
-                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                                Surface(
-                                    color = MaterialTheme.colorScheme.primaryContainer,
-                                    shape = MaterialTheme.shapes.small
-                                ) {
-                                    Text(
-                                        text = "楼主",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.padding(
-                                            horizontal = Dimensions.spaceSmall,
-                                            vertical = Dimensions.spaceExtraSmall
-                                        )
-                                    )
+                            .weight(1f, fill = false)
+                            .clickable {
+                                comment.publisherInfo.id?.let {
+                                    onUserProfileClick(it)
                                 }
                             }
-                        }
-                        Text(
-                            text = TimeUtils.formatTime(comment.createdAt),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                // 更多操作菜单
-                if (onPin != null || onDelete != null) {
-                    Box {
-                        IconButton(onClick = { showMenu = true }) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.More,
-                                "更多选项",
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
-                        ) {
-                            onPin?.let {
-                                DropdownMenuItem(
-                                    text = { Text(if (comment.isPinned) "取消置顶" else "置顶") },
-                                    onClick = {
-                                        onPin()
-                                        showMenu = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.PushPin, null)
-                                    }
-                                )
-                            }
-                            onDelete?.let {
-                                DropdownMenuItem(
-                                    text = { Text("删除") },
-                                    onClick = {
-                                        onDelete()
-                                        showMenu = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.Delete, null)
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 评论内容
-            Spacer(Modifier.height(Dimensions.spaceSmall))
-            Text(
-                text = comment.content,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            // 图片展示（如果有）
-            if (comment.pictures.isNotEmpty()) {
-                Spacer(Modifier.height(Dimensions.spaceSmall))
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
-                    contentPadding = PaddingValues(vertical = Dimensions.spaceExtraSmall)
-                ) {
-                    items(comment.pictures) { picture ->
+                    ) {
+                        // 用户头像
                         AsyncImage(
-                            model = picture.url,
-                            contentDescription = "评论图片",
+                            model = comment.publisherInfo.avatar,
+                            contentDescription = "用户头像",
                             modifier = Modifier
-                                .size(Dimensions.imagePreviewMedium)
-                                .clip(MaterialTheme.shapes.medium)
-                                .clickable {
-                                    picture.url?.let { onImageClick(it) }
-                                },
+                                .size(Dimensions.avatarMedium)
+                                .clip(CircleShape),
                             contentScale = ContentScale.Crop
                         )
-                    }
-                }
-            }
+                        Spacer(Modifier.width(Dimensions.spaceSmall))
 
-            // Show preview of replies if any
-            if (comment.replies.isNotEmpty() || comment.replyCount > 0) {
-                Spacer(Modifier.height(Dimensions.spaceSmall))
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    shape = MaterialTheme.shapes.small
-                ) {
-                    Column(
-                        modifier = Modifier.padding(Dimensions.spaceSmall)
-                    ) {
-                        // Show first 2 replies
-                        comment.replies.take(2).forEach { reply ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.Top
-                            ) {
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (comment.isPinned) {
+                                    Icon(
+                                        imageVector = Icons.Default.PushPin,
+                                        contentDescription = "置顶",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(Dimensions.iconSmall)
+                                    )
+                                    Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                                }
                                 Text(
-                                    text = "${reply.publisherInfo.nickname ?: "未知用户"}: ",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Text(
-                                    text = reply.content,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 2,
+                                    text = comment.publisherInfo.nickname ?: "未知用户",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
+                                if (comment.isAuthor) {
+                                    Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                                    Surface(
+                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                        shape = MaterialTheme.shapes.small
+                                    ) {
+                                        Text(
+                                            text = "楼主",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            modifier = Modifier.padding(
+                                                horizontal = Dimensions.spaceSmall,
+                                                vertical = Dimensions.spaceExtraSmall
+                                            )
+                                        )
+                                    }
+                                }
                             }
-                            if (reply != comment.replies.take(2).last()) {
-                                Spacer(Modifier.height(Dimensions.spaceExtraSmall))
-                            }
-                        }
-
-                        // Show reply count text
-                        if (comment.replyCount > 0) {
-                            Spacer(Modifier.height(Dimensions.spaceExtraSmall))
                             Text(
-                                text = "共 ${comment.replyCount} 条回复",
+                                text = TimeUtils.formatTime(comment.createdAt),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
-                }
-            }
 
-            Spacer(Modifier.height(Dimensions.spaceSmall))
+                    // 更多操作菜单
+                    if (onPin != null || onDelete != null) {
+                        Box {
+                            IconButton(onClick = { showMenu = true }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.More,
+                                    "更多选项",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
 
-            // 互动区
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall, Alignment.End),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 点赞按钮 - 使用OutlinedButton匹配帖子列表风格
-                OutlinedButton(
-                    onClick = onUpvote,
-                    modifier = Modifier.height(Dimensions.buttonHeightSmall),
-                    shape = MaterialTheme.shapes.small,
-                    border = ButtonDefaults.outlinedButtonBorder(!comment.isLiked),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = if (comment.isLiked) {
-                            MaterialTheme.colorScheme.primaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant
-                        },
-                        contentColor = if (comment.isLiked) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                            DropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = { showMenu = false }
+                            ) {
+                                onPin?.let {
+                                    DropdownMenuItem(
+                                        text = { Text(if (comment.isPinned) "取消置顶" else "置顶") },
+                                        onClick = {
+                                            onPin()
+                                            showMenu = false
+                                        },
+                                        leadingIcon = {
+                                            Icon(Icons.Default.PushPin, null)
+                                        }
+                                    )
+                                }
+                                onDelete?.let {
+                                    DropdownMenuItem(
+                                        text = { Text("删除") },
+                                        onClick = {
+                                            onDelete()
+                                            showMenu = false
+                                        },
+                                        leadingIcon = {
+                                            Icon(Icons.Default.Delete, null)
+                                        }
+                                    )
+                                }
+                            }
                         }
-                    ),
-                    contentPadding = PaddingValues(
-                        horizontal = Dimensions.spaceMedium,
-                        vertical = Dimensions.spaceSmall
-                    )
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            AppIcons.ThumbUp,
-                            contentDescription = "点赞",
-                            modifier = Modifier.size(Dimensions.iconSmall)
-                        )
-                        Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-                        Text(
-                            text = "${comment.upvoteCount}",
-                            style = MaterialTheme.typography.labelMedium
-                        )
                     }
                 }
-            }
+
+                // 评论内容
+                Spacer(Modifier.height(Dimensions.spaceSmall))
+                Text(
+                    text = comment.content,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                // 图片展示（如果有）
+                if (comment.pictures.isNotEmpty()) {
+                    Spacer(Modifier.height(Dimensions.spaceSmall))
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                        contentPadding = PaddingValues(vertical = Dimensions.spaceExtraSmall)
+                    ) {
+                        items(comment.pictures) { picture ->
+                            AsyncImage(
+                                model = picture.url,
+                                contentDescription = "评论图片",
+                                modifier = Modifier
+                                    .size(Dimensions.imagePreviewMedium)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .clickable {
+                                        picture.url?.let { onImageClick(it) }
+                                    },
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+                }
+
+                // Show preview of replies if any
+                if (comment.replies.isNotEmpty() || comment.replyCount > 0) {
+                    Spacer(Modifier.height(Dimensions.spaceSmall))
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = MaterialTheme.shapes.small
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(Dimensions.spaceSmall)
+                        ) {
+                            // Show first 2 replies
+                            comment.replies.take(2).forEach { reply ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Text(
+                                        text = "${reply.publisherInfo.nickname ?: "未知用户"}: ",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(
+                                        text = reply.content,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                if (reply != comment.replies.take(2).last()) {
+                                    Spacer(Modifier.height(Dimensions.spaceExtraSmall))
+                                }
+                            }
+
+                            // Show reply count text
+                            if (comment.replyCount > 0) {
+                                Spacer(Modifier.height(Dimensions.spaceExtraSmall))
+                                Text(
+                                    text = "共 ${comment.replyCount} 条回复",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(Dimensions.spaceSmall))
+
+                // 互动区
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall, Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 点赞按钮 - 使用OutlinedButton匹配帖子列表风格
+                    OutlinedButton(
+                        onClick = onUpvote,
+                        modifier = Modifier.height(Dimensions.buttonHeightSmall),
+                        shape = MaterialTheme.shapes.small,
+                        border = ButtonDefaults.outlinedButtonBorder(!comment.isLiked),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (comment.isLiked) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
+                            contentColor = if (comment.isLiked) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        ),
+                        contentPadding = PaddingValues(
+                            horizontal = Dimensions.spaceMedium,
+                            vertical = Dimensions.spaceSmall
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                AppIcons.ThumbUp,
+                                contentDescription = "点赞",
+                                modifier = Modifier.size(Dimensions.iconSmall)
+                            )
+                            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                            Text(
+                                text = "${comment.upvoteCount}",
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    }
+                }
             }  // Close Column
-            
+
             // Highlight overlay for blink animation
             if (highlightAlpha > 0f) {
                 Box(

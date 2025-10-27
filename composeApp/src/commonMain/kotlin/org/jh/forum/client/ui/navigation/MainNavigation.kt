@@ -103,8 +103,9 @@ fun MainNavigation(
                     selected = currentDestination?.route?.startsWith(it.route) == true,
                     onClick = {
                         // If clicking home button while already on home, trigger refresh
-                        if (it.route == BottomNavItem.Home.route && 
-                            currentDestination?.route?.startsWith(BottomNavItem.Home.route) == true) {
+                        if (it.route == BottomNavItem.Home.route &&
+                            currentDestination?.route?.startsWith(BottomNavItem.Home.route) == true
+                        ) {
                             homeRefreshTrigger++
                         }
                         navController.navigate(it.route) {

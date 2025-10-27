@@ -607,7 +607,7 @@ fun EditProfileScreen(
                             val selectedDate = java.time.LocalDate.of(selectedYear, selectedMonth, selectedDay)
                             val yesterday = java.time.LocalDate.now().minusDays(1)
                             val minDate = java.time.LocalDate.of(1900, 1, 2)
-                            
+
                             if (!selectedDate.isAfter(yesterday) && !selectedDate.isBefore(minDate)) {
                                 birthday = String.format("%04d-%02d-%02d", selectedYear, selectedMonth, selectedDay)
                                 showDatePicker = false

@@ -3,9 +3,7 @@ package org.jh.forum.client.ui.screen
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -525,10 +523,12 @@ fun MessageItem(
                         // This is a reply to a reply, navigate to comment replies with highlight
                         onNavigateToComment(message.commentId, message.newCommentId)
                     }
+
                     message.positionType == "comment" && message.postId != null -> {
                         // This is a reply to a comment, navigate to post with highlight
                         onNavigateToPost(message.postId, message.newCommentId)
                     }
+
                     message.postId != null -> {
                         // Default: navigate to post
                         onNavigateToPost(message.postId, null)

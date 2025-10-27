@@ -224,7 +224,7 @@ fun PostListScreen(
     // Pull-to-refresh state
     var isRefreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullToRefreshState()
-    
+
     // Monitor loading state to update refresh indicator
     LaunchedEffect(isLoading, isRefreshing) {
         if (!isLoading && isRefreshing) {

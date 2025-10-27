@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.More
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -527,10 +526,10 @@ fun ReplyItem(
     modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
-    
+
     // Blink animation for highlighted reply
     var highlightAlpha by remember(isHighlighted) { mutableStateOf(if (isHighlighted) 1f else 0f) }
-    
+
     LaunchedEffect(isHighlighted) {
         if (isHighlighted) {
             // Blink 3 times
@@ -547,7 +546,7 @@ fun ReplyItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shape = MaterialTheme.shapes.medium,
         tonalElevation = Dimensions.elevationSmall
     ) {
@@ -557,201 +556,201 @@ fun ReplyItem(
                     .fillMaxWidth()
                     .padding(Dimensions.spaceMedium)
             ) {
-            // User info with menu
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                // User info with menu
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .weight(1f, fill = false)
-                        .clickable {
-                            reply.publisherInfo.id?.let { onUserProfileClick(it) }
-                        }
-                ) {
-                    AsyncImage(
-                        model = reply.publisherInfo.avatar,
-                        contentDescription = "用户头像",
-                        modifier = Modifier
-                            .size(Dimensions.avatarMedium)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(Modifier.width(Dimensions.spaceSmall))
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = reply.publisherInfo.nickname ?: "未知用户",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            if (reply.isAuthor) {
-                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                                Surface(
-                                    color = MaterialTheme.colorScheme.primaryContainer,
-                                    shape = MaterialTheme.shapes.small
-                                ) {
-                                    Text(
-                                        text = "楼主",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.padding(
-                                            horizontal = Dimensions.spaceSmall,
-                                            vertical = Dimensions.spaceExtraSmall
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (reply.targetUser != null) {
-                                Text(
-                                    text = "回复 @${reply.targetUser?.nickname}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                                Text(
-                                    text = "·",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                            }
-                            Text(
-                                text = TimeUtils.formatTime(reply.createdAt),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-
-                // More options menu
-                if (onDelete != null) {
-                    Box {
-                        IconButton(onClick = { showMenu = true }) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.More,
-                                "更多选项",
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("删除") },
-                                onClick = {
-                                    onDelete()
-                                    showMenu = false
-                                },
-                                leadingIcon = {
-                                    Icon(Icons.Default.Delete, null)
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Content
-            Spacer(Modifier.height(Dimensions.spaceSmall))
-            Text(
-                text = reply.content,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            // Images
-            if (reply.pictures.isNotEmpty()) {
-                Spacer(Modifier.height(Dimensions.spaceSmall))
-                reply.pictures.forEach { picture ->
-                    AsyncImage(
-                        model = picture.url,
-                        contentDescription = "回复图片",
-                        modifier = Modifier
-                            .size(Dimensions.imagePreviewMedium)
-                            .clip(MaterialTheme.shapes.medium)
-                            .clickable {
-                                picture.url?.let { onImageClick(it) }
-                            },
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(Dimensions.spaceSmall))
-
-            // Actions
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall, Alignment.End),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Reply button
-                FilledTonalButton(
-                    onClick = onReply,
-                    modifier = Modifier.height(Dimensions.buttonHeightSmall),
-                    shape = MaterialTheme.shapes.small
-                ) {
-                    Icon(
-                        AppIcons.Comment,
-                        contentDescription = "回复",
-                        modifier = Modifier.size(Dimensions.iconSmall)
-                    )
-                    Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                    Text("回复", style = MaterialTheme.typography.labelSmall)
-                }
-
-                // Upvote button - 使用OutlinedButton匹配帖子列表风格
-                OutlinedButton(
-                    onClick = onUpvote,
-                    modifier = Modifier.height(Dimensions.buttonHeightSmall),
-                    shape = MaterialTheme.shapes.small,
-                    border = ButtonDefaults.outlinedButtonBorder(!reply.isLiked),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = if (reply.isLiked) {
-                            MaterialTheme.colorScheme.primaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant
-                        },
-                        contentColor = if (reply.isLiked) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    ),
-                    contentPadding = PaddingValues(
-                        horizontal = Dimensions.spaceMedium,
-                        vertical = Dimensions.spaceSmall
-                    )
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .clickable {
+                                reply.publisherInfo.id?.let { onUserProfileClick(it) }
+                            }
                     ) {
-                        Icon(
-                            AppIcons.ThumbUp,
-                            contentDescription = "点赞",
-                            modifier = Modifier.size(Dimensions.iconSmall)
+                        AsyncImage(
+                            model = reply.publisherInfo.avatar,
+                            contentDescription = "用户头像",
+                            modifier = Modifier
+                                .size(Dimensions.avatarMedium)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
                         )
-                        Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-                        Text(
-                            text = "${reply.upvoteCount}",
-                            style = MaterialTheme.typography.labelMedium
+                        Spacer(Modifier.width(Dimensions.spaceSmall))
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = reply.publisherInfo.nickname ?: "未知用户",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                if (reply.isAuthor) {
+                                    Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                                    Surface(
+                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                        shape = MaterialTheme.shapes.small
+                                    ) {
+                                        Text(
+                                            text = "楼主",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            modifier = Modifier.padding(
+                                                horizontal = Dimensions.spaceSmall,
+                                                vertical = Dimensions.spaceExtraSmall
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (reply.targetUser != null) {
+                                    Text(
+                                        text = "回复 @${reply.targetUser?.nickname}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                                    Text(
+                                        text = "·",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                                }
+                                Text(
+                                    text = TimeUtils.formatTime(reply.createdAt),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+
+                    // More options menu
+                    if (onDelete != null) {
+                        Box {
+                            IconButton(onClick = { showMenu = true }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.More,
+                                    "更多选项",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = { showMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("删除") },
+                                    onClick = {
+                                        onDelete()
+                                        showMenu = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.Delete, null)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Content
+                Spacer(Modifier.height(Dimensions.spaceSmall))
+                Text(
+                    text = reply.content,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                // Images
+                if (reply.pictures.isNotEmpty()) {
+                    Spacer(Modifier.height(Dimensions.spaceSmall))
+                    reply.pictures.forEach { picture ->
+                        AsyncImage(
+                            model = picture.url,
+                            contentDescription = "回复图片",
+                            modifier = Modifier
+                                .size(Dimensions.imagePreviewMedium)
+                                .clip(MaterialTheme.shapes.medium)
+                                .clickable {
+                                    picture.url?.let { onImageClick(it) }
+                                },
+                            contentScale = ContentScale.Crop
                         )
                     }
                 }
-            }
+
+                Spacer(Modifier.height(Dimensions.spaceSmall))
+
+                // Actions
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall, Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Reply button
+                    FilledTonalButton(
+                        onClick = onReply,
+                        modifier = Modifier.height(Dimensions.buttonHeightSmall),
+                        shape = MaterialTheme.shapes.small
+                    ) {
+                        Icon(
+                            AppIcons.Comment,
+                            contentDescription = "回复",
+                            modifier = Modifier.size(Dimensions.iconSmall)
+                        )
+                        Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                        Text("回复", style = MaterialTheme.typography.labelSmall)
+                    }
+
+                    // Upvote button - 使用OutlinedButton匹配帖子列表风格
+                    OutlinedButton(
+                        onClick = onUpvote,
+                        modifier = Modifier.height(Dimensions.buttonHeightSmall),
+                        shape = MaterialTheme.shapes.small,
+                        border = ButtonDefaults.outlinedButtonBorder(!reply.isLiked),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (reply.isLiked) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
+                            contentColor = if (reply.isLiked) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        ),
+                        contentPadding = PaddingValues(
+                            horizontal = Dimensions.spaceMedium,
+                            vertical = Dimensions.spaceSmall
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                AppIcons.ThumbUp,
+                                contentDescription = "点赞",
+                                modifier = Modifier.size(Dimensions.iconSmall)
+                            )
+                            Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                            Text(
+                                text = "${reply.upvoteCount}",
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    }
+                }
             }  // Close Column
-            
+
             // Highlight overlay for blink animation
             if (highlightAlpha > 0f) {
                 Box(

@@ -29,7 +29,7 @@ class CommentViewModel : ViewModel() {
 
     private val _hasMore = MutableStateFlow(true)
     val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
-    
+
     private val _highlightCommentId = MutableStateFlow<Long?>(null)
     val highlightCommentId: StateFlow<Long?> = _highlightCommentId.asStateFlow()
 
@@ -189,7 +189,7 @@ class CommentViewModel : ViewModel() {
             }
         }
     }
-    
+
     fun clearComments() {
         _comments.value = emptyList()
         _currentPage.value = 1

@@ -33,7 +33,7 @@ class ReplyViewModel : ViewModel() {
 
     private val _hasMore = MutableStateFlow(true)
     val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
-    
+
     private val _highlightReplyId = MutableStateFlow<Long?>(null)
     val highlightReplyId: StateFlow<Long?> = _highlightReplyId.asStateFlow()
 
