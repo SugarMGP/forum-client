@@ -710,6 +710,7 @@ fun PostContent(
                                                             contentAlignment = Alignment.Center,
                                                             modifier = Modifier
                                                                 .fillMaxSize()
+                                                                .clip(MaterialTheme.shapes.medium)
                                                                 .background(
                                                                     MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f)
                                                                 )

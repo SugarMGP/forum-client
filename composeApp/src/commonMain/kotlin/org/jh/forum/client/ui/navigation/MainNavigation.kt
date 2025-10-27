@@ -14,10 +14,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.*
@@ -304,13 +306,21 @@ fun MainNavigation(
                 // 帖子详情页
                 composable(
                     "post_detail/{postId}?highlightCommentId={highlightCommentId}",
+                    arguments = listOf(
+                        navArgument("postId") { type = NavType.StringType },
+                        navArgument("highlightCommentId") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    ),
                     enterTransition = { slideInTransition + fadeInTransition },
                     exitTransition = { fadeOutTransition },
                     popEnterTransition = { fadeInTransition },
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
-                ) {
-                    val postId = it.savedStateHandle.get<String>("postId")?.toLongOrNull() ?: 0L
-                    val highlightCommentId = it.savedStateHandle.get<String>("highlightCommentId")?.toLongOrNull()
+                ) { backStackEntry ->
+                    val postId = backStackEntry.savedStateHandle.get<String>("postId")?.toLongOrNull() ?: 0L
+                    val highlightCommentId = backStackEntry.savedStateHandle.get<String>("highlightCommentId")?.toLongOrNull()
                     PostDetailScreen(
                         postId = postId,
                         highlightCommentId = highlightCommentId,
@@ -329,13 +339,21 @@ fun MainNavigation(
                 // 评论回复页面
                 composable(
                     "comment_replies/{commentId}?highlightReplyId={highlightReplyId}",
+                    arguments = listOf(
+                        navArgument("commentId") { type = NavType.StringType },
+                        navArgument("highlightReplyId") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    ),
                     enterTransition = { slideInTransition + fadeInTransition },
                     exitTransition = { fadeOutTransition },
                     popEnterTransition = { fadeInTransition },
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
-                ) {
-                    val commentId = it.savedStateHandle.get<String>("commentId")?.toLongOrNull() ?: 0L
-                    val highlightReplyId = it.savedStateHandle.get<String>("highlightReplyId")?.toLongOrNull()
+                ) { backStackEntry ->
+                    val commentId = backStackEntry.savedStateHandle.get<String>("commentId")?.toLongOrNull() ?: 0L
+                    val highlightReplyId = backStackEntry.savedStateHandle.get<String>("highlightReplyId")?.toLongOrNull()
                     CommentRepliesScreen(
                         commentId = commentId,
                         highlightReplyId = highlightReplyId,
