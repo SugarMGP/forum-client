@@ -679,13 +679,27 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = announcement.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
                         modifier = Modifier.weight(1f)
-                    )
+                    ) {
+                        // Show pin indicator for sticky announcements
+                        if (announcement.sticky) {
+                            Icon(
+                                imageVector = AppIcons.PushPin,
+                                contentDescription = "置顶",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(Dimensions.iconSmall)
+                            )
+                        }
+                        Text(
+                            text = announcement.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
 
                     Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
 

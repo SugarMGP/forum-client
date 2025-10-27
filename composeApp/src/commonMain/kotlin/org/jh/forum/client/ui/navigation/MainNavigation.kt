@@ -103,10 +103,10 @@ fun MainNavigation(
                     onClick = {
                         navController.navigate(it.route) {
                             popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+                                inclusive = false
                             }
                             launchSingleTop = true
-                            restoreState = true
+                            restoreState = false
                         }
                     }
                 )
