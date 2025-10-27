@@ -97,7 +97,8 @@ data class UpvotePostResponse(
 @Serializable
 data class LoginRequest(
     val username: String,
-    val password: String
+    val password: String,
+    val deviceType: String
 )
 
 @Serializable

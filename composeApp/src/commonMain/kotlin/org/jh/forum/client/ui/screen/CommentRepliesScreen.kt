@@ -1,6 +1,5 @@
 package org.jh.forum.client.ui.screen
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,9 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jh.forum.client.data.model.CommentInfoResponse
 import org.jh.forum.client.data.model.ReplyElement
 import org.jh.forum.client.di.AppModule

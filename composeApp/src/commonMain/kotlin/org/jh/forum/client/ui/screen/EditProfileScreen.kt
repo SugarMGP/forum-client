@@ -46,7 +46,7 @@ fun EditProfileScreen(
     var showSuccessMessage by remember { mutableStateOf(false) }
     var showGenderDialog by remember { mutableStateOf(false) }
     var isUploadingImage by remember { mutableStateOf(false) }
-    
+
     val postViewModel = AppModule.postViewModel
 
     // Update state when profile loads

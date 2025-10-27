@@ -57,7 +57,7 @@ class ReplyViewModel : ViewModel() {
                 _isLoading.value = false
                 if (result.code == 200 && result.data != null) {
                     val response = result.data
-                    
+
                     // Store comment info
                     _commentInfo.value = response.commentInfo
 

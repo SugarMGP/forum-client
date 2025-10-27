@@ -219,7 +219,7 @@ fun CommentItem(
                             }
                             Spacer(Modifier.height(Dimensions.spaceExtraSmall))
                         }
-                        
+
                         // Show "view all replies" button if there are replies or if replyCount > 0
                         if (comment.replyCount > 0 && onViewReplies != null) {
                             TextButton(
@@ -330,7 +330,7 @@ fun CommentEditor(
     var text by remember { mutableStateOf("") }
     var selectedImage by remember { mutableStateOf<String?>(null) }
     var isUploadingImage by remember { mutableStateOf(false) }
-    
+
     val postViewModel = AppModule.postViewModel
 
     // 使用紧凑布局的评论编辑器
