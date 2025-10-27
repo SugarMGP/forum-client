@@ -43,7 +43,7 @@ import org.jh.forum.client.util.TimeUtils
 @Composable
 fun PostDetailScreen(
     postId: Long,
-    highlightCommentId: Long? = null,
+    highlightCommentId: Long,
     viewModel: PostViewModel,
     commentViewModel: CommentViewModel,
     onBack: () -> Unit,
@@ -96,7 +96,7 @@ fun PostDetailScreen(
         }
             // 减少频繁触发：只在值发生变化时继续
             .distinctUntilChanged()
-            .collect { (lastVisible, totalCount, visibleSize) ->
+            .collect { (lastVisible, totalCount) ->
                 // Safety checks to prevent crashes and retries on error
                 if (!commentHasMore || isCommentLoading || commentError != null) return@collect
                 if (totalCount <= 0 || lastVisible < 0) return@collect
@@ -259,7 +259,7 @@ fun PostDetailScreen(
                         items = comments,
                         key = { comment -> comment.commentId }
                     ) { comment ->
-                        val isHighlighted = highlightCommentId != null && comment.commentId == highlightCommentId
+                        val isHighlighted = comment.commentId == highlightCommentId
                         CommentItem(
                             comment = comment,
                             onUpvote = { commentViewModel.upvoteComment(comment.commentId) },

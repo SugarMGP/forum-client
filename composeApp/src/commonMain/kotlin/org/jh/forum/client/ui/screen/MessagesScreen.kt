@@ -33,8 +33,8 @@ import kotlin.time.ExperimentalTime
 fun MessagesScreen(
     repository: ForumRepository,
     onUserClick: (Long) -> Unit = {},
-    onNavigateToPost: (postId: Long, highlightCommentId: Long?) -> Unit = { _, _ -> },
-    onNavigateToComment: (commentId: Long, highlightReplyId: Long?) -> Unit = { _, _ -> }
+    onNavigateToPost: (postId: Long, highlightCommentId: Long) -> Unit = { _, _ -> },
+    onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -506,32 +506,36 @@ fun MessagesScreen(
 fun MessageItem(
     message: GetNoticeListElement,
     onUserClick: (Long) -> Unit = {},
-    onNavigateToPost: (postId: Long, highlightCommentId: Long?) -> Unit = { _, _ -> },
-    onNavigateToComment: (commentId: Long, highlightReplyId: Long?) -> Unit = { _, _ -> }
+    onNavigateToPost: (postId: Long, highlightCommentId: Long) -> Unit = { _, _ -> },
+    onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable {
-                // Navigate based on the message content
-                // Logic based on web frontend:
-                // If positionType is 'reply', navigate to comment with highlightReplyId
-                // If positionType is 'comment', navigate to post with highlightCommentId
-                // Otherwise navigate to post
+            .clickable(enabled = message.positionContent != null) {
                 when {
-                    message.positionType == "reply" && message.commentId != null -> {
-                        // This is a reply to a reply, navigate to comment replies with highlight
-                        onNavigateToComment(message.commentId, message.newCommentId)
+                    message.type == "comment" -> {
+                        when{
+                            message.positionType == "post" -> {
+                                onNavigateToPost(message.postId, message.newCommentId)
+                            }
+                            else -> {
+                                onNavigateToComment(message.commentId, message.newCommentId)
+                            }
+                        }
                     }
-
-                    message.positionType == "comment" && message.postId != null -> {
-                        // This is a reply to a comment, navigate to post with highlight
-                        onNavigateToPost(message.postId, message.newCommentId)
-                    }
-
-                    message.postId != null -> {
-                        // Default: navigate to post
-                        onNavigateToPost(message.postId, null)
+                    else -> {
+                        when (message.positionType) {
+                            "post" -> {
+                                onNavigateToPost(message.postId, 0L)
+                            }
+                            "comment" -> {
+                                onNavigateToPost(message.postId, message.commentId)
+                            }
+                            "reply" -> {
+                                onNavigateToComment(message.commentId, message.replyId)
+                            }
+                        }
                     }
                 }
             },

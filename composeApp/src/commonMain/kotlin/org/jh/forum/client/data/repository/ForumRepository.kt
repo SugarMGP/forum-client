@@ -44,7 +44,7 @@ class ForumRepository(private val api: ForumApi) {
         page: Int,
         pageSize: Int,
         id: Long,
-        highlightReplyId: Long?
+        highlightReplyId: Long
     ): AjaxResult<GetCommentReplyListResponse> =
         api.getReplyList(page, pageSize, id, highlightReplyId)
 
@@ -59,7 +59,7 @@ class ForumRepository(private val api: ForumApi) {
         pageSize: Int,
         id: Long,
         sortType: String?,
-        highlightCommentId: Long?
+        highlightCommentId: Long
     ): AjaxResult<BaseListResponse<CommentElement>> =
         api.getCommentList(page, pageSize, id, sortType, highlightCommentId)
 

@@ -167,19 +167,11 @@ fun MainNavigation(
                             navController.navigate("user_profile/$userId")
                         },
                         onNavigateToPost = { postId, highlightCommentId ->
-                            val route = if (highlightCommentId != null) {
-                                "post_detail/$postId?highlightCommentId=$highlightCommentId"
-                            } else {
-                                "post_detail/$postId"
-                            }
+                            val route = "post_detail/$postId?highlightCommentId=$highlightCommentId"
                             navController.navigate(route)
                         },
                         onNavigateToComment = { commentId, highlightReplyId ->
-                            val route = if (highlightReplyId != null) {
-                                "comment_replies/$commentId?highlightReplyId=$highlightReplyId"
-                            } else {
-                                "comment_replies/$commentId"
-                            }
+                            val route = "comment_replies/$commentId?highlightReplyId=$highlightReplyId"
                             navController.navigate(route)
                         }
                     )
@@ -306,20 +298,13 @@ fun MainNavigation(
                 // 帖子详情页
                 composable(
                     "post_detail/{postId}?highlightCommentId={highlightCommentId}",
-                    arguments = listOf(
-                        navArgument("postId") { type = NavType.LongType },
-                        navArgument("highlightCommentId") {
-                            type = NavType.LongType
-                            nullable = true
-                        }
-                    ),
                     enterTransition = { slideInTransition + fadeInTransition },
                     exitTransition = { fadeOutTransition },
                     popEnterTransition = { fadeInTransition },
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) { backStackEntry ->
-                    val postId = backStackEntry.savedStateHandle.get<Long>("postId") ?: 0L
-                    val highlightCommentId = backStackEntry.savedStateHandle.get<Long>("highlightCommentId")
+                    val postId = backStackEntry.savedStateHandle.get<String>("postId")?.toLongOrNull() ?: 0L
+                    val highlightCommentId = backStackEntry.savedStateHandle.get<String>("highlightCommentId")?.toLongOrNull() ?: 0L
                     PostDetailScreen(
                         postId = postId,
                         highlightCommentId = highlightCommentId,
@@ -338,20 +323,13 @@ fun MainNavigation(
                 // 评论回复页面
                 composable(
                     "comment_replies/{commentId}?highlightReplyId={highlightReplyId}",
-                    arguments = listOf(
-                        navArgument("commentId") { type = NavType.LongType },
-                        navArgument("highlightReplyId") {
-                            type = NavType.LongType
-                            nullable = true
-                        }
-                    ),
                     enterTransition = { slideInTransition + fadeInTransition },
                     exitTransition = { fadeOutTransition },
                     popEnterTransition = { fadeInTransition },
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) { backStackEntry ->
-                    val commentId = backStackEntry.savedStateHandle.get<Long>("commentId") ?: 0L
-                    val highlightReplyId = backStackEntry.savedStateHandle.get<Long>("highlightReplyId")
+                    val commentId = backStackEntry.savedStateHandle.get<String>("commentId")?.toLongOrNull() ?: 0L
+                    val highlightReplyId = backStackEntry.savedStateHandle.get<String>("highlightReplyId")?.toLongOrNull() ?: 0L
                     CommentRepliesScreen(
                         commentId = commentId,
                         highlightReplyId = highlightReplyId,

@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jh.forum.client.data.model.CommentInfoResponse
 import org.jh.forum.client.data.model.ReplyElement
@@ -40,7 +41,7 @@ import org.jh.forum.client.util.TimeUtils
 @Composable
 fun CommentRepliesScreen(
     commentId: Long,
-    highlightReplyId: Long? = null,
+    highlightReplyId: Long,
     viewModel: ReplyViewModel,
     onBack: () -> Unit,
     onUserClick: (Long) -> Unit = {}
@@ -167,7 +168,7 @@ fun CommentRepliesScreen(
                         items = replies,
                         key = { reply -> reply.replyId }
                     ) { reply ->
-                        val isHighlighted = highlightReplyId != null && reply.replyId == highlightReplyId
+                        val isHighlighted = reply.replyId == highlightReplyId
                         ReplyItem(
                             reply = reply,
                             onUpvote = { viewModel.upvoteReply(reply.replyId) },
@@ -535,9 +536,9 @@ fun ReplyItem(
             // Blink 3 times
             repeat(3) {
                 highlightAlpha = 1f
-                kotlinx.coroutines.delay(300)
+                delay(300)
                 highlightAlpha = 0f
-                kotlinx.coroutines.delay(300)
+                delay(300)
             }
         }
     }
@@ -609,7 +610,7 @@ fun ReplyItem(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (reply.targetUser != null) {
                                     Text(
-                                        text = "回复 @${reply.targetUser?.nickname}",
+                                        text = "回复 @${reply.targetUser.nickname}",
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.primary
                                     )
