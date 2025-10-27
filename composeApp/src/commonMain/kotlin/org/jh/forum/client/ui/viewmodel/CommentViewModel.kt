@@ -38,9 +38,7 @@ class CommentViewModel : ViewModel() {
             _currentPage.value = 1
             _comments.value = emptyList()
             _hasMore.value = true
-            if (highlightId != null) {
-                _highlightCommentId.value = highlightId
-            }
+            _highlightCommentId.value = highlightId ?: 0L
         }
 
         if (!_hasMore.value || _isLoading.value) return

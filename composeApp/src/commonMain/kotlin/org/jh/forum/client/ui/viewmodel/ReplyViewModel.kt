@@ -42,9 +42,7 @@ class ReplyViewModel : ViewModel() {
             _currentPage.value = 1
             _replies.value = emptyList()
             _hasMore.value = true
-            if (highlightId != null) {
-                _highlightReplyId.value = highlightId
-            }
+            _highlightReplyId.value = highlightId ?: 0L
         }
 
         if (!_hasMore.value || _isLoading.value) return
