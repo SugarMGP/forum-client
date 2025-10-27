@@ -265,11 +265,13 @@ fun CommentItem(
                 horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall, Alignment.End),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 点赞按钮
-                FilledTonalIconButton(
+                // 点赞按钮 - 使用OutlinedButton匹配帖子列表风格
+                OutlinedButton(
                     onClick = onUpvote,
-                    modifier = Modifier.size(Dimensions.buttonHeightSmall),
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    modifier = Modifier.height(Dimensions.buttonHeightSmall),
+                    shape = MaterialTheme.shapes.small,
+                    border = ButtonDefaults.outlinedButtonBorder(!comment.isLiked),
+                    colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = if (comment.isLiked) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
@@ -280,24 +282,26 @@ fun CommentItem(
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
                         }
+                    ),
+                    contentPadding = PaddingValues(
+                        horizontal = Dimensions.spaceMedium,
+                        vertical = Dimensions.spaceSmall
                     )
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
-                        modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.ThumbUp,
+                            AppIcons.ThumbUp,
                             contentDescription = "点赞",
                             modifier = Modifier.size(Dimensions.iconSmall)
                         )
-                        if (comment.upvoteCount > 0) {
-                            Text(
-                                text = "${comment.upvoteCount}",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
+                        Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                        Text(
+                            text = "${comment.upvoteCount}",
+                            style = MaterialTheme.typography.labelMedium
+                        )
                     }
                 }
             }

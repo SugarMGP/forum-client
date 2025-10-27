@@ -30,6 +30,7 @@ import org.jh.forum.client.data.model.CommentInfoResponse
 import org.jh.forum.client.data.model.ReplyElement
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.component.CommentEditor
+import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.ReplyViewModel
@@ -51,6 +52,8 @@ fun CommentRepliesScreen(
 
     var showReplyDialog by remember { mutableStateOf(false) }
     var replyTarget by remember { mutableStateOf<ReplyElement?>(null) }
+    var showImageViewer by remember { mutableStateOf(false) }
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
     val authViewModel = AppModule.authViewModel
     val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
@@ -117,6 +120,10 @@ fun CommentRepliesScreen(
                             onUserProfileClick = {
                                 comment.publisherInfo.id?.let { onUserClick(it) }
                             },
+                            onImageClick = { imageUrl ->
+                                selectedImageUrl = imageUrl
+                                showImageViewer = true
+                            },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -166,6 +173,10 @@ fun CommentRepliesScreen(
                             } else null,
                             onUserProfileClick = { userId ->
                                 onUserClick(userId)
+                            },
+                            onImageClick = { imageUrl ->
+                                selectedImageUrl = imageUrl
+                                showImageViewer = true
                             },
                             onReply = {
                                 replyTarget = reply
@@ -330,6 +341,17 @@ fun CommentRepliesScreen(
             }
         }
     }
+
+    // Image viewer dialog
+    ImageGalleryDialog(
+        visible = showImageViewer,
+        images = selectedImageUrl?.let { listOf(it) } ?: emptyList(),
+        initialIndex = 0,
+        onDismiss = {
+            showImageViewer = false
+            selectedImageUrl = null
+        }
+    )
 }
 
 @Composable
@@ -337,6 +359,7 @@ fun OriginalCommentItem(
     comment: CommentInfoResponse,
     onUpvote: () -> Unit,
     onUserProfileClick: () -> Unit,
+    onImageClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -426,7 +449,10 @@ fun OriginalCommentItem(
                         contentDescription = "评论图片",
                         modifier = Modifier
                             .size(Dimensions.imagePreviewMedium)
-                            .clip(MaterialTheme.shapes.medium),
+                            .clip(MaterialTheme.shapes.medium)
+                            .clickable {
+                                picture.url?.let { onImageClick(it) }
+                            },
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -440,10 +466,13 @@ fun OriginalCommentItem(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Upvote button
-                FilledTonalIconButton(
+                // Upvote button - 使用OutlinedButton匹配帖子列表风格
+                OutlinedButton(
                     onClick = onUpvote,
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    modifier = Modifier.height(Dimensions.buttonHeightSmall),
+                    shape = MaterialTheme.shapes.small,
+                    border = ButtonDefaults.outlinedButtonBorder(!comment.isLiked),
+                    colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = if (comment.isLiked) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
@@ -454,24 +483,26 @@ fun OriginalCommentItem(
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
                         }
+                    ),
+                    contentPadding = PaddingValues(
+                        horizontal = Dimensions.spaceMedium,
+                        vertical = Dimensions.spaceSmall
                     )
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
-                        modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.ThumbUp,
+                            AppIcons.ThumbUp,
                             contentDescription = "点赞",
                             modifier = Modifier.size(Dimensions.iconSmall)
                         )
-                        if (comment.upvoteCount > 0) {
-                            Text(
-                                text = "${comment.upvoteCount}",
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                        }
+                        Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                        Text(
+                            text = "${comment.upvoteCount}",
+                            style = MaterialTheme.typography.labelMedium
+                        )
                     }
                 }
             }
@@ -485,6 +516,7 @@ fun ReplyItem(
     onUpvote: () -> Unit,
     onDelete: (() -> Unit)? = null,
     onUserProfileClick: (Long) -> Unit = {},
+    onImageClick: (String) -> Unit = {},
     onReply: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -624,7 +656,10 @@ fun ReplyItem(
                         contentDescription = "回复图片",
                         modifier = Modifier
                             .size(Dimensions.imagePreviewMedium)
-                            .clip(MaterialTheme.shapes.medium),
+                            .clip(MaterialTheme.shapes.medium)
+                            .clickable {
+                                picture.url?.let { onImageClick(it) }
+                            },
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -653,11 +688,13 @@ fun ReplyItem(
                     Text("回复", style = MaterialTheme.typography.labelSmall)
                 }
 
-                // Upvote button
-                FilledTonalIconButton(
+                // Upvote button - 使用OutlinedButton匹配帖子列表风格
+                OutlinedButton(
                     onClick = onUpvote,
-                    modifier = Modifier.size(Dimensions.buttonHeightSmall),
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    modifier = Modifier.height(Dimensions.buttonHeightSmall),
+                    shape = MaterialTheme.shapes.small,
+                    border = ButtonDefaults.outlinedButtonBorder(!reply.isLiked),
+                    colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = if (reply.isLiked) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
@@ -668,24 +705,26 @@ fun ReplyItem(
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
                         }
+                    ),
+                    contentPadding = PaddingValues(
+                        horizontal = Dimensions.spaceMedium,
+                        vertical = Dimensions.spaceSmall
                     )
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
-                        modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.ThumbUp,
+                            AppIcons.ThumbUp,
                             contentDescription = "点赞",
                             modifier = Modifier.size(Dimensions.iconSmall)
                         )
-                        if (reply.upvoteCount > 0) {
-                            Text(
-                                text = "${reply.upvoteCount}",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
+                        Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
+                        Text(
+                            text = "${reply.upvoteCount}",
+                            style = MaterialTheme.typography.labelMedium
+                        )
                     }
                 }
             }
