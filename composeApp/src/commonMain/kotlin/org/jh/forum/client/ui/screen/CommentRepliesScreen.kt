@@ -370,7 +370,7 @@ fun OriginalCommentItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
         shape = MaterialTheme.shapes.medium,
         tonalElevation = Dimensions.elevationSmall
     ) {
@@ -546,7 +546,7 @@ fun ReplyItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall),
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
         shape = MaterialTheme.shapes.medium,
         tonalElevation = Dimensions.elevationSmall
     ) {

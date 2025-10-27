@@ -226,8 +226,10 @@ fun PostListScreen(
     val pullRefreshState = rememberPullToRefreshState()
     
     // Monitor loading state to update refresh indicator
-    LaunchedEffect(isLoading) {
+    LaunchedEffect(isLoading, isRefreshing) {
         if (!isLoading && isRefreshing) {
+            // Add a small delay to ensure smooth animation
+            kotlinx.coroutines.delay(300)
             isRefreshing = false
         }
     }

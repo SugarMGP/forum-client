@@ -56,7 +56,7 @@ class ReplyViewModel : ViewModel() {
                     page = _currentPage.value,
                     pageSize = 20,
                     id = commentId,
-                    highlightReplyId = highlightId
+                    highlightReplyId = if (reset) highlightId else _highlightReplyId.value
                 )
                 _isLoading.value = false
                 if (result.code == 200 && result.data != null) {

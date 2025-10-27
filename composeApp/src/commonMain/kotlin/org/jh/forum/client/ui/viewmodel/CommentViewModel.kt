@@ -52,8 +52,8 @@ class CommentViewModel : ViewModel() {
                     page = _currentPage.value,
                     pageSize = 20,
                     id = postId,
-                    sortType = "hot",
-                    highlightCommentId = highlightId
+                    sortType = "time",
+                    highlightCommentId = if (reset) highlightId else _highlightCommentId.value
                 )
                 _isLoading.value = false
                 if (result.code == 200 && result.data != null) {
@@ -188,5 +188,13 @@ class CommentViewModel : ViewModel() {
                 _errorMessage.value = result.msg ?: "删除失败"
             }
         }
+    }
+    
+    fun clearComments() {
+        _comments.value = emptyList()
+        _currentPage.value = 1
+        _hasMore.value = true
+        _highlightCommentId.value = null
+        _errorMessage.value = null
     }
 }

@@ -69,7 +69,8 @@ fun PostDetailScreen(
     val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
 
     LaunchedEffect(postId, highlightCommentId) {
-        // Clear any previous errors when navigating to a new post
+        // Clear comments and errors immediately when navigating to a new post
+        commentViewModel.clearComments()
         viewModel.clearError()
         viewModel.getPost(postId) { result ->
             post = result
