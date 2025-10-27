@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -54,23 +55,7 @@ fun ImageGrid(
                     imageUrl = displayImages[0],
                     contentDescription = "帖子图片",
                     onClick = { displayImages[0]?.let { onClick(it) } }
-                ) {
-                    // 如果有更多图片，在图片上添加蒙版显示数量
-                    if (totalPictures > 1) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                        ) {
-                            Text(
-                                text = "+${totalPictures - 1}",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = androidx.compose.ui.graphics.Color.White
-                            )
-                        }
-                    }
-                }
+                )
             }
         }
 
@@ -105,7 +90,7 @@ fun ImageGrid(
                                     Text(
                                         text = "+${totalPictures - displayImages.size}",
                                         style = MaterialTheme.typography.titleLarge,
-                                        color = androidx.compose.ui.graphics.Color.White
+                                        color = Color.White
                                     )
                                 }
                             }
@@ -159,7 +144,7 @@ fun ImageGrid(
                                                 Text(
                                                     text = "+${totalPictures - displayImages.size}",
                                                     style = MaterialTheme.typography.titleLarge,
-                                                    color = androidx.compose.ui.graphics.Color.White
+                                                    color = Color.White
                                                 )
                                             }
                                         }
