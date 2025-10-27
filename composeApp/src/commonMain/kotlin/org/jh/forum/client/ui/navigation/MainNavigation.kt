@@ -307,11 +307,10 @@ fun MainNavigation(
                 composable(
                     "post_detail/{postId}?highlightCommentId={highlightCommentId}",
                     arguments = listOf(
-                        navArgument("postId") { type = NavType.StringType },
+                        navArgument("postId") { type = NavType.LongType },
                         navArgument("highlightCommentId") {
-                            type = NavType.StringType
+                            type = NavType.LongType
                             nullable = true
-                            defaultValue = null
                         }
                     ),
                     enterTransition = { slideInTransition + fadeInTransition },
@@ -319,8 +318,8 @@ fun MainNavigation(
                     popEnterTransition = { fadeInTransition },
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) { backStackEntry ->
-                    val postId = backStackEntry.savedStateHandle.get<String>("postId")?.toLongOrNull() ?: 0L
-                    val highlightCommentId = backStackEntry.savedStateHandle.get<String>("highlightCommentId")?.toLongOrNull()
+                    val postId = backStackEntry.savedStateHandle.get<Long>("postId") ?: 0L
+                    val highlightCommentId = backStackEntry.savedStateHandle.get<Long>("highlightCommentId")
                     PostDetailScreen(
                         postId = postId,
                         highlightCommentId = highlightCommentId,
@@ -340,11 +339,10 @@ fun MainNavigation(
                 composable(
                     "comment_replies/{commentId}?highlightReplyId={highlightReplyId}",
                     arguments = listOf(
-                        navArgument("commentId") { type = NavType.StringType },
+                        navArgument("commentId") { type = NavType.LongType },
                         navArgument("highlightReplyId") {
-                            type = NavType.StringType
+                            type = NavType.LongType
                             nullable = true
-                            defaultValue = null
                         }
                     ),
                     enterTransition = { slideInTransition + fadeInTransition },
@@ -352,8 +350,8 @@ fun MainNavigation(
                     popEnterTransition = { fadeInTransition },
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) { backStackEntry ->
-                    val commentId = backStackEntry.savedStateHandle.get<String>("commentId")?.toLongOrNull() ?: 0L
-                    val highlightReplyId = backStackEntry.savedStateHandle.get<String>("highlightReplyId")?.toLongOrNull()
+                    val commentId = backStackEntry.savedStateHandle.get<Long>("commentId") ?: 0L
+                    val highlightReplyId = backStackEntry.savedStateHandle.get<Long>("highlightReplyId")
                     CommentRepliesScreen(
                         commentId = commentId,
                         highlightReplyId = highlightReplyId,

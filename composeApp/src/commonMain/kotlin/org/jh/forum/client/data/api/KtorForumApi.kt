@@ -129,7 +129,7 @@ class KtorForumApi(private val client: HttpClient, private val baseUrl: String) 
             parameter("page", page)
             parameter("pageSize", pageSize)
             parameter("id", id)
-            parameter("highlightReplyId", highlightReplyId)
+            highlightReplyId?.let { parameter("highlightReplyId", it) }
         }.body()
 
     override suspend fun getPersonalComment(
@@ -153,7 +153,7 @@ class KtorForumApi(private val client: HttpClient, private val baseUrl: String) 
             parameter("pageSize", pageSize)
             parameter("id", id)
             parameter("sortType", sortType)
-            parameter("highlightCommentId", highlightCommentId)
+            highlightCommentId?.let { parameter("highlightCommentId", it) }
         }.body()
 
     override suspend fun deleteComment(id: Long): AjaxResultVoid =
