@@ -73,6 +73,7 @@ fun MainNavigation(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     var currentTheme by remember { mutableStateOf(ThemeMode.SYSTEM) }
+    var homeRefreshTrigger by remember { mutableStateOf(0) }
 
     // 在组件初始化时检查用户登录状态
     LaunchedEffect(Unit) {
@@ -101,6 +102,11 @@ fun MainNavigation(
                     label = { Text(it.title) },
                     selected = currentDestination?.route?.startsWith(it.route) == true,
                     onClick = {
+                        // If clicking home button while already on home, trigger refresh
+                        if (it.route == BottomNavItem.Home.route && 
+                            currentDestination?.route?.startsWith(BottomNavItem.Home.route) == true) {
+                            homeRefreshTrigger++
+                        }
                         navController.navigate(it.route) {
                             popUpTo(navController.graph.findStartDestination().id) {
                                 inclusive = false
@@ -138,7 +144,12 @@ fun MainNavigation(
                             // 导航到用户主页
                             navController.navigate("user_profile/$userId")
                         },
-                        refresh = refresh
+                        refresh = refresh || homeRefreshTrigger > 0,
+                        onRefreshComplete = {
+                            if (homeRefreshTrigger > 0) {
+                                homeRefreshTrigger = 0
+                            }
+                        }
                     )
                 }
 

@@ -11,6 +11,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -171,7 +173,8 @@ fun PostListScreen(
     onPostClick: (Long) -> Unit,
     onNavigateToCreatePost: () -> Unit,
     onUserClick: (Long) -> Unit = {}, // New parameter for user profile navigation
-    refresh: Boolean = false
+    refresh: Boolean = false,
+    onRefreshComplete: () -> Unit = {}
 ) {
     val viewModel = AppModule.postListViewModel
     val posts by viewModel.posts.collectAsState()
@@ -214,8 +217,13 @@ fun PostListScreen(
     LaunchedEffect(refresh) {
         if (refresh) {
             viewModel.refresh()
+            onRefreshComplete()
         }
     }
+
+    // Pull-to-refresh state
+    var isRefreshing by remember { mutableStateOf(false) }
+    val pullRefreshState = rememberPullToRefreshState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -227,9 +235,6 @@ fun PostListScreen(
                     TopAppBar(
                         title = { Text("精弘论坛") },
                         actions = {
-                            IconButton(onClick = { viewModel.refresh() }) {
-                                Icon(AppIcons.Refresh, contentDescription = "刷新")
-                            }
                             IconButton(onClick = { showTabs = !showTabs }) {
                                 Icon(AppIcons.FilterList, contentDescription = "筛选")
                             }
@@ -322,7 +327,17 @@ fun PostListScreen(
                 }
             }
         ) { paddingValues ->
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = {
+                    isRefreshing = true
+                    viewModel.refresh()
+                    // Wait for loading to complete
+                    isRefreshing = false
+                },
+                state = pullRefreshState,
+                modifier = Modifier.fillMaxSize().padding(paddingValues)
+            ) {
                 if (posts.isEmpty() && !isLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
