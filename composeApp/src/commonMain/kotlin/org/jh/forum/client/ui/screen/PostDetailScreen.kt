@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -42,10 +43,12 @@ import org.jh.forum.client.util.TimeUtils
 @Composable
 fun PostDetailScreen(
     postId: Long,
+    highlightCommentId: Long? = null,
     viewModel: PostViewModel,
     commentViewModel: CommentViewModel,
     onBack: () -> Unit,
-    onUserClick: (Long) -> Unit = {}
+    onUserClick: (Long) -> Unit = {},
+    onCommentClick: (Long) -> Unit = {}
 ) {
     var post by remember { mutableStateOf<GetPostInfoResponse?>(null) }
     val errorMessage by viewModel.errorMessage.collectAsState()
@@ -65,14 +68,15 @@ fun PostDetailScreen(
     val authViewModel = AppModule.authViewModel
     val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
 
-    LaunchedEffect(postId) {
-        // Clear any previous errors when navigating to a new post
+    LaunchedEffect(postId, highlightCommentId) {
+        // Clear comments and errors immediately when navigating to a new post
+        commentViewModel.clearComments()
         viewModel.clearError()
         viewModel.getPost(postId) { result ->
             post = result
             // Only load comments if post loaded successfully
             if (result != null) {
-                commentViewModel.loadComments(postId, true)
+                commentViewModel.loadComments(postId, true, highlightCommentId)
             }
         }
         listState.scrollToItem(0)
@@ -82,7 +86,7 @@ fun PostDetailScreen(
     var showCommentDialog by remember { mutableStateOf(false) }
 
     // 自动翻页逻辑：当最后可见项接近总数时触发加载下一页
-    LaunchedEffect(listState, isCommentLoading, commentHasMore) {
+    LaunchedEffect(listState, isCommentLoading, commentHasMore, commentError) {
         snapshotFlow {
             val layout = listState.layoutInfo
             val visible = layout.visibleItemsInfo
@@ -93,8 +97,8 @@ fun PostDetailScreen(
             // 减少频繁触发：只在值发生变化时继续
             .distinctUntilChanged()
             .collect { (lastVisible, totalCount, visibleSize) ->
-                // Safety checks to prevent crashes
-                if (!commentHasMore || isCommentLoading) return@collect
+                // Safety checks to prevent crashes and retries on error
+                if (!commentHasMore || isCommentLoading || commentError != null) return@collect
                 if (totalCount <= 0 || lastVisible < 0) return@collect
 
                 // Only trigger load if we're not already at the end and have more items to load
@@ -255,6 +259,7 @@ fun PostDetailScreen(
                         items = comments,
                         key = { comment -> comment.commentId }
                     ) { comment ->
+                        val isHighlighted = highlightCommentId != null && comment.commentId == highlightCommentId
                         CommentItem(
                             comment = comment,
                             onUpvote = { commentViewModel.upvoteComment(comment.commentId) },
@@ -271,6 +276,10 @@ fun PostDetailScreen(
                                 selectedImageUrl = imageUrl
                                 showImageViewer = true
                             },
+                            onViewReplies = {
+                                onCommentClick(comment.commentId)
+                            },
+                            isHighlighted = isHighlighted,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -414,8 +423,8 @@ fun PostDetailScreen(
 
                                 // 评论编辑器
                                 CommentEditor(
-                                    onSubmit = { content ->
-                                        commentViewModel.publishComment(postId, content)
+                                    onSubmit = { content, picture ->
+                                        commentViewModel.publishComment(postId, content, picture)
                                         showCommentDialog = false
                                     },
                                     modifier = Modifier
@@ -708,7 +717,7 @@ fun PostContent(
                                                             Text(
                                                                 text = "+${post.pictures.size - displayImages.size}",
                                                                 style = MaterialTheme.typography.titleLarge,
-                                                                color = MaterialTheme.colorScheme.onPrimary
+                                                                color = Color.White
                                                             )
                                                         }
                                                     }

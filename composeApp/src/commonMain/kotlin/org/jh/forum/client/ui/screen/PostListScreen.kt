@@ -11,10 +11,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -54,23 +57,7 @@ fun ImageGrid(
                     imageUrl = displayImages[0],
                     contentDescription = "帖子图片",
                     onClick = { displayImages[0]?.let { onClick(it) } }
-                ) {
-                    // 如果有更多图片，在图片上添加蒙版显示数量
-                    if (totalPictures > 1) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                        ) {
-                            Text(
-                                text = "+${totalPictures - 1}",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    }
-                }
+                )
             }
         }
 
@@ -105,7 +92,7 @@ fun ImageGrid(
                                     Text(
                                         text = "+${totalPictures - displayImages.size}",
                                         style = MaterialTheme.typography.titleLarge,
-                                        color = MaterialTheme.colorScheme.onPrimary
+                                        color = Color.White
                                     )
                                 }
                             }
@@ -159,7 +146,7 @@ fun ImageGrid(
                                                 Text(
                                                     text = "+${totalPictures - displayImages.size}",
                                                     style = MaterialTheme.typography.titleLarge,
-                                                    color = MaterialTheme.colorScheme.onPrimary
+                                                    color = Color.White
                                                 )
                                             }
                                         }
@@ -186,7 +173,8 @@ fun PostListScreen(
     onPostClick: (Long) -> Unit,
     onNavigateToCreatePost: () -> Unit,
     onUserClick: (Long) -> Unit = {}, // New parameter for user profile navigation
-    refresh: Boolean = false
+    refresh: Boolean = false,
+    onRefreshComplete: () -> Unit = {}
 ) {
     val viewModel = AppModule.postListViewModel
     val posts by viewModel.posts.collectAsState()
@@ -229,6 +217,20 @@ fun PostListScreen(
     LaunchedEffect(refresh) {
         if (refresh) {
             viewModel.refresh()
+            onRefreshComplete()
+        }
+    }
+
+    // Pull-to-refresh state
+    var isRefreshing by remember { mutableStateOf(false) }
+    val pullRefreshState = rememberPullToRefreshState()
+
+    // Monitor loading state to update refresh indicator
+    LaunchedEffect(isLoading, isRefreshing) {
+        if (!isLoading && isRefreshing) {
+            // Add a small delay to ensure smooth animation
+            kotlinx.coroutines.delay(300)
+            isRefreshing = false
         }
     }
 
@@ -242,9 +244,6 @@ fun PostListScreen(
                     TopAppBar(
                         title = { Text("精弘论坛") },
                         actions = {
-                            IconButton(onClick = { viewModel.refresh() }) {
-                                Icon(AppIcons.Refresh, contentDescription = "刷新")
-                            }
                             IconButton(onClick = { showTabs = !showTabs }) {
                                 Icon(AppIcons.FilterList, contentDescription = "筛选")
                             }
@@ -337,7 +336,15 @@ fun PostListScreen(
                 }
             }
         ) { paddingValues ->
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = {
+                    isRefreshing = true
+                    viewModel.refresh()
+                },
+                state = pullRefreshState,
+                modifier = Modifier.fillMaxSize().padding(paddingValues)
+            ) {
                 if (posts.isEmpty() && !isLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),

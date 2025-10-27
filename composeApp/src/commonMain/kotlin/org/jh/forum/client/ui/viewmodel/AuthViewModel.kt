@@ -11,6 +11,7 @@ import org.jh.forum.client.data.model.LoginRequest
 import org.jh.forum.client.data.model.UpdateUserProfileRequest
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
+import org.jh.forum.client.getPlatform
 
 class AuthViewModel : ViewModel() {
     private val repository: ForumRepository = AppModule.forumRepository
@@ -31,7 +32,7 @@ class AuthViewModel : ViewModel() {
             _isLoading.value = true
             _errorMessage.value = null
 
-            val request = LoginRequest(username = username, password = password)
+            val request = LoginRequest(username = username, password = password, deviceType = getPlatform().deviceType)
             val result = repository.login(request)
             if (result.code == 200 && result.data != null) {
                 _isLoggedIn.value = true

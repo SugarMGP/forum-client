@@ -317,7 +317,8 @@ fun ColorOption(
     ) {
         Box(
             modifier = Modifier
-                .size(48.dp)
+                .fillMaxWidth()
+                .aspectRatio(1f)
                 .clip(CircleShape)
                 .background(color)
                 .then(

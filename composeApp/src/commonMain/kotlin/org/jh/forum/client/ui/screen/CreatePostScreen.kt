@@ -3,6 +3,7 @@ package org.jh.forum.client.ui.screen
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -23,6 +24,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
 import org.jh.forum.client.data.model.PostCategory
+import org.jh.forum.client.ui.component.ImageGalleryDialog
+import org.jh.forum.client.ui.component.ImagePicker
+import org.jh.forum.client.ui.component.LocalImagePickerClick
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.PostViewModel
@@ -33,17 +37,6 @@ import org.jh.forum.client.ui.viewmodel.PostViewModel
 fun calculateRows(itemCount: Int): Int {
     return if (itemCount <= 3) 1 else if (itemCount <= 6) 2 else 3
 }
-
-// Platform-specific image picker implementation
-@Composable
-expect fun ImagePicker(
-    onImageSelected: (ByteArray, String) -> Unit,
-    enabled: Boolean = true,
-    content: @Composable () -> Unit
-)
-
-// CompositionLocal for providing the image picker click handler (for platforms that need it)
-expect val LocalImagePickerClick: androidx.compose.runtime.ProvidableCompositionLocal<() -> Unit>
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +55,8 @@ fun CreatePostScreen(
     var topics by remember { mutableStateOf<List<String>>(emptyList()) }
     var selectedImages by remember { mutableStateOf<List<String>>(emptyList()) }
     var isUploadingImage by remember { mutableStateOf(false) }
+    var showImageViewer by remember { mutableStateOf(false) }
+    var imageViewerIndex by remember { mutableStateOf(0) }
 
     // 添加标签
     fun addTopic() {
@@ -536,6 +531,10 @@ fun CreatePostScreen(
                                         modifier = Modifier
                                             .size(100.dp)
                                             .clip(MaterialTheme.shapes.medium)
+                                            .clickable {
+                                                imageViewerIndex = selectedImages.indexOf(imageUrl)
+                                                showImageViewer = true
+                                            }
                                     ) {
                                         Image(
                                             painter = rememberAsyncImagePainter(imageUrl),
@@ -601,6 +600,14 @@ fun CreatePostScreen(
             }
         }
     }
+
+    // Image viewer dialog
+    ImageGalleryDialog(
+        visible = showImageViewer,
+        images = selectedImages,
+        initialIndex = imageViewerIndex,
+        onDismiss = { showImageViewer = false }
+    )
 }
 
 // FlowRow implementation for topics

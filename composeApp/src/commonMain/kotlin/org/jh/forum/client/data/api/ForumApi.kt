@@ -6,7 +6,7 @@ interface ForumApi {
     suspend fun login(request: LoginRequest): AjaxResult<LoginResponse>
     suspend fun logout(): AjaxResultVoid
     suspend fun getProfile(id: Long? = null): AjaxResult<GetUserProfileResponse>
-    suspend fun updateMyProfile(request: UpdateUserProfileRequest): AjaxResultVoid
+    suspend fun updateMyProfile(request: UpdateUserProfileRequest): AjaxResult<ModerationResultResponse>
     suspend fun updateNoticeSettings(request: UpdateNoticeSettingsRequest): AjaxResultVoid
     suspend fun getNoticeSettings(): AjaxResult<GetNoticeSettingsResponse>
     suspend fun checkMute(): AjaxResult<CheckMuteResponse>

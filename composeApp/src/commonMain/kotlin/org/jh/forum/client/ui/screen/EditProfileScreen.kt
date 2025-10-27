@@ -14,6 +14,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.UpdateUserProfileRequest
+import org.jh.forum.client.di.AppModule
+import org.jh.forum.client.ui.component.ImagePicker
+import org.jh.forum.client.ui.component.LocalImagePickerClick
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
@@ -44,6 +47,10 @@ fun EditProfileScreen(
 
     var showSuccessMessage by remember { mutableStateOf(false) }
     var showGenderDialog by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var isUploadingImage by remember { mutableStateOf(false) }
+
+    val postViewModel = AppModule.postViewModel
 
     // Update state when profile loads
     LaunchedEffect(userProfile) {
@@ -132,41 +139,63 @@ fun EditProfileScreen(
                                 .padding(Dimensions.spaceMedium),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Box(
-                                contentAlignment = Alignment.BottomEnd
+                            ImagePicker(
+                                onImageSelected = { bytes, filename ->
+                                    isUploadingImage = true
+                                    postViewModel.uploadImage(bytes, filename) { url ->
+                                        isUploadingImage = false
+                                        if (url != null) {
+                                            avatar = url
+                                        }
+                                    }
+                                },
+                                enabled = !isUploadingImage
                             ) {
-                                AsyncImage(
-                                    model = avatar,
-                                    contentDescription = "头像",
-                                    modifier = Modifier
-                                        .size(120.dp)
-                                        .clip(CircleShape)
-                                        .clickable {
-                                            // TODO: Implement image picker
-                                        },
-                                    contentScale = ContentScale.Crop
-                                )
-                                // Camera icon overlay
-                                Surface(
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .offset(x = (-4).dp, y = (-4).dp),
-                                    shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.primaryContainer
+                                val imagePickerClick = LocalImagePickerClick.current
+                                Box(
+                                    contentAlignment = Alignment.BottomEnd,
+                                    modifier = Modifier.clickable(enabled = !isUploadingImage) {
+                                        imagePickerClick.invoke()
+                                    }
                                 ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            AppIcons.PhotoCamera,
-                                            contentDescription = "更换头像",
-                                            modifier = Modifier.size(20.dp),
-                                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
+                                    AsyncImage(
+                                        model = avatar,
+                                        contentDescription = "头像",
+                                        modifier = Modifier
+                                            .size(120.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    // Camera icon overlay
+                                    Surface(
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .offset(x = (-4).dp, y = (-4).dp),
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.primaryContainer
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            if (isUploadingImage) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(20.dp),
+                                                    strokeWidth = 2.dp,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                )
+                                            } else {
+                                                Icon(
+                                                    AppIcons.PhotoCamera,
+                                                    contentDescription = "更换头像",
+                                                    modifier = Modifier.size(20.dp),
+                                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
                             Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                             Text(
-                                text = "点击更换头像",
+                                text = if (isUploadingImage) "上传中..." else "点击更换头像",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -328,6 +357,26 @@ fun EditProfileScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true
                             )
+
+                            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+
+                            // Birthday field with click to open date picker
+                            OutlinedTextField(
+                                value = birthday,
+                                onValueChange = { },
+                                label = { Text("生日") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showDatePicker = true },
+                                enabled = false,
+                                readOnly = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                ),
+                                placeholder = { Text("选择生日日期") }
+                            )
                         }
                     }
                 }
@@ -480,6 +529,102 @@ fun EditProfileScreen(
             }
         }
 
+        // Date picker dialog for birthday
+        if (showDatePicker) {
+            var selectedYear by remember { mutableStateOf(2000) }
+            var selectedMonth by remember { mutableStateOf(1) }
+            var selectedDay by remember { mutableStateOf(1) }
+
+            // Parse current birthday if exists
+            LaunchedEffect(birthday) {
+                if (birthday.isNotBlank()) {
+                    try {
+                        val parts = birthday.split("-")
+                        if (parts.size == 3) {
+                            selectedYear = parts[0].toInt()
+                            selectedMonth = parts[1].toInt()
+                            selectedDay = parts[2].toInt()
+                        }
+                    } catch (e: Exception) {
+                        // Use defaults if parsing fails
+                    }
+                }
+            }
+
+            AlertDialog(
+                onDismissRequest = { showDatePicker = false },
+                title = { Text("选择生日") },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                    ) {
+                        // Year selector (1900 to current year)
+                        val currentYear = java.time.LocalDate.now().year
+                        OutlinedTextField(
+                            value = selectedYear.toString(),
+                            onValueChange = {
+                                it.toIntOrNull()?.let { year ->
+                                    if (year in 1900..currentYear) selectedYear = year
+                                }
+                            },
+                            label = { Text("年") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+
+                        // Month selector (1-12)
+                        OutlinedTextField(
+                            value = selectedMonth.toString(),
+                            onValueChange = {
+                                it.toIntOrNull()?.let { month ->
+                                    if (month in 1..12) selectedMonth = month
+                                }
+                            },
+                            label = { Text("月") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+
+                        // Day selector (1-31)
+                        OutlinedTextField(
+                            value = selectedDay.toString(),
+                            onValueChange = {
+                                it.toIntOrNull()?.let { day ->
+                                    if (day in 1..31) selectedDay = day
+                                }
+                            },
+                            label = { Text("日") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            // Validate date is not today or in the future
+                            val selectedDate = java.time.LocalDate.of(selectedYear, selectedMonth, selectedDay)
+                            val yesterday = java.time.LocalDate.now().minusDays(1)
+                            val minDate = java.time.LocalDate.of(1900, 1, 2)
+
+                            if (!selectedDate.isAfter(yesterday) && !selectedDate.isBefore(minDate)) {
+                                birthday = String.format("%04d-%02d-%02d", selectedYear, selectedMonth, selectedDay)
+                                showDatePicker = false
+                            }
+                        }
+                    ) {
+                        Text("确定")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text("取消")
+                    }
+                }
+            )
+        }
+
         // Gender selection dialog
         if (showGenderDialog) {
             AlertDialog(
@@ -529,7 +674,6 @@ fun EditProfileScreen(
         if (showSuccessMessage) {
             kotlinx.coroutines.delay(2000)
             showSuccessMessage = false
-            onNavigateBack()
         }
     }
 }

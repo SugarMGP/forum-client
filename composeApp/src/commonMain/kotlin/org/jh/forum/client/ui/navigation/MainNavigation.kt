@@ -73,6 +73,7 @@ fun MainNavigation(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     var currentTheme by remember { mutableStateOf(ThemeMode.SYSTEM) }
+    var homeRefreshTrigger by remember { mutableStateOf(0) }
 
     // 在组件初始化时检查用户登录状态
     LaunchedEffect(Unit) {
@@ -101,12 +102,18 @@ fun MainNavigation(
                     label = { Text(it.title) },
                     selected = currentDestination?.route?.startsWith(it.route) == true,
                     onClick = {
+                        // If clicking home button while already on home, trigger refresh
+                        if (it.route == BottomNavItem.Home.route &&
+                            currentDestination?.route?.startsWith(BottomNavItem.Home.route) == true
+                        ) {
+                            homeRefreshTrigger++
+                        }
                         navController.navigate(it.route) {
                             popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+                                inclusive = false
                             }
                             launchSingleTop = true
-                            restoreState = true
+                            restoreState = false
                         }
                     }
                 )
@@ -138,7 +145,12 @@ fun MainNavigation(
                             // 导航到用户主页
                             navController.navigate("user_profile/$userId")
                         },
-                        refresh = refresh
+                        refresh = refresh || homeRefreshTrigger > 0,
+                        onRefreshComplete = {
+                            if (homeRefreshTrigger > 0) {
+                                homeRefreshTrigger = 0
+                            }
+                        }
                     )
                 }
 
@@ -151,6 +163,22 @@ fun MainNavigation(
                         repository = repository,
                         onUserClick = { userId ->
                             navController.navigate("user_profile/$userId")
+                        },
+                        onNavigateToPost = { postId, highlightCommentId ->
+                            val route = if (highlightCommentId != null) {
+                                "post_detail/$postId?highlightCommentId=$highlightCommentId"
+                            } else {
+                                "post_detail/$postId"
+                            }
+                            navController.navigate(route)
+                        },
+                        onNavigateToComment = { commentId, highlightReplyId ->
+                            val route = if (highlightReplyId != null) {
+                                "comment_replies/$commentId?highlightReplyId=$highlightReplyId"
+                            } else {
+                                "comment_replies/$commentId"
+                            }
+                            navController.navigate(route)
                         }
                     )
                 }
@@ -275,17 +303,43 @@ fun MainNavigation(
 
                 // 帖子详情页
                 composable(
-                    "post_detail/{postId}",
+                    "post_detail/{postId}?highlightCommentId={highlightCommentId}",
                     enterTransition = { slideInTransition + fadeInTransition },
                     exitTransition = { fadeOutTransition },
                     popEnterTransition = { fadeInTransition },
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) {
                     val postId = it.savedStateHandle.get<String>("postId")?.toLongOrNull() ?: 0L
+                    val highlightCommentId = it.savedStateHandle.get<String>("highlightCommentId")?.toLongOrNull()
                     PostDetailScreen(
                         postId = postId,
+                        highlightCommentId = highlightCommentId,
                         viewModel = AppModule.postViewModel,
                         commentViewModel = AppModule.commentViewModel,
+                        onBack = { navController.popBackStack() },
+                        onUserClick = { userId ->
+                            navController.navigate("user_profile/$userId")
+                        },
+                        onCommentClick = { commentId ->
+                            navController.navigate("comment_replies/$commentId")
+                        }
+                    )
+                }
+
+                // 评论回复页面
+                composable(
+                    "comment_replies/{commentId}?highlightReplyId={highlightReplyId}",
+                    enterTransition = { slideInTransition + fadeInTransition },
+                    exitTransition = { fadeOutTransition },
+                    popEnterTransition = { fadeInTransition },
+                    popExitTransition = { slideOutPopTransition + fadeOutTransition }
+                ) {
+                    val commentId = it.savedStateHandle.get<String>("commentId")?.toLongOrNull() ?: 0L
+                    val highlightReplyId = it.savedStateHandle.get<String>("highlightReplyId")?.toLongOrNull()
+                    CommentRepliesScreen(
+                        commentId = commentId,
+                        highlightReplyId = highlightReplyId,
+                        viewModel = AppModule.replyViewModel,
                         onBack = { navController.popBackStack() },
                         onUserClick = { userId ->
                             navController.navigate("user_profile/$userId")

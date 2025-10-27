@@ -30,11 +30,15 @@ class CommentViewModel : ViewModel() {
     private val _hasMore = MutableStateFlow(true)
     val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
 
-    fun loadComments(postId: Long, reset: Boolean = false) {
+    private val _highlightCommentId = MutableStateFlow<Long?>(null)
+    val highlightCommentId: StateFlow<Long?> = _highlightCommentId.asStateFlow()
+
+    fun loadComments(postId: Long, reset: Boolean = false, highlightId: Long? = null) {
         if (reset) {
             _currentPage.value = 1
             _comments.value = emptyList()
             _hasMore.value = true
+            _highlightCommentId.value = highlightId
         }
 
         if (!_hasMore.value || _isLoading.value) return
@@ -48,8 +52,8 @@ class CommentViewModel : ViewModel() {
                     page = _currentPage.value,
                     pageSize = 20,
                     id = postId,
-                    sortType = "hot",
-                    highlightCommentId = 0
+                    sortType = "time",
+                    highlightCommentId = _highlightCommentId.value
                 )
                 _isLoading.value = false
                 if (result.code == 200 && result.data != null) {
@@ -184,5 +188,13 @@ class CommentViewModel : ViewModel() {
                 _errorMessage.value = result.msg ?: "删除失败"
             }
         }
+    }
+
+    fun clearComments() {
+        _comments.value = emptyList()
+        _currentPage.value = 1
+        _hasMore.value = true
+        _highlightCommentId.value = null
+        _errorMessage.value = null
     }
 }

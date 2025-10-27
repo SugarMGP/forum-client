@@ -32,7 +32,9 @@ import kotlin.time.ExperimentalTime
 @Composable
 fun MessagesScreen(
     repository: ForumRepository,
-    onUserClick: (Long) -> Unit = {}
+    onUserClick: (Long) -> Unit = {},
+    onNavigateToPost: (postId: Long, highlightCommentId: Long?) -> Unit = { _, _ -> },
+    onNavigateToComment: (commentId: Long, highlightReplyId: Long?) -> Unit = { _, _ -> }
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -430,7 +432,9 @@ fun MessagesScreen(
                         items(messages) {
                             MessageItem(
                                 message = it,
-                                onUserClick = onUserClick
+                                onUserClick = onUserClick,
+                                onNavigateToPost = onNavigateToPost,
+                                onNavigateToComment = onNavigateToComment
                             )
                         }
 
@@ -501,10 +505,36 @@ fun MessagesScreen(
 @Composable
 fun MessageItem(
     message: GetNoticeListElement,
-    onUserClick: (Long) -> Unit = {}
+    onUserClick: (Long) -> Unit = {},
+    onNavigateToPost: (postId: Long, highlightCommentId: Long?) -> Unit = { _, _ -> },
+    onNavigateToComment: (commentId: Long, highlightReplyId: Long?) -> Unit = { _, _ -> }
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                // Navigate based on the message content
+                // Logic based on web frontend:
+                // If positionType is 'reply', navigate to comment with highlightReplyId
+                // If positionType is 'comment', navigate to post with highlightCommentId
+                // Otherwise navigate to post
+                when {
+                    message.positionType == "reply" && message.commentId != null -> {
+                        // This is a reply to a reply, navigate to comment replies with highlight
+                        onNavigateToComment(message.commentId, message.newCommentId)
+                    }
+
+                    message.positionType == "comment" && message.postId != null -> {
+                        // This is a reply to a comment, navigate to post with highlight
+                        onNavigateToPost(message.postId, message.newCommentId)
+                    }
+
+                    message.postId != null -> {
+                        // Default: navigate to post
+                        onNavigateToPost(message.postId, null)
+                    }
+                }
+            },
         elevation = CardDefaults.cardElevation(
             defaultElevation = Dimensions.elevationSmall,
             pressedElevation = Dimensions.elevationMedium
@@ -606,7 +636,7 @@ fun MessageItem(
                         .width(2.dp)
                         .height(36.dp)
                         .background(
-                            color = MaterialTheme.colorScheme.outlineVariant,
+                            color = MaterialTheme.colorScheme.outline,
                             shape = MaterialTheme.shapes.extraSmall
                         )
                 )
@@ -679,13 +709,32 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = announcement.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                         modifier = Modifier.weight(1f)
-                    )
+                    ) {
+                        Text(
+                            text = announcement.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        // Show badge for sticky announcements
+                        if (announcement.sticky) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.tertiaryContainer,
+                                shape = MaterialTheme.shapes.extraSmall
+                            ) {
+                                Text(
+                                    text = "置顶",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
 
