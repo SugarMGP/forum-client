@@ -681,24 +681,29 @@ fun AnnouncementItem(announcement: GetAnnouncementListElement) {
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                         modifier = Modifier.weight(1f)
                     ) {
-                        // Show pin indicator for sticky announcements
-                        if (announcement.sticky) {
-                            Icon(
-                                imageVector = AppIcons.PushPin,
-                                contentDescription = "置顶",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(Dimensions.iconSmall)
-                            )
-                        }
                         Text(
                             text = announcement.title,
                             style = MaterialTheme.typography.titleSmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
+                        // Show badge for sticky announcements
+                        if (announcement.sticky) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.tertiaryContainer,
+                                shape = MaterialTheme.shapes.extraSmall
+                            ) {
+                                Text(
+                                    text = "置顶",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
                     }
 
                     Spacer(modifier = Modifier.width(Dimensions.spaceSmall))

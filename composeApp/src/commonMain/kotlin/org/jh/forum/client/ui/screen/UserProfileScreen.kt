@@ -295,29 +295,27 @@ fun PersonalPostCard(
                 .fillMaxWidth()
                 .padding(Dimensions.spaceMedium)
         ) {
-            // Pinned badge (if pinned)
-            if (post.isTopped) {
-                Surface(
-                    color = MaterialTheme.colorScheme.tertiaryContainer,
-                    shape = MaterialTheme.shapes.extraSmall,
-                    modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
-                ) {
-                    Text(
-                        text = "置顶",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+            // Title with pin indicator
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
+            ) {
+                // Show pin indicator for pinned posts before title
+                if (post.isTopped) {
+                    Icon(
+                        imageVector = AppIcons.PushPin,
+                        contentDescription = "置顶",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(Dimensions.iconSmall)
                     )
                 }
+                Text(
+                    text = post.title ?: "",
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
-
-            // Title
-            Text(
-                text = post.title ?: "",
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
 
             // Content
             post.content?.let { content ->
