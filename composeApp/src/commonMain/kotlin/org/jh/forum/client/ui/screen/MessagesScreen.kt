@@ -3,7 +3,9 @@ package org.jh.forum.client.ui.screen
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -538,7 +540,7 @@ fun MessageItem(
             pressedElevation = Dimensions.elevationMedium
         ),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         shape = MaterialTheme.shapes.large
     ) {
@@ -634,7 +636,7 @@ fun MessageItem(
                         .width(2.dp)
                         .height(36.dp)
                         .background(
-                            color = MaterialTheme.colorScheme.outlineVariant,
+                            color = MaterialTheme.colorScheme.outline,
                             shape = MaterialTheme.shapes.extraSmall
                         )
                 )
