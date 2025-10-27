@@ -85,7 +85,7 @@ fun MessagesScreen(
                 }
 
                 // Update pagination state
-                noticeHasMore = response.page * response.pageSize < response.total
+                noticeHasMore = page * response.pageSize < response.total
                 if (noticeHasMore) noticeCurrentPage++
             } else {
                 errorMessage = "加载通知失败"
@@ -130,7 +130,7 @@ fun MessagesScreen(
                 }
 
                 // Update pagination state
-                announcementHasMore = response.page * response.pageSize < response.total
+                announcementHasMore = page * response.pageSize < response.total
                 if (announcementHasMore) announcementCurrentPage++
             } else {
                 errorMessage = "加载公告失败"
