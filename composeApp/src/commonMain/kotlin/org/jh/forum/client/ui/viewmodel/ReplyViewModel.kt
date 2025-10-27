@@ -97,7 +97,8 @@ class ReplyViewModel : ViewModel() {
 
             val result = repository.publishComment(request)
             if (result.code == 200 && result.data != null) {
-                loadReplies(commentId, true)
+                // 重新加载回复列表，保留highlightReplyId
+                loadReplies(commentId, true, _highlightReplyId.value)
             } else {
                 _errorMessage.value = result.msg ?: "发布失败"
             }
