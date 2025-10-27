@@ -44,8 +44,15 @@ fun CommentItem(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+            .padding(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall)
+            .then(
+                if (onViewReplies != null) {
+                    Modifier.clickable { onViewReplies() }
+                } else {
+                    Modifier
+                }
+            ),
+        color = MaterialTheme.colorScheme.surface,
         shape = MaterialTheme.shapes.medium,
         tonalElevation = Dimensions.elevationSmall
     ) {
@@ -76,46 +83,53 @@ fun CommentItem(
                         model = comment.publisherInfo.avatar,
                         contentDescription = "用户头像",
                         modifier = Modifier
-                            .size(Dimensions.avatarLarge)
+                            .size(Dimensions.avatarMedium)
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
                     Spacer(Modifier.width(Dimensions.spaceSmall))
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (comment.isPinned) {
-                            Icon(
-                                imageVector = Icons.Default.PushPin,
-                                contentDescription = "置顶",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(Dimensions.iconSmall)
-                            )
-                            Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                        }
-                        Text(
-                            text = comment.publisherInfo.nickname ?: "未知用户",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Medium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        if (comment.isAuthor) {
-                            Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                            Surface(
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                shape = MaterialTheme.shapes.small
-                            ) {
-                                Text(
-                                    text = "楼主",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.padding(
-                                        horizontal = Dimensions.spaceSmall,
-                                        vertical = Dimensions.spaceExtraSmall
-                                    )
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (comment.isPinned) {
+                                Icon(
+                                    imageVector = Icons.Default.PushPin,
+                                    contentDescription = "置顶",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(Dimensions.iconSmall)
                                 )
+                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                            }
+                            Text(
+                                text = comment.publisherInfo.nickname ?: "未知用户",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (comment.isAuthor) {
+                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
+                                Surface(
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    shape = MaterialTheme.shapes.small
+                                ) {
+                                    Text(
+                                        text = "楼主",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.padding(
+                                            horizontal = Dimensions.spaceSmall,
+                                            vertical = Dimensions.spaceExtraSmall
+                                        )
+                                    )
+                                }
                             }
                         }
+                        Text(
+                            text = TimeUtils.formatTime(comment.createdAt),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
 
@@ -123,7 +137,11 @@ fun CommentItem(
                 if (onPin != null || onDelete != null) {
                     Box {
                         IconButton(onClick = { showMenu = true }) {
-                            Icon(Icons.AutoMirrored.Filled.More, "更多选项")
+                            Icon(
+                                Icons.AutoMirrored.Filled.More,
+                                "更多选项",
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
 
                         DropdownMenu(
@@ -160,7 +178,7 @@ fun CommentItem(
             }
 
             // 评论内容
-            Spacer(Modifier.height(Dimensions.spaceMedium))
+            Spacer(Modifier.height(Dimensions.spaceSmall))
             Text(
                 text = comment.content,
                 style = MaterialTheme.typography.bodyMedium,
@@ -191,11 +209,11 @@ fun CommentItem(
             }
 
             // Show preview of replies if any
-            if (comment.replies.isNotEmpty()) {
+            if (comment.replies.isNotEmpty() || comment.replyCount > 0) {
                 Spacer(Modifier.height(Dimensions.spaceSmall))
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                     shape = MaterialTheme.shapes.small
                 ) {
                     Column(
@@ -209,115 +227,76 @@ fun CommentItem(
                             ) {
                                 Text(
                                     text = "${reply.publisherInfo.nickname ?: "未知用户"}: ",
-                                    style = MaterialTheme.typography.labelSmall,
+                                    style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                                    fontWeight = FontWeight.Medium
                                 )
                                 Text(
                                     text = reply.content,
-                                    style = MaterialTheme.typography.labelSmall,
+                                    style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 2,
-                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
-                            Spacer(Modifier.height(Dimensions.spaceExtraSmall))
+                            if (reply != comment.replies.take(2).last()) {
+                                Spacer(Modifier.height(Dimensions.spaceExtraSmall))
+                            }
                         }
 
-                        // Show "view all replies" button if there are replies or if replyCount > 0
-                        if (comment.replyCount > 0 && onViewReplies != null) {
-                            TextButton(
-                                onClick = onViewReplies,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = "查看全部 ${comment.replyCount} 条回复",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Icon(
-                                    AppIcons.KeyboardArrowRight,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(Dimensions.iconSmall)
-                                )
-                            }
+                        // Show reply count text
+                        if (comment.replyCount > 0) {
+                            Spacer(Modifier.height(Dimensions.spaceExtraSmall))
+                            Text(
+                                text = "共 ${comment.replyCount} 条回复",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
             }
 
-            Spacer(Modifier.height(Dimensions.spaceMedium))
+            Spacer(Modifier.height(Dimensions.spaceSmall))
 
-            // 时间和互动区
+            // 互动区
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall, Alignment.End),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 格式化时间
-                Text(
-                    text = TimeUtils.formatTime(comment.createdAt),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
-                ) {
-                    // Reply button (if callback provided)
-                    if (onViewReplies != null) {
-                        FilledTonalButton(
-                            onClick = onViewReplies,
-                            modifier = Modifier.height(Dimensions.buttonHeightSmall),
-                            shape = MaterialTheme.shapes.small
-                        ) {
-                            Icon(
-                                AppIcons.Comment,
-                                contentDescription = "回复",
-                                modifier = Modifier.size(Dimensions.iconSmall)
-                            )
-                            if (comment.replyCount > 0) {
-                                Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                                Text(
-                                    text = "${comment.replyCount}",
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            }
+                // 点赞按钮
+                FilledTonalIconButton(
+                    onClick = onUpvote,
+                    modifier = Modifier.size(Dimensions.buttonHeightSmall),
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = if (comment.isLiked) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
+                        contentColor = if (comment.isLiked) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
                         }
-                    }
-
-                    // 点赞按钮
-                    FilledTonalIconButton(
-                        onClick = onUpvote,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = if (comment.isLiked) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant
-                            },
-                            contentColor = if (comment.isLiked) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            }
-                        )
+                    )
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
+                        modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
-                            modifier = Modifier.padding(horizontal = Dimensions.spaceSmall)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ThumbUp,
-                                contentDescription = "点赞",
-                                modifier = Modifier.size(Dimensions.iconSmall)
+                        Icon(
+                            imageVector = Icons.Default.ThumbUp,
+                            contentDescription = "点赞",
+                            modifier = Modifier.size(Dimensions.iconSmall)
+                        )
+                        if (comment.upvoteCount > 0) {
+                            Text(
+                                text = "${comment.upvoteCount}",
+                                style = MaterialTheme.typography.labelSmall
                             )
-                            if (comment.upvoteCount > 0) {
-                                Text(
-                                    text = "${comment.upvoteCount}",
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            }
                         }
                     }
                 }
