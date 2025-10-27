@@ -82,18 +82,18 @@ class ReplyViewModel : ViewModel() {
         }
     }
 
-    fun publishReply(commentId: Long, content: String, picture: String? = null, targetReplyId: Long? = null) {
+    fun publishReply(commentId: Long, targetId: Long, content: String, picture: String? = null) {
         viewModelScope.launch {
             val request = PublishCommentRequest(
-                targetType = if (targetReplyId != null) "reply" else "comment",
-                targetId = targetReplyId ?: commentId,
+                targetType = "comment",
+                targetId = targetId,
                 content = content,
                 picture = picture ?: ""
             )
 
             val result = repository.publishComment(request)
             if (result.code == 200 && result.data != null) {
-                loadReplies(commentId, true) // Reload replies list
+                loadReplies(commentId, true)
             } else {
                 _errorMessage.value = result.msg ?: "发布失败"
             }

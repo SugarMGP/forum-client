@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.CommentElement
@@ -62,7 +64,7 @@ fun CommentItem(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .weight(1f)
+                        .weight(1f, fill = false)
                         .clickable {
                             comment.publisherInfo.id?.let {
                                 onUserProfileClick(it)
@@ -93,7 +95,9 @@ fun CommentItem(
                         Text(
                             text = comment.publisherInfo.nickname ?: "未知用户",
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         if (comment.isAuthor) {
                             Spacer(Modifier.width(Dimensions.spaceExtraSmall))
