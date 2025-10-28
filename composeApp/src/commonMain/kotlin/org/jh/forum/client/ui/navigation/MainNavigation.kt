@@ -305,6 +305,8 @@ fun MainNavigation(
                 ) { backStackEntry ->
                     val postId = backStackEntry.savedStateHandle.get<String>("postId")?.toLongOrNull() ?: 0L
                     val highlightCommentId = backStackEntry.savedStateHandle.get<String>("highlightCommentId")?.toLongOrNull() ?: 0L
+                    println("[Navigation] PostDetailScreen: postId=$postId, highlightCommentId=$highlightCommentId")
+                    println("[Navigation] savedStateHandle raw value: ${backStackEntry.savedStateHandle.get<String>("highlightCommentId")}")
                     PostDetailScreen(
                         postId = postId,
                         highlightCommentId = highlightCommentId,

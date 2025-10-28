@@ -69,6 +69,7 @@ fun PostDetailScreen(
     val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
 
     LaunchedEffect(postId, highlightCommentId) {
+        println("[PostDetailScreen] LaunchedEffect: postId=$postId, highlightCommentId=$highlightCommentId")
         // Clear comments and errors immediately when navigating to a new post
         commentViewModel.clearComments()
         viewModel.clearError()
@@ -76,7 +77,9 @@ fun PostDetailScreen(
             post = result
             // Only load comments if post loaded successfully
             if (result != null) {
-                commentViewModel.loadComments(postId, true, if (highlightCommentId > 0) highlightCommentId else null)
+                val param = if (highlightCommentId > 0) highlightCommentId else null
+                println("[PostDetailScreen] Calling loadComments with highlightId=$param")
+                commentViewModel.loadComments(postId, true, param)
             }
         }
         listState.scrollToItem(0)
