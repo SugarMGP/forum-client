@@ -440,8 +440,8 @@ fun MessagesScreen(
                             )
                         }
 
-                        // Loading indicator
-                        if (isLoading && messages.isNotEmpty()) {
+                        // Loading indicator - only show during initial load, not pagination
+                        if (isLoading && messages.isEmpty()) {
                             item {
                                 Box(
                                     modifier = Modifier.fillMaxWidth(),
@@ -483,8 +483,8 @@ fun MessagesScreen(
                             AnnouncementItem(announcement = it)
                         }
 
-                        // Loading indicator
-                        if (isLoading && announcements.isNotEmpty()) {
+                        // Loading indicator - only show during initial load, not pagination
+                        if (isLoading && announcements.isEmpty()) {
                             item {
                                 Box(
                                     modifier = Modifier.fillMaxWidth(),
