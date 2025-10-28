@@ -57,6 +57,10 @@ fun MessagesScreen(
     var selectedNoticeType by remember { mutableStateOf(0) } // 0:全部, 1:点赞, 2:收藏, 3:评论和@
     var selectedType by remember { mutableStateOf(0) } // 0:互动, 1:公告
     var selectedAnnouncementType by remember { mutableStateOf(0) } // 0:全部, 1:学校公告, 2:系统公告
+    
+    // List states - hoist outside when branches to preserve scroll position
+    val noticeListState = rememberLazyListState()
+    val announcementListState = rememberLazyListState()
 
     // 加载互动消息
     suspend fun loadNotices(reset: Boolean = false) {
@@ -404,8 +408,6 @@ fun MessagesScreen(
 
                 // 显示互动消息
                 selectedType == 0 -> {
-                    val noticeListState = rememberLazyListState()
-
                     // Monitor scroll position for pagination
                     LaunchedEffect(noticeListState) {
                         snapshotFlow { noticeListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
@@ -454,8 +456,6 @@ fun MessagesScreen(
 
                 // 显示公告
                 else -> {
-                    val announcementListState = rememberLazyListState()
-
                     // Monitor scroll position for pagination
                     LaunchedEffect(announcementListState) {
                         snapshotFlow { announcementListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
