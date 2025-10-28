@@ -70,6 +70,10 @@ fun PostDetailScreen(
 
     LaunchedEffect(postId, highlightCommentId) {
         println("[PostDetailScreen] LaunchedEffect: postId=$postId, highlightCommentId=$highlightCommentId")
+        // Set highlight ID BEFORE clearing to ensure pagination uses correct value
+        val param = if (highlightCommentId > 0) highlightCommentId else null
+        commentViewModel.setHighlightCommentId(param)
+        
         // Clear comments and errors immediately when navigating to a new post
         commentViewModel.clearComments()
         viewModel.clearError()
@@ -77,7 +81,6 @@ fun PostDetailScreen(
             post = result
             // Only load comments if post loaded successfully
             if (result != null) {
-                val param = if (highlightCommentId > 0) highlightCommentId else null
                 println("[PostDetailScreen] Calling loadComments with highlightId=$param")
                 commentViewModel.loadComments(postId, true, param)
             }

@@ -37,6 +37,10 @@ class ReplyViewModel : ViewModel() {
     private val _highlightReplyId = MutableStateFlow(0L)
     val highlightReplyId: StateFlow<Long> = _highlightReplyId.asStateFlow()
 
+    fun setHighlightReplyId(highlightId: Long?) {
+        _highlightReplyId.value = highlightId ?: 0L
+    }
+
     fun loadReplies(commentId: Long, reset: Boolean = false, highlightId: Long? = null) {
         if (reset) {
             _currentPage.value = 1

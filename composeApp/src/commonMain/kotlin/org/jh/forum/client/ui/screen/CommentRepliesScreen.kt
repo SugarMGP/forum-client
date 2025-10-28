@@ -63,7 +63,9 @@ fun CommentRepliesScreen(
     val listState = rememberLazyListState()
 
     LaunchedEffect(commentId, highlightReplyId) {
-        viewModel.loadReplies(commentId, true, if (highlightReplyId > 0) highlightReplyId else null)
+        val param = if (highlightReplyId > 0) highlightReplyId else null
+        viewModel.setHighlightReplyId(param)
+        viewModel.loadReplies(commentId, true, param)
     }
 
     // Auto-pagination logic

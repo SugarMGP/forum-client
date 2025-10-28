@@ -33,6 +33,11 @@ class CommentViewModel : ViewModel() {
     private val _highlightCommentId = MutableStateFlow(0L)
     val highlightCommentId: StateFlow<Long> = _highlightCommentId.asStateFlow()
 
+    fun setHighlightCommentId(highlightId: Long?) {
+        _highlightCommentId.value = highlightId ?: 0L
+        println("[CommentViewModel] setHighlightCommentId to ${_highlightCommentId.value}")
+    }
+
     fun loadComments(postId: Long, reset: Boolean = false, highlightId: Long? = null) {
         println("[CommentViewModel] loadComments called: reset=$reset, highlightId=$highlightId")
         if (reset) {
@@ -197,7 +202,7 @@ class CommentViewModel : ViewModel() {
         _comments.value = emptyList()
         _currentPage.value = 1
         _hasMore.value = true
-        _highlightCommentId.value = 0L
+        // Don't reset highlightCommentId here - it should be set before clearComments is called
         _errorMessage.value = null
     }
 }
