@@ -316,6 +316,10 @@ fun MainNavigation(
                         },
                         onCommentClick = { commentId ->
                             navController.navigate("comment_replies/$commentId")
+                        },
+                        onPostUpdated = { postId, isLiked, likeCount ->
+                            // Update the post in the list when like status changes
+                            AppModule.postListViewModel.updatePostLikeStatus(postId, isLiked, likeCount)
                         }
                     )
                 }

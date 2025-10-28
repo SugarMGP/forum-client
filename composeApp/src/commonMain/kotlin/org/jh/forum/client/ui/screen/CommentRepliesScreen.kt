@@ -166,6 +166,18 @@ fun CommentRepliesScreen(
 
                 // Replies list
                 if (replies.isNotEmpty()) {
+                    // Scroll to highlighted reply when replies load
+                    LaunchedEffect(highlightReplyId, replies.size) {
+                        if (highlightReplyId > 0 && replies.isNotEmpty()) {
+                            val highlightIndex = replies.indexOfFirst { it.replyId == highlightReplyId }
+                            if (highlightIndex >= 0) {
+                                // Scroll to the highlighted reply (add offset for header items)
+                                // +2 accounts for comment item and replies title item
+                                listState.animateScrollToItem(highlightIndex + 2)
+                            }
+                        }
+                    }
+                    
                     items(
                         items = replies,
                         key = { reply -> reply.replyId }
