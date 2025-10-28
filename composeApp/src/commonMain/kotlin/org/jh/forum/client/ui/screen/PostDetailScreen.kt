@@ -43,12 +43,14 @@ import org.jh.forum.client.util.TimeUtils
 @Composable
 fun PostDetailScreen(
     postId: Long,
-    highlightCommentId: Long? = null,
+    highlightCommentId: Long,
     viewModel: PostViewModel,
     commentViewModel: CommentViewModel,
     onBack: () -> Unit,
     onUserClick: (Long) -> Unit = {},
-    onCommentClick: (Long) -> Unit = {}
+    onCommentClick: (Long) -> Unit = {},
+    onPostUpdated: (postId: Long, isLiked: Boolean, likeCount: Int) -> Unit = { _, _, _ -> },
+    onPostDeleted: (postId: Long) -> Unit = {}
 ) {
     var post by remember { mutableStateOf<GetPostInfoResponse?>(null) }
     val errorMessage by viewModel.errorMessage.collectAsState()
@@ -63,23 +65,39 @@ fun PostDetailScreen(
     val commentError by commentViewModel.errorMessage.collectAsState()
 
     val listState = rememberLazyListState()
+    
+    // Track the last loaded postId and highlightId to detect new navigation
+    var lastPostId by remember { mutableStateOf(0L) }
+    var lastHighlightCommentId by remember { mutableStateOf(0L) }
 
     // Get current user ID to check if they're the post author
     val authViewModel = AppModule.authViewModel
     val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
 
     LaunchedEffect(postId, highlightCommentId) {
-        // Clear comments and errors immediately when navigating to a new post
-        commentViewModel.clearComments()
-        viewModel.clearError()
+        // Set highlight ID BEFORE clearing to ensure pagination uses correct value
+        val param = if (highlightCommentId > 0) highlightCommentId else null
+        commentViewModel.setHighlightCommentId(param)
+        
+        // Only clear and reset scroll if we're navigating from a different source
+        // (either different post OR different highlight, which means new navigation from messages)
+        val isNewNavigation = postId != lastPostId || (highlightCommentId > 0 && highlightCommentId != lastHighlightCommentId)
+        if (isNewNavigation) {
+            lastPostId = postId
+            lastHighlightCommentId = highlightCommentId
+            // Clear comments and errors immediately when navigating from a different source
+            commentViewModel.clearComments()
+            viewModel.clearError()
+            listState.scrollToItem(0)
+        }
+        
         viewModel.getPost(postId) { result ->
             post = result
             // Only load comments if post loaded successfully
             if (result != null) {
-                commentViewModel.loadComments(postId, true, highlightCommentId)
+                commentViewModel.loadComments(postId, true, param)
             }
         }
-        listState.scrollToItem(0)
     }
 
     // 控制评论弹窗显示的状态
@@ -96,7 +114,7 @@ fun PostDetailScreen(
         }
             // 减少频繁触发：只在值发生变化时继续
             .distinctUntilChanged()
-            .collect { (lastVisible, totalCount, visibleSize) ->
+            .collect { (lastVisible, totalCount) ->
                 // Safety checks to prevent crashes and retries on error
                 if (!commentHasMore || isCommentLoading || commentError != null) return@collect
                 if (totalCount <= 0 || lastVisible < 0) return@collect
@@ -115,6 +133,18 @@ fun PostDetailScreen(
             // Only auto-clear error if post loaded successfully
             kotlinx.coroutines.delay(3000)
             viewModel.clearError()
+        }
+    }
+
+    // Scroll to highlighted comment when comments load
+    LaunchedEffect(highlightCommentId, comments.size) {
+        if (highlightCommentId > 0 && comments.isNotEmpty()) {
+            val highlightIndex = comments.indexOfFirst { it.commentId == highlightCommentId }
+            if (highlightIndex >= 0) {
+                // Scroll to the highlighted comment (add offset for header items)
+                // +2 accounts for post item and comment title item
+                listState.animateScrollToItem(highlightIndex + 2)
+            }
         }
     }
 
@@ -169,6 +199,8 @@ fun PostDetailScreen(
                                         isLiked = isLiked,
                                         likeCount = if (isLiked) localPost.likeCount + 1 else localPost.likeCount - 1
                                     )
+                                    // Notify parent to update post list
+                                    onPostUpdated(postId, isLiked, localPost.likeCount)
                                 }
                             },
                             onUserProfileClick = {
@@ -259,9 +291,10 @@ fun PostDetailScreen(
                         items = comments,
                         key = { comment -> comment.commentId }
                     ) { comment ->
-                        val isHighlighted = highlightCommentId != null && comment.commentId == highlightCommentId
+                        val isHighlighted = comment.commentId == highlightCommentId
                         CommentItem(
                             comment = comment,
+                            isHighlighted = isHighlighted,
                             onUpvote = { commentViewModel.upvoteComment(comment.commentId) },
                             onPin = if (currentUserId != null && currentUserId == post?.publisherInfo?.id) {
                                 { commentViewModel.pinComment(comment.commentId) }
@@ -279,7 +312,6 @@ fun PostDetailScreen(
                             onViewReplies = {
                                 onCommentClick(comment.commentId)
                             },
-                            isHighlighted = isHighlighted,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -403,7 +435,10 @@ fun PostDetailScreen(
                                 ) {
                                     Text(
                                         "发表评论",
-                                        style = MaterialTheme.typography.titleLarge
+                                        style = MaterialTheme.typography.titleLarge,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f)
                                     )
                                     // 美化的关闭按钮
                                     Surface(
@@ -414,7 +449,8 @@ fun PostDetailScreen(
                                         Icon(
                                             imageVector = AppIcons.Close,
                                             contentDescription = "关闭",
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(8.dp)
                                         )
                                     }
                                 }
@@ -467,6 +503,7 @@ fun PostDetailScreen(
                             onClick = {
                                 viewModel.deletePost(postId)
                                 showDeleteDialog = false
+                                onPostDeleted(postId)
                                 onBack()
                             },
                             colors = ButtonDefaults.buttonColors(
@@ -710,6 +747,7 @@ fun PostContent(
                                                             contentAlignment = Alignment.Center,
                                                             modifier = Modifier
                                                                 .fillMaxSize()
+                                                                .clip(MaterialTheme.shapes.medium)
                                                                 .background(
                                                                     MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f)
                                                                 )

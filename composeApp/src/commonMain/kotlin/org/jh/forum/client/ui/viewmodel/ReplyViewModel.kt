@@ -34,15 +34,19 @@ class ReplyViewModel : ViewModel() {
     private val _hasMore = MutableStateFlow(true)
     val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
 
-    private val _highlightReplyId = MutableStateFlow<Long?>(null)
-    val highlightReplyId: StateFlow<Long?> = _highlightReplyId.asStateFlow()
+    private val _highlightReplyId = MutableStateFlow(0L)
+    val highlightReplyId: StateFlow<Long> = _highlightReplyId.asStateFlow()
+
+    fun setHighlightReplyId(highlightId: Long?) {
+        _highlightReplyId.value = highlightId ?: 0L
+    }
 
     fun loadReplies(commentId: Long, reset: Boolean = false, highlightId: Long? = null) {
         if (reset) {
             _currentPage.value = 1
             _replies.value = emptyList()
             _hasMore.value = true
-            _highlightReplyId.value = highlightId
+            _highlightReplyId.value = highlightId ?: 0L
         }
 
         if (!_hasMore.value || _isLoading.value) return
@@ -97,7 +101,7 @@ class ReplyViewModel : ViewModel() {
 
             val result = repository.publishComment(request)
             if (result.code == 200 && result.data != null) {
-                loadReplies(commentId, true)
+                loadReplies(commentId, true, 0L)
             } else {
                 _errorMessage.value = result.msg ?: "发布失败"
             }

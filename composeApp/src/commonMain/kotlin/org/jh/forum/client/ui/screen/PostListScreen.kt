@@ -87,6 +87,7 @@ fun ImageGrid(
                                     contentAlignment = Alignment.Center,
                                     modifier = Modifier
                                         .fillMaxSize()
+                                        .clip(MaterialTheme.shapes.medium)
                                         .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
                                 ) {
                                     Text(
@@ -137,6 +138,7 @@ fun ImageGrid(
                                                 contentAlignment = Alignment.Center,
                                                 modifier = Modifier
                                                     .fillMaxSize()
+                                                    .clip(MaterialTheme.shapes.medium)
                                                     .background(
                                                         MaterialTheme.colorScheme.scrim.copy(
                                                             alpha = 0.6f
@@ -226,7 +228,7 @@ fun PostListScreen(
     val pullRefreshState = rememberPullToRefreshState()
 
     // Monitor loading state to update refresh indicator
-    LaunchedEffect(isLoading, isRefreshing) {
+    LaunchedEffect(isLoading) {
         if (!isLoading && isRefreshing) {
             // Add a small delay to ensure smooth animation
             kotlinx.coroutines.delay(300)

@@ -33,8 +33,8 @@ import kotlin.time.ExperimentalTime
 fun MessagesScreen(
     repository: ForumRepository,
     onUserClick: (Long) -> Unit = {},
-    onNavigateToPost: (postId: Long, highlightCommentId: Long?) -> Unit = { _, _ -> },
-    onNavigateToComment: (commentId: Long, highlightReplyId: Long?) -> Unit = { _, _ -> }
+    onNavigateToPost: (postId: Long, highlightCommentId: Long) -> Unit = { _, _ -> },
+    onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -57,6 +57,10 @@ fun MessagesScreen(
     var selectedNoticeType by remember { mutableStateOf(0) } // 0:全部, 1:点赞, 2:收藏, 3:评论和@
     var selectedType by remember { mutableStateOf(0) } // 0:互动, 1:公告
     var selectedAnnouncementType by remember { mutableStateOf(0) } // 0:全部, 1:学校公告, 2:系统公告
+    
+    // List states - hoist outside when branches to preserve scroll position
+    val noticeListState = rememberLazyListState()
+    val announcementListState = rememberLazyListState()
 
     // 加载互动消息
     suspend fun loadNotices(reset: Boolean = false) {
@@ -85,7 +89,7 @@ fun MessagesScreen(
                 }
 
                 // Update pagination state
-                noticeHasMore = response.page * response.pageSize < response.total
+                noticeHasMore = page * response.pageSize < response.total
                 if (noticeHasMore) noticeCurrentPage++
             } else {
                 errorMessage = "加载通知失败"
@@ -130,7 +134,7 @@ fun MessagesScreen(
                 }
 
                 // Update pagination state
-                announcementHasMore = response.page * response.pageSize < response.total
+                announcementHasMore = page * response.pageSize < response.total
                 if (announcementHasMore) announcementCurrentPage++
             } else {
                 errorMessage = "加载公告失败"
@@ -274,7 +278,7 @@ fun MessagesScreen(
                 .padding(paddingValues) // 只在最外层Column应用paddingValues
         ) {
             when {
-                isLoading -> {
+                isLoading && messages.isEmpty() && announcements.isEmpty() -> {
                     Box(
                         modifier = Modifier
                             .fillMaxSize(),
@@ -404,8 +408,6 @@ fun MessagesScreen(
 
                 // 显示互动消息
                 selectedType == 0 -> {
-                    val noticeListState = rememberLazyListState()
-
                     // Monitor scroll position for pagination
                     LaunchedEffect(noticeListState) {
                         snapshotFlow { noticeListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
@@ -438,8 +440,8 @@ fun MessagesScreen(
                             )
                         }
 
-                        // Loading indicator
-                        if (isLoading && messages.isNotEmpty()) {
+                        // Loading indicator - only show during initial load, not pagination
+                        if (isLoading && messages.isEmpty()) {
                             item {
                                 Box(
                                     modifier = Modifier.fillMaxWidth(),
@@ -454,8 +456,6 @@ fun MessagesScreen(
 
                 // 显示公告
                 else -> {
-                    val announcementListState = rememberLazyListState()
-
                     // Monitor scroll position for pagination
                     LaunchedEffect(announcementListState) {
                         snapshotFlow { announcementListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
@@ -483,8 +483,8 @@ fun MessagesScreen(
                             AnnouncementItem(announcement = it)
                         }
 
-                        // Loading indicator
-                        if (isLoading && announcements.isNotEmpty()) {
+                        // Loading indicator - only show during initial load, not pagination
+                        if (isLoading && announcements.isEmpty()) {
                             item {
                                 Box(
                                     modifier = Modifier.fillMaxWidth(),
@@ -506,32 +506,36 @@ fun MessagesScreen(
 fun MessageItem(
     message: GetNoticeListElement,
     onUserClick: (Long) -> Unit = {},
-    onNavigateToPost: (postId: Long, highlightCommentId: Long?) -> Unit = { _, _ -> },
-    onNavigateToComment: (commentId: Long, highlightReplyId: Long?) -> Unit = { _, _ -> }
+    onNavigateToPost: (postId: Long, highlightCommentId: Long) -> Unit = { _, _ -> },
+    onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable {
-                // Navigate based on the message content
-                // Logic based on web frontend:
-                // If positionType is 'reply', navigate to comment with highlightReplyId
-                // If positionType is 'comment', navigate to post with highlightCommentId
-                // Otherwise navigate to post
+            .clickable(enabled = message.positionContent != null) {
                 when {
-                    message.positionType == "reply" && message.commentId != null -> {
-                        // This is a reply to a reply, navigate to comment replies with highlight
-                        onNavigateToComment(message.commentId, message.newCommentId)
+                    message.type == "comment" -> {
+                        when{
+                            message.positionType == "post" -> {
+                                onNavigateToPost(message.postId, message.newCommentId)
+                            }
+                            else -> {
+                                onNavigateToComment(message.commentId, message.newCommentId)
+                            }
+                        }
                     }
-
-                    message.positionType == "comment" && message.postId != null -> {
-                        // This is a reply to a comment, navigate to post with highlight
-                        onNavigateToPost(message.postId, message.newCommentId)
-                    }
-
-                    message.postId != null -> {
-                        // Default: navigate to post
-                        onNavigateToPost(message.postId, null)
+                    else -> {
+                        when (message.positionType) {
+                            "post" -> {
+                                onNavigateToPost(message.postId, 0L)
+                            }
+                            "comment" -> {
+                                onNavigateToPost(message.postId, message.commentId)
+                            }
+                            "reply" -> {
+                                onNavigateToComment(message.commentId, message.replyId)
+                            }
+                        }
                     }
                 }
             },

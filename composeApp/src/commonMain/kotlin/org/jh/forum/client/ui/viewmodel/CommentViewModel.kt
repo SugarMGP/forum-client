@@ -30,15 +30,19 @@ class CommentViewModel : ViewModel() {
     private val _hasMore = MutableStateFlow(true)
     val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
 
-    private val _highlightCommentId = MutableStateFlow<Long?>(null)
-    val highlightCommentId: StateFlow<Long?> = _highlightCommentId.asStateFlow()
+    private val _highlightCommentId = MutableStateFlow(0L)
+    val highlightCommentId: StateFlow<Long> = _highlightCommentId.asStateFlow()
+
+    fun setHighlightCommentId(highlightId: Long?) {
+        _highlightCommentId.value = highlightId ?: 0L
+    }
 
     fun loadComments(postId: Long, reset: Boolean = false, highlightId: Long? = null) {
         if (reset) {
             _currentPage.value = 1
             _comments.value = emptyList()
             _hasMore.value = true
-            _highlightCommentId.value = highlightId
+            _highlightCommentId.value = highlightId ?: 0L
         }
 
         if (!_hasMore.value || _isLoading.value) return
@@ -90,7 +94,7 @@ class CommentViewModel : ViewModel() {
 
             val result = repository.publishComment(request)
             if (result.code == 200 && result.data != null) {
-                loadComments(postId, true) // 重新加载评论列表
+                loadComments(postId, true,0L) // 重新加载评论列表
             } else {
                 _errorMessage.value = result.msg ?: "发布失败"
             }
@@ -113,7 +117,7 @@ class CommentViewModel : ViewModel() {
                             isAuthor = comment.isAuthor,
                             isDeleted = comment.isDeleted,
                             createdAt = comment.createdAt,
-                            upvoteCount = if (result.data?.status == true) {
+                            upvoteCount = if (result.data.status) {
                                 comment.upvoteCount + 1
                             } else {
                                 comment.upvoteCount - 1
@@ -194,7 +198,7 @@ class CommentViewModel : ViewModel() {
         _comments.value = emptyList()
         _currentPage.value = 1
         _hasMore.value = true
-        _highlightCommentId.value = null
+        // Don't reset highlightCommentId here - it should be set before clearComments is called
         _errorMessage.value = null
     }
 }

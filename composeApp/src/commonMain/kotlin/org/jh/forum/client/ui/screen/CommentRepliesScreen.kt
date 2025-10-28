@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jh.forum.client.data.model.CommentInfoResponse
 import org.jh.forum.client.data.model.ReplyElement
@@ -40,7 +41,7 @@ import org.jh.forum.client.util.TimeUtils
 @Composable
 fun CommentRepliesScreen(
     commentId: Long,
-    highlightReplyId: Long? = null,
+    highlightReplyId: Long,
     viewModel: ReplyViewModel,
     onBack: () -> Unit,
     onUserClick: (Long) -> Unit = {}
@@ -62,7 +63,9 @@ fun CommentRepliesScreen(
     val listState = rememberLazyListState()
 
     LaunchedEffect(commentId, highlightReplyId) {
-        viewModel.loadReplies(commentId, true, highlightReplyId)
+        val param = if (highlightReplyId > 0) highlightReplyId else null
+        viewModel.setHighlightReplyId(param)
+        viewModel.loadReplies(commentId, true, param)
     }
 
     // Auto-pagination logic
@@ -85,6 +88,18 @@ fun CommentRepliesScreen(
                     viewModel.loadReplies(commentId)
                 }
             }
+    }
+
+    // Scroll to highlighted reply when replies load
+    LaunchedEffect(highlightReplyId, replies.size) {
+        if (highlightReplyId > 0 && replies.isNotEmpty()) {
+            val highlightIndex = replies.indexOfFirst { it.replyId == highlightReplyId }
+            if (highlightIndex >= 0) {
+                // Scroll to the highlighted reply (add offset for header items)
+                // +2 accounts for comment item and replies title item
+                listState.animateScrollToItem(highlightIndex + 2)
+            }
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -167,7 +182,7 @@ fun CommentRepliesScreen(
                         items = replies,
                         key = { reply -> reply.replyId }
                     ) { reply ->
-                        val isHighlighted = highlightReplyId != null && reply.replyId == highlightReplyId
+                        val isHighlighted = reply.replyId == highlightReplyId
                         ReplyItem(
                             reply = reply,
                             onUpvote = { viewModel.upvoteReply(reply.replyId) },
@@ -303,7 +318,10 @@ fun CommentRepliesScreen(
                                 ) {
                                     Text(
                                         if (replyTarget != null) "回复 @${replyTarget?.publisherInfo?.nickname}" else "回复评论",
-                                        style = MaterialTheme.typography.titleLarge
+                                        style = MaterialTheme.typography.titleLarge,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f)
                                     )
                                     Surface(
                                         shape = CircleShape,
@@ -535,9 +553,9 @@ fun ReplyItem(
             // Blink 3 times
             repeat(3) {
                 highlightAlpha = 1f
-                kotlinx.coroutines.delay(300)
+                delay(300)
                 highlightAlpha = 0f
-                kotlinx.coroutines.delay(300)
+                delay(300)
             }
         }
     }
@@ -548,9 +566,16 @@ fun ReplyItem(
             .padding(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall),
         color = MaterialTheme.colorScheme.surfaceVariant,
         shape = MaterialTheme.shapes.medium,
-        tonalElevation = Dimensions.elevationSmall
+        tonalElevation = Dimensions.elevationSmall,
+        onClick = onReply
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    MaterialTheme.colorScheme.primary.copy(alpha = highlightAlpha * 0.3f)
+                )
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -609,7 +634,7 @@ fun ReplyItem(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (reply.targetUser != null) {
                                     Text(
-                                        text = "回复 @${reply.targetUser?.nickname}",
+                                        text = "回复 @${reply.targetUser.nickname}",
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.primary
                                     )
@@ -694,21 +719,6 @@ fun ReplyItem(
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall, Alignment.End),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Reply button
-                    FilledTonalButton(
-                        onClick = onReply,
-                        modifier = Modifier.height(Dimensions.buttonHeightSmall),
-                        shape = MaterialTheme.shapes.small
-                    ) {
-                        Icon(
-                            AppIcons.Comment,
-                            contentDescription = "回复",
-                            modifier = Modifier.size(Dimensions.iconSmall)
-                        )
-                        Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                        Text("回复", style = MaterialTheme.typography.labelSmall)
-                    }
-
                     // Upvote button - 使用OutlinedButton匹配帖子列表风格
                     OutlinedButton(
                         onClick = onUpvote,

@@ -140,4 +140,26 @@ class PostListViewModel : ViewModel() {
             )
         }
     }
+
+    /**
+     * Update a specific post's like status and count in the list
+     * Called when returning from post detail screen to sync the like state
+     */
+    fun updatePostLikeStatus(postId: Long, isLiked: Boolean, likeCount: Int) {
+        _posts.value = _posts.value.map { post ->
+            if (post.id == postId) {
+                post.copy(isLiked = isLiked, likeCount = likeCount)
+            } else {
+                post
+            }
+        }
+    }
+
+    /**
+     * Remove a post from the list when it's deleted
+     * Called when a post is deleted from the detail screen
+     */
+    fun removePost(postId: Long) {
+        _posts.value = _posts.value.filterNot { it.id == postId }
+    }
 }

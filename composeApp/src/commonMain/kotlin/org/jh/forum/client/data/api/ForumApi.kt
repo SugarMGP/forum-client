@@ -37,7 +37,7 @@ interface ForumApi {
         page: Int,
         pageSize: Int,
         id: Long,
-        highlightReplyId: Long?
+        highlightReplyId: Long
     ): AjaxResult<GetCommentReplyListResponse>
 
     suspend fun getPersonalComment(
@@ -50,7 +50,7 @@ interface ForumApi {
         pageSize: Int,
         id: Long,
         sortType: String?,
-        highlightCommentId: Long?
+        highlightCommentId: Long
     ): AjaxResult<BaseListResponse<CommentElement>>
 
     suspend fun deleteComment(id: Long): AjaxResultVoid

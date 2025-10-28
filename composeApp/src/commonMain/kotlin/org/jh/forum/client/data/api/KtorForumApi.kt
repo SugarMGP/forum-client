@@ -123,13 +123,15 @@ class KtorForumApi(private val client: HttpClient, private val baseUrl: String) 
         page: Int,
         pageSize: Int,
         id: Long,
-        highlightReplyId: Long?
+        highlightReplyId: Long
     ): AjaxResult<GetCommentReplyListResponse> =
         client.get(url("/api/comment/reply/list")) {
             parameter("page", page)
             parameter("pageSize", pageSize)
             parameter("id", id)
-            parameter("highlightReplyId", highlightReplyId)
+            if (highlightReplyId > 0) {
+                parameter("highlightReplyId", highlightReplyId)
+            }
         }.body()
 
     override suspend fun getPersonalComment(
@@ -146,14 +148,16 @@ class KtorForumApi(private val client: HttpClient, private val baseUrl: String) 
         pageSize: Int,
         id: Long,
         sortType: String?,
-        highlightCommentId: Long?
+        highlightCommentId: Long
     ): AjaxResult<BaseListResponse<CommentElement>> =
         client.get(url("/api/comment/list")) {
             parameter("page", page)
             parameter("pageSize", pageSize)
             parameter("id", id)
             parameter("sortType", sortType)
-            parameter("highlightCommentId", highlightCommentId)
+            if (highlightCommentId > 0) {
+                parameter("highlightCommentId", highlightCommentId)
+            }
         }.body()
 
     override suspend fun deleteComment(id: Long): AjaxResultVoid =

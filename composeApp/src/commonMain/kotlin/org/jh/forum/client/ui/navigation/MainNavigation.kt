@@ -14,10 +14,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.*
@@ -165,19 +167,11 @@ fun MainNavigation(
                             navController.navigate("user_profile/$userId")
                         },
                         onNavigateToPost = { postId, highlightCommentId ->
-                            val route = if (highlightCommentId != null) {
-                                "post_detail/$postId?highlightCommentId=$highlightCommentId"
-                            } else {
-                                "post_detail/$postId"
-                            }
+                            val route = "post_detail/$postId?highlightCommentId=$highlightCommentId"
                             navController.navigate(route)
                         },
                         onNavigateToComment = { commentId, highlightReplyId ->
-                            val route = if (highlightReplyId != null) {
-                                "comment_replies/$commentId?highlightReplyId=$highlightReplyId"
-                            } else {
-                                "comment_replies/$commentId"
-                            }
+                            val route = "comment_replies/$commentId?highlightReplyId=$highlightReplyId"
                             navController.navigate(route)
                         }
                     )
@@ -308,9 +302,9 @@ fun MainNavigation(
                     exitTransition = { fadeOutTransition },
                     popEnterTransition = { fadeInTransition },
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
-                ) {
-                    val postId = it.savedStateHandle.get<String>("postId")?.toLongOrNull() ?: 0L
-                    val highlightCommentId = it.savedStateHandle.get<String>("highlightCommentId")?.toLongOrNull()
+                ) { backStackEntry ->
+                    val postId = backStackEntry.savedStateHandle.get<String>("postId")?.toLongOrNull() ?: 0L
+                    val highlightCommentId = backStackEntry.savedStateHandle.get<String>("highlightCommentId")?.toLongOrNull() ?: 0L
                     PostDetailScreen(
                         postId = postId,
                         highlightCommentId = highlightCommentId,
@@ -322,6 +316,14 @@ fun MainNavigation(
                         },
                         onCommentClick = { commentId ->
                             navController.navigate("comment_replies/$commentId")
+                        },
+                        onPostUpdated = { postId, isLiked, likeCount ->
+                            // Update the post in the list when like status changes
+                            AppModule.postListViewModel.updatePostLikeStatus(postId, isLiked, likeCount)
+                        },
+                        onPostDeleted = { postId ->
+                            // Remove the post from the list when it's deleted
+                            AppModule.postListViewModel.removePost(postId)
                         }
                     )
                 }
@@ -333,9 +335,9 @@ fun MainNavigation(
                     exitTransition = { fadeOutTransition },
                     popEnterTransition = { fadeInTransition },
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
-                ) {
-                    val commentId = it.savedStateHandle.get<String>("commentId")?.toLongOrNull() ?: 0L
-                    val highlightReplyId = it.savedStateHandle.get<String>("highlightReplyId")?.toLongOrNull()
+                ) { backStackEntry ->
+                    val commentId = backStackEntry.savedStateHandle.get<String>("commentId")?.toLongOrNull() ?: 0L
+                    val highlightReplyId = backStackEntry.savedStateHandle.get<String>("highlightReplyId")?.toLongOrNull() ?: 0L
                     CommentRepliesScreen(
                         commentId = commentId,
                         highlightReplyId = highlightReplyId,
