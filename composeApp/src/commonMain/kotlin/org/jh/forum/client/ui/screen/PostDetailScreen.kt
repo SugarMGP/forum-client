@@ -132,6 +132,18 @@ fun PostDetailScreen(
         }
     }
 
+    // Scroll to highlighted comment when comments load
+    LaunchedEffect(highlightCommentId, comments.size) {
+        if (highlightCommentId > 0 && comments.isNotEmpty()) {
+            val highlightIndex = comments.indexOfFirst { it.commentId == highlightCommentId }
+            if (highlightIndex >= 0) {
+                // Scroll to the highlighted comment (add offset for header items)
+                // +2 accounts for post item and comment title item
+                listState.animateScrollToItem(highlightIndex + 2)
+            }
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
@@ -271,18 +283,6 @@ fun PostDetailScreen(
 
                 // 正式渲染每条评论
                 if (comments.isNotEmpty()) {
-                    // Scroll to highlighted comment when comments load
-                    LaunchedEffect(highlightCommentId, comments.size) {
-                        if (highlightCommentId > 0 && comments.isNotEmpty()) {
-                            val highlightIndex = comments.indexOfFirst { it.commentId == highlightCommentId }
-                            if (highlightIndex >= 0) {
-                                // Scroll to the highlighted comment (add offset for header items)
-                                // +2 accounts for post item and comment title item
-                                listState.animateScrollToItem(highlightIndex + 2)
-                            }
-                        }
-                    }
-                    
                     items(
                         items = comments,
                         key = { comment -> comment.commentId }

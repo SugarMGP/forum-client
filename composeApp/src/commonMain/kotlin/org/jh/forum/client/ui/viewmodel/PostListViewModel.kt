@@ -140,7 +140,7 @@ class PostListViewModel : ViewModel() {
             )
         }
     }
-}
+
     /**
      * Update a specific post's like status and count in the list
      * Called when returning from post detail screen to sync the like state
@@ -154,3 +154,4 @@ class PostListViewModel : ViewModel() {
             }
         }
     }
+}
