@@ -70,7 +70,13 @@ fun CommentItem(
         shape = MaterialTheme.shapes.medium,
         tonalElevation = Dimensions.elevationSmall
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    MaterialTheme.colorScheme.primary.copy(alpha = highlightAlpha * 0.3f)
+                )
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

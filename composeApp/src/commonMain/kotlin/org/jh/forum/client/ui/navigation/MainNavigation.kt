@@ -320,6 +320,10 @@ fun MainNavigation(
                         onPostUpdated = { postId, isLiked, likeCount ->
                             // Update the post in the list when like status changes
                             AppModule.postListViewModel.updatePostLikeStatus(postId, isLiked, likeCount)
+                        },
+                        onPostDeleted = { postId ->
+                            // Remove the post from the list when it's deleted
+                            AppModule.postListViewModel.removePost(postId)
                         }
                     )
                 }

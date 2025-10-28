@@ -49,7 +49,8 @@ fun PostDetailScreen(
     onBack: () -> Unit,
     onUserClick: (Long) -> Unit = {},
     onCommentClick: (Long) -> Unit = {},
-    onPostUpdated: (postId: Long, isLiked: Boolean, likeCount: Int) -> Unit = { _, _, _ -> }
+    onPostUpdated: (postId: Long, isLiked: Boolean, likeCount: Int) -> Unit = { _, _, _ -> },
+    onPostDeleted: (postId: Long) -> Unit = {}
 ) {
     var post by remember { mutableStateOf<GetPostInfoResponse?>(null) }
     val errorMessage by viewModel.errorMessage.collectAsState()
@@ -65,8 +66,9 @@ fun PostDetailScreen(
 
     val listState = rememberLazyListState()
     
-    // Track the last loaded postId to detect when we're viewing a different post
+    // Track the last loaded postId and highlightId to detect new navigation
     var lastPostId by remember { mutableStateOf(0L) }
+    var lastHighlightCommentId by remember { mutableStateOf(0L) }
 
     // Get current user ID to check if they're the post author
     val authViewModel = AppModule.authViewModel
@@ -77,11 +79,13 @@ fun PostDetailScreen(
         val param = if (highlightCommentId > 0) highlightCommentId else null
         commentViewModel.setHighlightCommentId(param)
         
-        // Only clear and reset scroll if we're loading a different post
-        val isNewPost = postId != lastPostId
-        if (isNewPost) {
+        // Only clear and reset scroll if we're navigating from a different source
+        // (either different post OR different highlight, which means new navigation from messages)
+        val isNewNavigation = postId != lastPostId || (highlightCommentId > 0 && highlightCommentId != lastHighlightCommentId)
+        if (isNewNavigation) {
             lastPostId = postId
-            // Clear comments and errors immediately when navigating to a new post
+            lastHighlightCommentId = highlightCommentId
+            // Clear comments and errors immediately when navigating from a different source
             commentViewModel.clearComments()
             viewModel.clearError()
             listState.scrollToItem(0)
@@ -495,6 +499,7 @@ fun PostDetailScreen(
                             onClick = {
                                 viewModel.deletePost(postId)
                                 showDeleteDialog = false
+                                onPostDeleted(postId)
                                 onBack()
                             },
                             colors = ButtonDefaults.buttonColors(

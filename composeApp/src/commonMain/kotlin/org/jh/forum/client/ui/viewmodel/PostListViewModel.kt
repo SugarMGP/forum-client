@@ -154,4 +154,12 @@ class PostListViewModel : ViewModel() {
             }
         }
     }
+
+    /**
+     * Remove a post from the list when it's deleted
+     * Called when a post is deleted from the detail screen
+     */
+    fun removePost(postId: Long) {
+        _posts.value = _posts.value.filterNot { it.id == postId }
+    }
 }
