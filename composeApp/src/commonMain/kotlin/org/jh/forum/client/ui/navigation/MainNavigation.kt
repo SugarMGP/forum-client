@@ -298,23 +298,16 @@ fun MainNavigation(
                 // 帖子详情页
                 composable(
                     "post_detail/{postId}?highlightCommentId={highlightCommentId}",
-                    arguments = listOf(
-                        navArgument("postId") { type = NavType.StringType },
-                        navArgument("highlightCommentId") {
-                            type = NavType.StringType
-                            nullable = true
-                        }
-                    ),
                     enterTransition = { slideInTransition + fadeInTransition },
                     exitTransition = { fadeOutTransition },
                     popEnterTransition = { fadeInTransition },
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) { backStackEntry ->
                     val postId = backStackEntry.savedStateHandle.get<String>("postId")?.toLongOrNull() ?: 0L
-                    val highlightCommentId = backStackEntry.savedStateHandle.get<String>("highlightCommentId")?.toLongOrNull()
+                    val highlightCommentId = backStackEntry.savedStateHandle.get<String>("highlightCommentId")?.toLongOrNull() ?: 0L
                     PostDetailScreen(
                         postId = postId,
-                        highlightCommentId = highlightCommentId ?: 0L,
+                        highlightCommentId = highlightCommentId,
                         viewModel = AppModule.postViewModel,
                         commentViewModel = AppModule.commentViewModel,
                         onBack = { navController.popBackStack() },
@@ -330,23 +323,16 @@ fun MainNavigation(
                 // 评论回复页面
                 composable(
                     "comment_replies/{commentId}?highlightReplyId={highlightReplyId}",
-                    arguments = listOf(
-                        navArgument("commentId") { type = NavType.StringType },
-                        navArgument("highlightReplyId") {
-                            type = NavType.StringType
-                            nullable = true
-                        }
-                    ),
                     enterTransition = { slideInTransition + fadeInTransition },
                     exitTransition = { fadeOutTransition },
                     popEnterTransition = { fadeInTransition },
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) { backStackEntry ->
                     val commentId = backStackEntry.savedStateHandle.get<String>("commentId")?.toLongOrNull() ?: 0L
-                    val highlightReplyId = backStackEntry.savedStateHandle.get<String>("highlightReplyId")?.toLongOrNull()
+                    val highlightReplyId = backStackEntry.savedStateHandle.get<String>("highlightReplyId")?.toLongOrNull() ?: 0L
                     CommentRepliesScreen(
                         commentId = commentId,
-                        highlightReplyId = highlightReplyId ?: 0L,
+                        highlightReplyId = highlightReplyId,
                         viewModel = AppModule.replyViewModel,
                         onBack = { navController.popBackStack() },
                         onUserClick = { userId ->
