@@ -1,11 +1,15 @@
-package org.jh.forum.client.ui.screen
+package org.jh.forum.client.ui.component
 
+import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,10 +38,10 @@ actual fun ImagePicker(
         }.onFailure { it.printStackTrace() }
     }
 
-    androidx.compose.runtime.CompositionLocalProvider(
+    CompositionLocalProvider(
         LocalImagePickerClick provides {
             if (enabled) launcher.launch(
-                androidx.activity.result.PickVisualMediaRequest(
+                PickVisualMediaRequest(
                     ActivityResultContracts.PickVisualMedia.ImageOnly
                 )
             )
@@ -46,7 +50,7 @@ actual fun ImagePicker(
         Box(
             modifier = Modifier.clickable(enabled = enabled) {
                 launcher.launch(
-                    androidx.activity.result.PickVisualMediaRequest(
+                    PickVisualMediaRequest(
                         ActivityResultContracts.PickVisualMedia.ImageOnly
                     )
                 )
@@ -57,9 +61,9 @@ actual fun ImagePicker(
     }
 }
 
-private fun getFilenameFromUri(context: android.content.Context, uri: Uri): String? {
+private fun getFilenameFromUri(context: Context, uri: Uri): String? {
     return context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-        val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+        val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
         if (nameIndex >= 0 && cursor.moveToFirst()) {
             cursor.getString(nameIndex)
         } else {
