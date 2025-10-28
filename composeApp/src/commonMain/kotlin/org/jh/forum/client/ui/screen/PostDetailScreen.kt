@@ -435,7 +435,10 @@ fun PostDetailScreen(
                                 ) {
                                     Text(
                                         "发表评论",
-                                        style = MaterialTheme.typography.titleLarge
+                                        style = MaterialTheme.typography.titleLarge,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f)
                                     )
                                     // 美化的关闭按钮
                                     Surface(
@@ -446,7 +449,8 @@ fun PostDetailScreen(
                                         Icon(
                                             imageVector = AppIcons.Close,
                                             contentDescription = "关闭",
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(8.dp)
                                         )
                                     }
                                 }

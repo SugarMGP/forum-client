@@ -318,7 +318,10 @@ fun CommentRepliesScreen(
                                 ) {
                                     Text(
                                         if (replyTarget != null) "回复 @${replyTarget?.publisherInfo?.nickname}" else "回复评论",
-                                        style = MaterialTheme.typography.titleLarge
+                                        style = MaterialTheme.typography.titleLarge,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f)
                                     )
                                     Surface(
                                         shape = CircleShape,
@@ -563,7 +566,8 @@ fun ReplyItem(
             .padding(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall),
         color = MaterialTheme.colorScheme.surfaceVariant,
         shape = MaterialTheme.shapes.medium,
-        tonalElevation = Dimensions.elevationSmall
+        tonalElevation = Dimensions.elevationSmall,
+        onClick = onReply
     ) {
         Box(
             modifier = Modifier
@@ -715,21 +719,6 @@ fun ReplyItem(
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall, Alignment.End),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Reply button
-                    FilledTonalButton(
-                        onClick = onReply,
-                        modifier = Modifier.height(Dimensions.buttonHeightSmall),
-                        shape = MaterialTheme.shapes.small
-                    ) {
-                        Icon(
-                            AppIcons.Comment,
-                            contentDescription = "回复",
-                            modifier = Modifier.size(Dimensions.iconSmall)
-                        )
-                        Spacer(Modifier.width(Dimensions.spaceExtraSmall))
-                        Text("回复", style = MaterialTheme.typography.labelSmall)
-                    }
-
                     // Upvote button - 使用OutlinedButton匹配帖子列表风格
                     OutlinedButton(
                         onClick = onUpvote,
