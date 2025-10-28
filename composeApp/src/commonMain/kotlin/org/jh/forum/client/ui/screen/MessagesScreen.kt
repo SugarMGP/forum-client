@@ -278,7 +278,7 @@ fun MessagesScreen(
                 .padding(paddingValues) // 只在最外层Column应用paddingValues
         ) {
             when {
-                isLoading -> {
+                isLoading && messages.isEmpty() && announcements.isEmpty() -> {
                     Box(
                         modifier = Modifier
                             .fillMaxSize(),

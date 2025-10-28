@@ -155,7 +155,6 @@ class KtorForumApi(private val client: HttpClient, private val baseUrl: String) 
             parameter("pageSize", pageSize)
             parameter("id", id)
             parameter("sortType", sortType)
-            println("[KtorForumApi] getCommentList: highlightCommentId=$highlightCommentId, willAdd=${highlightCommentId > 0}")
             if (highlightCommentId > 0) {
                 parameter("highlightCommentId", highlightCommentId)
             }

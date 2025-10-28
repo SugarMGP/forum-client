@@ -35,17 +35,14 @@ class CommentViewModel : ViewModel() {
 
     fun setHighlightCommentId(highlightId: Long?) {
         _highlightCommentId.value = highlightId ?: 0L
-        println("[CommentViewModel] setHighlightCommentId to ${_highlightCommentId.value}")
     }
 
     fun loadComments(postId: Long, reset: Boolean = false, highlightId: Long? = null) {
-        println("[CommentViewModel] loadComments called: reset=$reset, highlightId=$highlightId")
         if (reset) {
             _currentPage.value = 1
             _comments.value = emptyList()
             _hasMore.value = true
             _highlightCommentId.value = highlightId ?: 0L
-            println("[CommentViewModel] Set _highlightCommentId to ${_highlightCommentId.value}")
         }
 
         if (!_hasMore.value || _isLoading.value) return
@@ -55,7 +52,6 @@ class CommentViewModel : ViewModel() {
             _errorMessage.value = null
 
             try {
-                println("[CommentViewModel] Calling repository with highlightCommentId=${_highlightCommentId.value}")
                 val result = repository.getCommentList(
                     page = _currentPage.value,
                     pageSize = 20,

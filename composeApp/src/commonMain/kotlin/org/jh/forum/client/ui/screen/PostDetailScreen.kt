@@ -69,7 +69,6 @@ fun PostDetailScreen(
     val currentUserId = authViewModel.userProfile.collectAsState().value?.userId
 
     LaunchedEffect(postId, highlightCommentId) {
-        println("[PostDetailScreen] LaunchedEffect: postId=$postId, highlightCommentId=$highlightCommentId")
         // Set highlight ID BEFORE clearing to ensure pagination uses correct value
         val param = if (highlightCommentId > 0) highlightCommentId else null
         commentViewModel.setHighlightCommentId(param)
@@ -81,7 +80,6 @@ fun PostDetailScreen(
             post = result
             // Only load comments if post loaded successfully
             if (result != null) {
-                println("[PostDetailScreen] Calling loadComments with highlightId=$param")
                 commentViewModel.loadComments(postId, true, param)
             }
         }
@@ -268,6 +266,7 @@ fun PostDetailScreen(
                         val isHighlighted = comment.commentId == highlightCommentId
                         CommentItem(
                             comment = comment,
+                            isHighlighted = isHighlighted,
                             onUpvote = { commentViewModel.upvoteComment(comment.commentId) },
                             onPin = if (currentUserId != null && currentUserId == post?.publisherInfo?.id) {
                                 { commentViewModel.pinComment(comment.commentId) }
@@ -285,7 +284,6 @@ fun PostDetailScreen(
                             onViewReplies = {
                                 onCommentClick(comment.commentId)
                             },
-                            isHighlighted = isHighlighted,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
