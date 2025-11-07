@@ -94,7 +94,7 @@ class CommentViewModel : ViewModel() {
 
             val result = repository.publishComment(request)
             if (result.code == 200 && result.data != null) {
-                loadComments(postId, true,0L) // 重新加载评论列表
+                loadComments(postId, true, 0L) // 重新加载评论列表
             } else {
                 _errorMessage.value = result.msg ?: "发布失败"
             }

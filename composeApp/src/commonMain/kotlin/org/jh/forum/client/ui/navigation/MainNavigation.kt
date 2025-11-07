@@ -14,12 +14,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.*
@@ -304,7 +302,8 @@ fun MainNavigation(
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) { backStackEntry ->
                     val postId = backStackEntry.savedStateHandle.get<String>("postId")?.toLongOrNull() ?: 0L
-                    val highlightCommentId = backStackEntry.savedStateHandle.get<String>("highlightCommentId")?.toLongOrNull() ?: 0L
+                    val highlightCommentId =
+                        backStackEntry.savedStateHandle.get<String>("highlightCommentId")?.toLongOrNull() ?: 0L
                     PostDetailScreen(
                         postId = postId,
                         highlightCommentId = highlightCommentId,
@@ -337,7 +336,8 @@ fun MainNavigation(
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) { backStackEntry ->
                     val commentId = backStackEntry.savedStateHandle.get<String>("commentId")?.toLongOrNull() ?: 0L
-                    val highlightReplyId = backStackEntry.savedStateHandle.get<String>("highlightReplyId")?.toLongOrNull() ?: 0L
+                    val highlightReplyId =
+                        backStackEntry.savedStateHandle.get<String>("highlightReplyId")?.toLongOrNull() ?: 0L
                     CommentRepliesScreen(
                         commentId = commentId,
                         highlightReplyId = highlightReplyId,

@@ -230,8 +230,6 @@ fun PostListScreen(
     // Monitor loading state to update refresh indicator
     LaunchedEffect(isLoading) {
         if (!isLoading && isRefreshing) {
-            // Add a small delay to ensure smooth animation
-            kotlinx.coroutines.delay(300)
             isRefreshing = false
         }
     }
@@ -385,17 +383,6 @@ fun PostListScreen(
                                     showImageGallery = true
                                 }
                             )
-                        }
-
-                        if (isLoading) {
-                            item {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
-                            }
                         }
                     }
                 }

@@ -57,7 +57,7 @@ fun MessagesScreen(
     var selectedNoticeType by remember { mutableStateOf(0) } // 0:全部, 1:点赞, 2:收藏, 3:评论和@
     var selectedType by remember { mutableStateOf(0) } // 0:互动, 1:公告
     var selectedAnnouncementType by remember { mutableStateOf(0) } // 0:全部, 1:学校公告, 2:系统公告
-    
+
     // List states - hoist outside when branches to preserve scroll position
     val noticeListState = rememberLazyListState()
     val announcementListState = rememberLazyListState()
@@ -515,23 +515,27 @@ fun MessageItem(
             .clickable(enabled = message.positionContent != null) {
                 when {
                     message.type == "comment" -> {
-                        when{
+                        when {
                             message.positionType == "post" -> {
                                 onNavigateToPost(message.postId, message.newCommentId)
                             }
+
                             else -> {
                                 onNavigateToComment(message.commentId, message.newCommentId)
                             }
                         }
                     }
+
                     else -> {
                         when (message.positionType) {
                             "post" -> {
                                 onNavigateToPost(message.postId, 0L)
                             }
+
                             "comment" -> {
                                 onNavigateToPost(message.postId, message.commentId)
                             }
+
                             "reply" -> {
                                 onNavigateToComment(message.commentId, message.replyId)
                             }
