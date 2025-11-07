@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -493,7 +494,10 @@ fun OriginalCommentItem(
                     onClick = onUpvote,
                     modifier = Modifier.height(Dimensions.buttonHeightSmall),
                     shape = MaterialTheme.shapes.small,
-                    border = ButtonDefaults.outlinedButtonBorder(!comment.isLiked),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                    ),
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = if (comment.isLiked) {
                             MaterialTheme.colorScheme.primaryContainer
@@ -724,7 +728,10 @@ fun ReplyItem(
                         onClick = onUpvote,
                         modifier = Modifier.height(Dimensions.buttonHeightSmall),
                         shape = MaterialTheme.shapes.small,
-                        border = ButtonDefaults.outlinedButtonBorder(!reply.isLiked),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                        ),
                         colors = ButtonDefaults.outlinedButtonColors(
                             containerColor = if (reply.isLiked) {
                                 MaterialTheme.colorScheme.primaryContainer

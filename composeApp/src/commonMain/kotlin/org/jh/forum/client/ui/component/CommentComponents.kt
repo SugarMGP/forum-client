@@ -1,5 +1,6 @@
 package org.jh.forum.client.ui.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -291,7 +292,10 @@ fun CommentItem(
                         onClick = onUpvote,
                         modifier = Modifier.height(Dimensions.buttonHeightSmall),
                         shape = MaterialTheme.shapes.small,
-                        border = ButtonDefaults.outlinedButtonBorder(!comment.isLiked),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                        ),
                         colors = ButtonDefaults.outlinedButtonColors(
                             containerColor = if (comment.isLiked) {
                                 MaterialTheme.colorScheme.primaryContainer

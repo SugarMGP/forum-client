@@ -818,7 +818,10 @@ fun PostContent(
                         },
                         modifier = Modifier.height(Dimensions.buttonHeightSmall),
                         shape = MaterialTheme.shapes.small,
-                        border = ButtonDefaults.outlinedButtonBorder(!post.isLiked),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                        ),
                         colors = ButtonDefaults.outlinedButtonColors(
                             containerColor = if (post.isLiked) {
                                 MaterialTheme.colorScheme.primaryContainer
