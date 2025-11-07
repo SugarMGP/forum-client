@@ -4,9 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -65,7 +64,7 @@ fun PostDetailScreen(
     val commentError by commentViewModel.errorMessage.collectAsState()
 
     val listState = rememberLazyListState()
-    
+
     // Track the last loaded postId and highlightId to detect new navigation
     var lastPostId by remember { mutableStateOf(0L) }
     var lastHighlightCommentId by remember { mutableStateOf(0L) }
@@ -78,10 +77,11 @@ fun PostDetailScreen(
         // Set highlight ID BEFORE clearing to ensure pagination uses correct value
         val param = if (highlightCommentId > 0) highlightCommentId else null
         commentViewModel.setHighlightCommentId(param)
-        
+
         // Only clear and reset scroll if we're navigating from a different source
         // (either different post OR different highlight, which means new navigation from messages)
-        val isNewNavigation = postId != lastPostId || (highlightCommentId > 0 && highlightCommentId != lastHighlightCommentId)
+        val isNewNavigation =
+            postId != lastPostId || (highlightCommentId > 0 && highlightCommentId != lastHighlightCommentId)
         if (isNewNavigation) {
             lastPostId = postId
             lastHighlightCommentId = highlightCommentId
@@ -90,7 +90,7 @@ fun PostDetailScreen(
             viewModel.clearError()
             listState.scrollToItem(0)
         }
-        
+
         viewModel.getPost(postId) { result ->
             post = result
             // Only load comments if post loaded successfully
@@ -540,7 +540,7 @@ fun PostDetailScreen(
     )
 }
 
-@OptIn(ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun PostContent(
     post: GetPostInfoResponse,
@@ -769,35 +769,44 @@ fun PostContent(
                     }
                 }
 
-                // 话题标签
                 if (post.topics.isNotEmpty()) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                    val scrollState = rememberScrollState()
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = Dimensions.spaceMedium)
                             .padding(top = Dimensions.spaceMedium)
                     ) {
-                        post.topics.forEach { tag ->
-                            AssistChip(
-                                onClick = { },
-                                label = {
-                                    Text(
-                                        text = "#$tag",
-                                        style = MaterialTheme.typography.labelMedium
-                                    )
-                                },
-                                colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                    labelColor = MaterialTheme.colorScheme.onTertiaryContainer
-                                ),
-                                border = BorderStroke(
-                                    width = 1.dp,
-                                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
-                                ),
-                                shape = RoundedCornerShape(Dimensions.cornerRadiusSmall),
-                                modifier = Modifier.height(30.dp)
-                            )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(scrollState)
+                        ) {
+                            post.topics.forEach { tag ->
+                                AssistChip(
+                                    onClick = { },
+                                    label = {
+                                        Text(
+                                            text = "#$tag",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            maxLines = 1,
+                                            softWrap = false,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    },
+                                    colors = AssistChipDefaults.assistChipColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        labelColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                    ),
+                                    border = BorderStroke(
+                                        width = 1.dp,
+                                        color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
+                                    ),
+                                    shape = RoundedCornerShape(Dimensions.cornerRadiusSmall),
+                                    modifier = Modifier.height(30.dp)
+                                )
+                            }
                         }
                     }
                 }

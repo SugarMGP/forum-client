@@ -215,23 +215,21 @@ fun PostListScreen(
         viewModel.loadPosts()
     }
 
-    // 处理刷新参数
-    LaunchedEffect(refresh) {
-        if (refresh) {
-            viewModel.refresh()
-            onRefreshComplete()
-        }
-    }
-
     // Pull-to-refresh state
     var isRefreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullToRefreshState()
 
+    // 处理刷新参数 - 触发下拉刷新UI
+    LaunchedEffect(refresh) {
+        if (refresh) {
+            isRefreshing = true
+            onRefreshComplete()
+        }
+    }
+
     // Monitor loading state to update refresh indicator
     LaunchedEffect(isLoading) {
         if (!isLoading && isRefreshing) {
-            // Add a small delay to ensure smooth animation
-            kotlinx.coroutines.delay(300)
             isRefreshing = false
         }
     }
@@ -385,17 +383,6 @@ fun PostListScreen(
                                     showImageGallery = true
                                 }
                             )
-                        }
-
-                        if (isLoading) {
-                            item {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
-                            }
                         }
                     }
                 }
