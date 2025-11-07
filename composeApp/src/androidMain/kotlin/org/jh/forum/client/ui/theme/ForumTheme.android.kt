@@ -34,7 +34,8 @@ actual fun ForumTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        content = content
+        content = content,
+        typography = AppTypography()
     )
 }
 

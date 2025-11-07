@@ -28,10 +28,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jh.forum.client.data.model.GetPostInfoResponse
 import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.di.AppModule
-import org.jh.forum.client.ui.component.ClickableImage
-import org.jh.forum.client.ui.component.CommentEditor
-import org.jh.forum.client.ui.component.CommentItem
-import org.jh.forum.client.ui.component.ImageGalleryDialog
+import org.jh.forum.client.ui.component.*
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.CommentViewModel
@@ -575,6 +572,7 @@ fun PostContent(
                 .padding(Dimensions.spaceMedium)
                 .animateContentSize(),
             color = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurface,
             tonalElevation = Dimensions.elevationSmall,
             shape = MaterialTheme.shapes.medium
         ) {
@@ -662,15 +660,14 @@ fun PostContent(
                 ) {
                     Text(
                         text = post.title ?: "",
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                     )
 
                     // 帖子内容
-                    Text(
+                    ParagraphText(
                         text = post.content ?: "",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                     )
 
