@@ -9,13 +9,23 @@ import androidx.compose.ui.unit.sp
 
 /**
  * Creates a responsive Typography based on screen width
- * @param screenWidthDp The screen width in dp
- * @return Typography with scaled font sizes
+ * 
+ * This function scales all Material 3 typography styles based on the device's screen width,
+ * ensuring better readability across different device sizes. The scaling is applied uniformly
+ * to font sizes, line heights, and letter spacing.
+ * 
+ * Scale factors by device category:
+ * - Extra small screens (<360dp, e.g., small phones): 0.85x scale
+ * - Small screens (360-600dp, e.g., most phones): 0.92x scale
+ * - Medium screens (600-840dp, e.g., large phones, small tablets): 1.0x scale (baseline)
+ * - Large screens (>840dp, e.g., tablets, desktop): 1.05x scale
+ * 
+ * @param screenWidthDp The screen width in density-independent pixels (dp)
+ * @return Typography with scaled font sizes appropriate for the screen width
  */
 @Composable
 fun createResponsiveTypography(screenWidthDp: Int): Typography {
     // Calculate scale factor based on screen width
-    // Base size is 360dp (typical small phone), scale between 0.85 and 1.05
     val scaleFactor = when {
         screenWidthDp < 360 -> 0.85f  // Extra small screens
         screenWidthDp < 600 -> 0.92f  // Small screens (phones)
