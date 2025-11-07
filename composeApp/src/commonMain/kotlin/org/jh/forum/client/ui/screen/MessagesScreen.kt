@@ -155,8 +155,8 @@ fun MessagesScreen(
             if (response.code == 200 && response.data != null) {
                 unreadNoticeCount = response.data.unreadNoticeCount
                 unreadAnnouncementCount = response.data.unreadAnnouncementCount
-                // Update the messageViewModel to keep the badge in sync
-                messageViewModel.checkUnreadMessages()
+                // Update the messageViewModel state directly without making another API call
+                messageViewModel.updateUnreadCounts(response.data.unreadNoticeCount, response.data.unreadAnnouncementCount)
             }
         } catch (e: Exception) {
             e.printStackTrace()

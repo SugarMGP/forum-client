@@ -39,13 +39,16 @@ class MessageViewModel : ViewModel() {
         try {
             val response = repository.checkUnread()
             if (response.code == 200 && response.data != null) {
-                _unreadNoticeCount.value = response.data.unreadNoticeCount
-                _unreadAnnouncementCount.value = response.data.unreadAnnouncementCount
-                _hasUnreadMessages.value = 
-                    response.data.unreadNoticeCount > 0 || response.data.unreadAnnouncementCount > 0
+                updateUnreadCounts(response.data.unreadNoticeCount, response.data.unreadAnnouncementCount)
             }
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+    
+    fun updateUnreadCounts(noticeCount: Int, announcementCount: Int) {
+        _unreadNoticeCount.value = noticeCount
+        _unreadAnnouncementCount.value = announcementCount
+        _hasUnreadMessages.value = noticeCount > 0 || announcementCount > 0
     }
 }
