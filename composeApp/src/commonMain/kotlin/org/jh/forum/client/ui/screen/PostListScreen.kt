@@ -230,8 +230,6 @@ fun PostListScreen(
     // Monitor loading state to update refresh indicator
     LaunchedEffect(isLoading) {
         if (!isLoading && isRefreshing) {
-            // Add a delay to keep the refresh animation visible longer for better UX
-            kotlinx.coroutines.delay(800)
             isRefreshing = false
         }
     }
