@@ -30,7 +30,16 @@ class MessageViewModel : ViewModel() {
                 if (authViewModel.isLoggedIn.value) {
                     checkUnreadMessages()
                 }
-                delay(60000) // Wait for 1 minute
+                delay(60000) // Wait for 1 minute before next check
+            }
+        }
+        
+        // Also check immediately on initialization
+        viewModelScope.launch {
+            // Wait a bit for auth status to be loaded
+            delay(500)
+            if (authViewModel.isLoggedIn.value) {
+                checkUnreadMessages()
             }
         }
     }
