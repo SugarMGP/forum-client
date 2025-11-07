@@ -21,7 +21,7 @@ actual fun ForumTheme(
     val density = LocalDensity.current
     val screenWidthDp = try {
         val screenSize = Toolkit.getDefaultToolkit().screenSize
-        with(density) { screenSize.width.toDp().value }.toInt()
+        with(density) { screenSize.width.dp.toPx().toInt() / density.density }.toInt()
     } catch (e: Exception) {
         // Fallback to a reasonable default if we can't get screen size
         600

@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun createResponsiveTypography(screenWidthDp: Int): Typography {
     // Calculate scale factor based on screen width
-    // Base size is 360dp (typical small phone), scale between 0.85 and 1.05
+    // Base size is 360dp (typical small phone), scale between 0.85 and 1.0
     val scaleFactor = when {
         screenWidthDp < 360 -> 0.85f  // Extra small screens
         screenWidthDp < 600 -> 0.92f  // Small screens (phones)
