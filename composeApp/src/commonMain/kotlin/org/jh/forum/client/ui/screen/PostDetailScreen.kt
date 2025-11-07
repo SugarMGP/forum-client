@@ -7,10 +7,12 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -771,10 +773,12 @@ fun PostContent(
 
                 // 话题标签
                 if (post.topics.isNotEmpty()) {
+                    val scrollState = rememberScrollState()
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                         modifier = Modifier
                             .fillMaxWidth()
+                            .horizontalScroll(scrollState)
                             .padding(horizontal = Dimensions.spaceMedium)
                             .padding(top = Dimensions.spaceMedium)
                     ) {
@@ -784,7 +788,10 @@ fun PostContent(
                                 label = {
                                     Text(
                                         text = "#$tag",
-                                        style = MaterialTheme.typography.labelMedium
+                                        style = MaterialTheme.typography.labelMedium,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 },
                                 colors = AssistChipDefaults.assistChipColors(
