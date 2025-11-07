@@ -69,11 +69,13 @@ fun MainNavigation(
     currentSeedColor: Color = Color.Red
 ) {
     val authViewModel = AppModule.authViewModel
+    val messageViewModel = AppModule.messageViewModel
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     var currentTheme by remember { mutableStateOf(ThemeMode.SYSTEM) }
     var homeRefreshTrigger by remember { mutableStateOf(0) }
+    val hasUnreadMessages by messageViewModel.hasUnreadMessages.collectAsState()
 
     // 在组件初始化时检查用户登录状态
     LaunchedEffect(Unit) {
@@ -98,7 +100,17 @@ fun MainNavigation(
                 BottomNavItem.Profile
             ).forEach { it ->
                 item(
-                    icon = { Icon(it.icon, contentDescription = it.title) },
+                    icon = {
+                        androidx.compose.material3.BadgedBox(
+                            badge = {
+                                if (it.route == BottomNavItem.Messages.route && hasUnreadMessages) {
+                                    androidx.compose.material3.Badge()
+                                }
+                            }
+                        ) {
+                            Icon(it.icon, contentDescription = it.title)
+                        }
+                    },
                     label = { Text(it.title) },
                     selected = currentDestination?.route?.startsWith(it.route) == true,
                     onClick = {

@@ -37,6 +37,7 @@ fun MessagesScreen(
     onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val messageViewModel = org.jh.forum.client.di.AppModule.messageViewModel
 
     // 消息相关状态
     var messages by remember { mutableStateOf<List<GetNoticeListElement>>(emptyList()) }
@@ -154,6 +155,8 @@ fun MessagesScreen(
             if (response.code == 200 && response.data != null) {
                 unreadNoticeCount = response.data.unreadNoticeCount
                 unreadAnnouncementCount = response.data.unreadAnnouncementCount
+                // Update the messageViewModel to keep the badge in sync
+                messageViewModel.checkUnreadMessages()
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -183,21 +186,7 @@ fun MessagesScreen(
             ) {
                 TopAppBar(
                     title = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("消息")
-                            // 底栏红点逻辑：如果两个数不都为0则显示红点
-                            if (unreadNoticeCount > 0 || unreadAnnouncementCount > 0) {
-                                Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-                                Box(
-                                    modifier = Modifier
-                                        .size(Dimensions.spaceSmall)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.error,
-                                            shape = CircleShape
-                                        )
-                                )
-                            }
-                        }
+                        Text("消息")
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface,
