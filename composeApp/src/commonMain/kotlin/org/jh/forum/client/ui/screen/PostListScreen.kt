@@ -215,17 +215,17 @@ fun PostListScreen(
         viewModel.loadPosts()
     }
 
-    // 处理刷新参数
-    LaunchedEffect(refresh) {
-        if (refresh) {
-            viewModel.refresh()
-            onRefreshComplete()
-        }
-    }
-
     // Pull-to-refresh state
     var isRefreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullToRefreshState()
+
+    // 处理刷新参数 - 触发下拉刷新UI
+    LaunchedEffect(refresh) {
+        if (refresh) {
+            isRefreshing = true
+            onRefreshComplete()
+        }
+    }
 
     // Monitor loading state to update refresh indicator
     LaunchedEffect(isLoading) {
