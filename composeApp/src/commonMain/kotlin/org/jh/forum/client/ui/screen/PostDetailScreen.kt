@@ -777,7 +777,6 @@ fun PostContent(
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                         modifier = Modifier
-                            .fillMaxWidth()
                             .horizontalScroll(scrollState)
                             .padding(horizontal = Dimensions.spaceMedium)
                             .padding(top = Dimensions.spaceMedium)
