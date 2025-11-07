@@ -7,6 +7,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,9 +24,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jh.forum.client.data.model.GetPostInfoResponse
@@ -778,32 +783,42 @@ fun PostContent(
                         horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
                         modifier = Modifier
                             .horizontalScroll(scrollState)
+                            .pointerHoverIcon(PointerIcon.Hand)
+                            .pointerInput(Unit) {
+                                detectDragGestures { change, dragAmount ->
+                                    change.consume()
+                                    kotlinx.coroutines.runBlocking {
+                                        scrollState.scrollTo((scrollState.value - dragAmount.x).toInt().coerceAtLeast(0))
+                                    }
+                                }
+                            }
                             .padding(horizontal = Dimensions.spaceMedium)
                             .padding(top = Dimensions.spaceMedium)
                     ) {
                         post.topics.forEach { tag ->
-                            AssistChip(
-                                onClick = { },
-                                label = {
-                                    Text(
-                                        text = "#$tag",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        maxLines = 1,
-                                        softWrap = false,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                },
-                                colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                    labelColor = MaterialTheme.colorScheme.onTertiaryContainer
-                                ),
+                            Surface(
+                                shape = RoundedCornerShape(Dimensions.cornerRadiusSmall),
+                                color = MaterialTheme.colorScheme.tertiaryContainer,
                                 border = BorderStroke(
                                     width = 1.dp,
                                     color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
                                 ),
-                                shape = RoundedCornerShape(Dimensions.cornerRadiusSmall),
                                 modifier = Modifier.height(30.dp)
-                            )
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Text(
+                                        text = "#$tag",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
                         }
                     }
                 }
