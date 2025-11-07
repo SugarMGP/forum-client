@@ -40,33 +40,37 @@ class PostListViewModel : ViewModel() {
             _isLoading.value = true
             _errorMessage.value = null
 
-            if (reset) {
-                _currentPage.value = 1
-                _posts.value = emptyList()
-                _hasMore.value = true
-            }
+            // Store the page to load before modifying state
+            val pageToLoad = if (reset) 1 else _currentPage.value
 
             try {
                 val result =
-                    repository.getPostList(_currentPage.value, 20, category, actualSortType)
+                    repository.getPostList(pageToLoad, 20, category, actualSortType)
                 _isLoading.value = false
 
                 if (result.code == 200 && result.data != null) {
                     val response = result.data
                     if (response.list.isNotEmpty()) {
                         if (reset) {
+                            // Replace the entire list with new data
                             _posts.value = response.list
+                            _currentPage.value = 2 // Next page to load
+                            _hasMore.value = true
                         } else {
                             // Merge new posts with existing ones, filtering out duplicates
                             val existingIds = _posts.value.map { it.id }.toSet()
                             val uniqueNewPosts = response.list.filter { it.id !in existingIds }
                             _posts.value = _posts.value + uniqueNewPosts
+                            _currentPage.value = _currentPage.value + 1
                         }
 
                         _totalPages.value = ((response.total + 19) / 20).toInt() // 计算总页数
-                        _currentPage.value = _currentPage.value + 1
                         _hasMore.value = _currentPage.value <= _totalPages.value
                     } else {
+                        if (reset) {
+                            // Only clear posts if we got empty result on reset
+                            _posts.value = emptyList()
+                        }
                         _errorMessage.value = "没有找到帖子"
                     }
                 } else {
