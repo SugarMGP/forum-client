@@ -218,21 +218,31 @@ fun PostListScreen(
     // Pull-to-refresh state
     var isRefreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullToRefreshState()
+    var refreshStartTime by remember { mutableLongStateOf(0L) }
 
     // 处理刷新参数 - 触发下拉刷新UI
     LaunchedEffect(refresh) {
         if (refresh) {
             isRefreshing = true
+            refreshStartTime = System.currentTimeMillis()
             onRefreshComplete()
         }
     }
 
-    // Monitor loading state to update refresh indicator
-    LaunchedEffect(isLoading) {
-        if (!isLoading && isRefreshing) {
-            // Add a delay to keep the refresh animation visible longer for better UX
-            kotlinx.coroutines.delay(800)
+    // Monitor loading state to update refresh indicator with minimum display time
+    LaunchedEffect(isLoading, isRefreshing) {
+        if (!isLoading && isRefreshing && refreshStartTime > 0) {
+            // Calculate how long the refresh indicator has been visible
+            val elapsed = System.currentTimeMillis() - refreshStartTime
+            val minDisplayTime = 800L // Minimum 800ms display time
+            
+            // If less than minimum time has passed, wait for the remainder
+            if (elapsed < minDisplayTime) {
+                kotlinx.coroutines.delay(minDisplayTime - elapsed)
+            }
+            
             isRefreshing = false
+            refreshStartTime = 0L
         }
     }
 
@@ -342,6 +352,7 @@ fun PostListScreen(
                 isRefreshing = isRefreshing,
                 onRefresh = {
                     isRefreshing = true
+                    refreshStartTime = System.currentTimeMillis()
                     viewModel.refresh()
                 },
                 state = pullRefreshState,
