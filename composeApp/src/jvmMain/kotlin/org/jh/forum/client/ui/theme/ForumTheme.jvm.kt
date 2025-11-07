@@ -1,14 +1,9 @@
 package org.jh.forum.client.ui.theme
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
 import com.materialkolor.DynamicMaterialTheme
 import com.materialkolor.dynamiccolor.ColorSpec
-import com.materialkolor.rememberDynamicColorScheme
-import java.awt.Toolkit
 
 @Composable
 actual fun ForumTheme(
@@ -17,28 +12,12 @@ actual fun ForumTheme(
     seedColor: Color,
     content: @Composable () -> Unit
 ) {
-    // Get screen width for responsive typography
-    val density = LocalDensity.current
-    val screenWidthDp = try {
-        val screenSize = Toolkit.getDefaultToolkit().screenSize
-        with(density) { screenSize.width.dp.toPx().toInt() / density.density }.toInt()
-    } catch (e: Exception) {
-        // Fallback to a reasonable default if we can't get screen size
-        600
-    }
-    
-    val colorScheme = rememberDynamicColorScheme(
+    DynamicMaterialTheme(
         seedColor = seedColor,
         isDark = darkTheme,
+        animate = true,
+        content = content,
         specVersion = ColorSpec.SpecVersion.SPEC_2025
-    )
-    
-    val typography = createResponsiveTypography(screenWidthDp)
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = typography,
-        content = content
     )
 }
 
