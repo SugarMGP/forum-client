@@ -17,7 +17,8 @@ actual fun ForumTheme(
         isDark = darkTheme,
         animate = true,
         content = content,
-        specVersion = ColorSpec.SpecVersion.SPEC_2025
+        specVersion = ColorSpec.SpecVersion.SPEC_2025,
+        typography = AppTypography()
     )
 }
 

@@ -5,14 +5,15 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -69,11 +70,13 @@ fun MainNavigation(
     currentSeedColor: Color = Color.Red
 ) {
     val authViewModel = AppModule.authViewModel
+    val messageViewModel = AppModule.messageViewModel
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     var currentTheme by remember { mutableStateOf(ThemeMode.SYSTEM) }
     var homeRefreshTrigger by remember { mutableStateOf(0) }
+    val hasUnreadMessages by messageViewModel.hasUnreadMessages.collectAsState()
 
     // 在组件初始化时检查用户登录状态
     LaunchedEffect(Unit) {
@@ -98,7 +101,19 @@ fun MainNavigation(
                 BottomNavItem.Profile
             ).forEach { it ->
                 item(
-                    icon = { Icon(it.icon, contentDescription = it.title) },
+                    icon = {
+                        BadgedBox(
+                            badge = {
+                                if (it.route == BottomNavItem.Messages.route && hasUnreadMessages) {
+                                    Badge(
+                                        modifier = Modifier.offset(x = 8.dp, y = (-4).dp)
+                                    )
+                                }
+                            }
+                        ) {
+                            Icon(it.icon, contentDescription = it.title)
+                        }
+                    },
                     label = { Text(it.title) },
                     selected = currentDestination?.route?.startsWith(it.route) == true,
                     onClick = {
@@ -107,6 +122,9 @@ fun MainNavigation(
                             currentDestination?.route?.startsWith(BottomNavItem.Home.route) == true
                         ) {
                             homeRefreshTrigger++
+                        }
+                        if (it.route == BottomNavItem.Messages.route) {
+                            messageViewModel.cleanUnreadBadge()
                         }
                         navController.navigate(it.route) {
                             popUpTo(navController.graph.findStartDestination().id) {

@@ -575,7 +575,9 @@ fun PostItem(
                             label = {
                                 Text(
                                     text = "#$topicName",
-                                    style = MaterialTheme.typography.labelSmall
+                                    style = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             },
                             colors = AssistChipDefaults.assistChipColors(
@@ -587,7 +589,7 @@ fun PostItem(
                                 color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
                             ),
                             shape = RoundedCornerShape(Dimensions.cornerRadiusSmall),
-                            modifier = Modifier.height(24.dp)
+                            modifier = Modifier.height(24.dp).weight(1f, fill = false)
                         )
                     }
                     if (post.topics.size > 3) {

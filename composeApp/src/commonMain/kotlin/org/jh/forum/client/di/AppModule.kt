@@ -72,4 +72,9 @@ object AppModule {
     val replyViewModel: ReplyViewModel by lazy {
         ReplyViewModel()
     }
+
+    // MessageViewModel 单例，用于管理未读消息状态
+    val messageViewModel: MessageViewModel by lazy {
+        MessageViewModel()
+    }
 }
