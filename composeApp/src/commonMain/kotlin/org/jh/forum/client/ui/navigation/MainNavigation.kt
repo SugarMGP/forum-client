@@ -5,6 +5,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -101,10 +103,10 @@ fun MainNavigation(
             ).forEach { it ->
                 item(
                     icon = {
-                        androidx.compose.material3.BadgedBox(
+                        BadgedBox(
                             badge = {
                                 if (it.route == BottomNavItem.Messages.route && hasUnreadMessages) {
-                                    androidx.compose.material3.Badge()
+                                    Badge()
                                 }
                             }
                         ) {

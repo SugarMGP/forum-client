@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import org.jh.forum.client.data.model.GetAnnouncementListElement
 import org.jh.forum.client.data.model.GetNoticeListElement
 import org.jh.forum.client.data.repository.ForumRepository
+import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
@@ -37,7 +38,7 @@ fun MessagesScreen(
     onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val messageViewModel = org.jh.forum.client.di.AppModule.messageViewModel
+    val messageViewModel = AppModule.messageViewModel
 
     // 消息相关状态
     var messages by remember { mutableStateOf<List<GetNoticeListElement>>(emptyList()) }
@@ -148,24 +149,9 @@ fun MessagesScreen(
         }
     }
 
-    // 检查未读消息
-    suspend fun checkUnreadMessages() {
-        try {
-            val response = repository.checkUnread()
-            if (response.code == 200 && response.data != null) {
-                unreadNoticeCount = response.data.unreadNoticeCount
-                unreadAnnouncementCount = response.data.unreadAnnouncementCount
-                // Update the messageViewModel state directly without making another API call
-                messageViewModel.updateUnreadCounts(response.data.unreadNoticeCount, response.data.unreadAnnouncementCount)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
     // 初始加载和重试加载（在 LaunchedEffect 中启动 suspend 加载）
     LaunchedEffect(Unit, retryTrigger, selectedNoticeType, selectedType, selectedAnnouncementType) {
-        checkUnreadMessages()
+        messageViewModel.checkUnreadMessages()
         // Reset pagination state when filters change
         noticeCurrentPage = 1
         noticeHasMore = true
