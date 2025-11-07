@@ -6,6 +6,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
@@ -13,37 +15,35 @@ import org.jh.forum.client.di.AppModule
 class MessageViewModel : ViewModel() {
     private val repository: ForumRepository = AppModule.forumRepository
     private val authViewModel: AuthViewModel = AppModule.authViewModel
-    
+
     private val _hasUnreadMessages = MutableStateFlow(false)
     val hasUnreadMessages: StateFlow<Boolean> = _hasUnreadMessages.asStateFlow()
-    
+
     private val _unreadNoticeCount = MutableStateFlow(0)
     val unreadNoticeCount: StateFlow<Int> = _unreadNoticeCount.asStateFlow()
-    
+
     private val _unreadAnnouncementCount = MutableStateFlow(0)
     val unreadAnnouncementCount: StateFlow<Int> = _unreadAnnouncementCount.asStateFlow()
-    
+
     init {
-        // Start background task to check unread messages every minute
         viewModelScope.launch {
-            while (true) {
-                if (authViewModel.isLoggedIn.value) {
+            // 当登录状态变化时触发
+            authViewModel.isLoggedIn.collectLatest { loggedIn ->
+                if (loggedIn) {
+                    // 立刻检查一次
                     checkUnreadMessages()
+                    while (isActive && authViewModel.isLoggedIn.value) {
+                        delay(60_000)
+                        checkUnreadMessages()
+                    }
+                } else {
+                    // 登出时清零
+                    updateUnreadCounts(0, 0)
                 }
-                delay(60000) // Wait for 1 minute before next check
-            }
-        }
-        
-        // Also check immediately on initialization
-        viewModelScope.launch {
-            // Wait a bit for auth status to be loaded
-            delay(500)
-            if (authViewModel.isLoggedIn.value) {
-                checkUnreadMessages()
             }
         }
     }
-    
+
     suspend fun checkUnreadMessages() {
         try {
             val response = repository.checkUnread()
@@ -54,7 +54,11 @@ class MessageViewModel : ViewModel() {
             e.printStackTrace()
         }
     }
-    
+
+    fun cleanUnreadBadge() {
+        updateUnreadCounts(0, 0)
+    }
+
     fun updateUnreadCounts(noticeCount: Int, announcementCount: Int) {
         _unreadNoticeCount.value = noticeCount
         _unreadAnnouncementCount.value = announcementCount

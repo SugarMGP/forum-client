@@ -151,8 +151,6 @@ fun MessagesScreen(
 
     // 初始加载和重试加载（在 LaunchedEffect 中启动 suspend 加载）
     LaunchedEffect(Unit, retryTrigger, selectedNoticeType, selectedType, selectedAnnouncementType) {
-        messageViewModel.checkUnreadMessages()
-        // Reset pagination state when filters change
         noticeCurrentPage = 1
         noticeHasMore = true
         announcementCurrentPage = 1
