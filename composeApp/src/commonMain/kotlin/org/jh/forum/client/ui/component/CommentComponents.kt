@@ -372,10 +372,23 @@ fun CommentEditor(
             maxLines = 4,
             shape = MaterialTheme.shapes.medium,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                    // Lighten in dark mode for better readability
+                    red = minOf(1f, MaterialTheme.colorScheme.surfaceVariant.red + 0.08f),
+                    green = minOf(1f, MaterialTheme.colorScheme.surfaceVariant.green + 0.08f),
+                    blue = minOf(1f, MaterialTheme.colorScheme.surfaceVariant.blue + 0.08f)
+                ),
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(
+                    // Lighten in dark mode for better readability
+                    red = minOf(1f, MaterialTheme.colorScheme.surface.red + 0.05f),
+                    green = minOf(1f, MaterialTheme.colorScheme.surface.green + 0.05f),
+                    blue = minOf(1f, MaterialTheme.colorScheme.surface.blue + 0.05f)
+                ),
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f),
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                cursorColor = MaterialTheme.colorScheme.primary
             )
         )
 
