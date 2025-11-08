@@ -119,7 +119,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "org.jh.forum.client"
+            packageName = "ForumClient"
             packageVersion = project.findProperty("app.version.name")?.toString() ?: "1.0.0"
         }
     }

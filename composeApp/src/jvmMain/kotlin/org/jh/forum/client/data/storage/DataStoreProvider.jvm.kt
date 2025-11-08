@@ -23,7 +23,7 @@ actual fun createDataStore(fileName: String): DataStore<Preferences> {
     } catch (_: Exception) {
         // Ignore directory creation errors
     }
-    
+
     return PreferenceDataStoreFactory.createWithPath(
         produceFile = {
             dataDir.resolve(fileName).toAbsolutePath().toString().toPath()
@@ -38,17 +38,19 @@ private fun getDataStoreDirectory(): java.nio.file.Path {
     val appName = "ForumClient"
     val userHome = System.getProperty("user.home")
     val osName = System.getProperty("os.name").lowercase()
-    
+
     return when {
         osName.contains("mac") || osName.contains("darwin") -> {
             // macOS: ~/Library/Application Support/ForumClient/
             Paths.get(userHome, "Library", "Application Support", appName)
         }
+
         osName.contains("win") -> {
             // Windows: %APPDATA%/ForumClient/
             val appData = System.getenv("APPDATA") ?: Paths.get(userHome, "AppData", "Roaming").toString()
             Paths.get(appData, appName)
         }
+
         else -> {
             // Linux and others: ~/.local/share/ForumClient/
             val xdgDataHome = System.getenv("XDG_DATA_HOME") ?: Paths.get(userHome, ".local", "share").toString()

@@ -1,11 +1,6 @@
 package org.jh.forum.client.ui.theme
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.launch
 import org.jh.forum.client.data.storage.ThemePreferencesRepository
@@ -38,7 +33,7 @@ data class ThemeState(
 fun rememberThemeState(): ThemeState {
     val repository = remember { ThemePreferencesRepository(createDataStore("theme.preferences_pb")) }
     val coroutineScope = rememberCoroutineScope()
-    
+
     val themeMode by repository.themeModeFlow.collectAsState(initial = ThemeMode.SYSTEM)
     val useDynamicColor by repository.useDynamicColorFlow.collectAsState(
         initial = supportsDynamicColor()
@@ -47,19 +42,19 @@ fun rememberThemeState(): ThemeState {
 
     return ThemeState(
         themeMode = themeMode,
-        setThemeMode = { mode -> 
+        setThemeMode = { mode ->
             coroutineScope.launch {
                 repository.setThemeMode(mode)
             }
         },
         useDynamicColor = useDynamicColor,
-        setUseDynamicColor = { use -> 
+        setUseDynamicColor = { use ->
             coroutineScope.launch {
                 repository.setUseDynamicColor(use)
             }
         },
         seedColor = seedColor,
-        setSeedColor = { color -> 
+        setSeedColor = { color ->
             coroutineScope.launch {
                 repository.setSeedColor(color)
             }

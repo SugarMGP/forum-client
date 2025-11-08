@@ -34,7 +34,7 @@ class DataStoreCookiesStorage(
         mutex.withLock {
             val key = cookieKey(cookie.name, cookie.domain, cookie.path)
             val value = cookieValue(cookie)
-            
+
             dataStore.edit { preferences ->
                 preferences[stringPreferencesKey(key)] = value
             }
@@ -46,7 +46,7 @@ class DataStoreCookiesStorage(
         return mutex.withLock {
             val nowMillis = Clock.System.now().toEpochMilliseconds()
             val allCookies = mutableMapOf<String, String>()
-            
+
             dataStore.data.map { preferences ->
                 preferences.asMap().mapNotNull { (key, value) ->
                     @Suppress("USELESS_IS_CHECK")
@@ -55,15 +55,15 @@ class DataStoreCookiesStorage(
                     } else null
                 }.toMap()
             }.first().also { allCookies.putAll(it) }
-            
+
             // Parse cookies and filter expired ones
             val validCookies = mutableListOf<Cookie>()
             val expiredKeys = mutableListOf<String>()
-            
+
             allCookies.forEach { (key, value) ->
                 try {
                     val cookie = parseCookie(key, value)
-                    
+
                     // Check if expired
                     val expires = cookie.expires?.timestamp
                     if (expires != null && expires <= nowMillis) {
@@ -79,7 +79,7 @@ class DataStoreCookiesStorage(
                     expiredKeys.add(key)
                 }
             }
-            
+
             // Remove expired cookies
             if (expiredKeys.isNotEmpty()) {
                 dataStore.edit { preferences ->
@@ -88,7 +88,7 @@ class DataStoreCookiesStorage(
                     }
                 }
             }
-            
+
             validCookies
         }
     }
@@ -126,14 +126,14 @@ class DataStoreCookiesStorage(
     private fun parseCookie(key: String, value: String): Cookie {
         val keyParts = key.split("|")
         require(keyParts.size == 3) { "Invalid cookie key format" }
-        
+
         val name = keyParts[0]
         val domain = keyParts[1].ifEmpty { null }
         val path = keyParts[2].ifEmpty { null }
-        
+
         val valueParts = value.split("|")
         require(valueParts.size >= 6) { "Invalid cookie value format" }
-        
+
         val cookieValue = valueParts[0]
         val expiresMillis = valueParts[1].toLongOrNull()
         val secure = valueParts[2] == "1"
@@ -153,7 +153,7 @@ class DataStoreCookiesStorage(
         } else {
             emptyMap()
         }
-        
+
         return Cookie(
             name = name,
             value = cookieValue,
