@@ -24,8 +24,7 @@ dependencyResolutionManagement {
 }
 
 plugins {
-    // 暂时移除foojay-resolver插件，因为它可能导致Java版本问题
-    // id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
 include(":composeApp")

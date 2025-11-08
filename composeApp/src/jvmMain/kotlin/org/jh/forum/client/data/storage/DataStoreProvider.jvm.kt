@@ -3,7 +3,7 @@ package org.jh.forum.client.data.storage
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
-import okio.Path.Companion.toPath
+import okio.Path.Companion.toOkioPath
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -26,7 +26,7 @@ actual fun createDataStore(fileName: String): DataStore<Preferences> {
 
     return PreferenceDataStoreFactory.createWithPath(
         produceFile = {
-            dataDir.resolve(fileName).toAbsolutePath().toString().toPath()
+            dataDir.resolve(fileName).toAbsolutePath().toOkioPath()
         }
     )
 }

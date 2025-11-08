@@ -121,6 +121,8 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "ForumClient"
             packageVersion = project.findProperty("app.version.name")?.toString() ?: "1.0.0"
+
+            modules("jdk.unsupported")
         }
     }
 }
