@@ -241,8 +241,7 @@ fun PostListScreen(
     LaunchedEffect(errorMessage) {
         errorMessage?.let { message ->
             snackbarHostState.showSnackbar(
-                message = message,
-                duration = SnackbarDuration.Short
+                message = message
             )
         }
     }
@@ -250,7 +249,14 @@ fun PostListScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
+                SnackbarHost(hostState = snackbarHostState) { snackbarData ->
+                    Snackbar(
+                        snackbarData = snackbarData,
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        actionColor = MaterialTheme.colorScheme.error
+                    )
+                }
             },
             topBar = {
                 Column(
