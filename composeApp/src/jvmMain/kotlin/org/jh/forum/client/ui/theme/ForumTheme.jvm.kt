@@ -1,9 +1,10 @@
 package org.jh.forum.client.ui.theme
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import com.materialkolor.DynamicMaterialTheme
 import com.materialkolor.dynamiccolor.ColorSpec
+import com.materialkolor.rememberDynamicColorScheme
 
 @Composable
 actual fun ForumTheme(
@@ -12,13 +13,30 @@ actual fun ForumTheme(
     seedColor: Color,
     content: @Composable () -> Unit
 ) {
-    DynamicMaterialTheme(
+    var colorScheme = rememberDynamicColorScheme(
         seedColor = seedColor,
         isDark = darkTheme,
-        animate = true,
-        content = content,
-        specVersion = ColorSpec.SpecVersion.SPEC_2025,
-        typography = AppTypography()
+        specVersion = ColorSpec.SpecVersion.SPEC_2025
+    )
+    
+    // In dark mode, lighten the surface colors for better card visibility
+    if (darkTheme) {
+        colorScheme = colorScheme.copy(
+            surface = colorScheme.surface,
+            surfaceVariant = colorScheme.surfaceVariant.copy(
+                red = minOf(1f, colorScheme.surfaceVariant.red + 0.05f),
+                green = minOf(1f, colorScheme.surfaceVariant.green + 0.05f),
+                blue = minOf(1f, colorScheme.surfaceVariant.blue + 0.05f)
+            ),
+            surfaceTint = colorScheme.primary.copy(alpha = 0.2f),
+            outline = colorScheme.outline.copy(alpha = 0.5f)
+        )
+    }
+    
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = AppTypography(),
+        content = content
     )
 }
 
