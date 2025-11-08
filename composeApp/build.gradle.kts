@@ -51,15 +51,16 @@ kotlin {
             implementation(libs.navigation.compose)
 
             implementation("com.materialkolor:material-kolor:4.0.2")
+
+            // DataStore for KMP
+            implementation(libs.datastore)
+            implementation(libs.datastore.preferences)
         }
 
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-
-            // DataStore for Android
-            implementation(libs.datastore.preferences)
         }
 
         commonTest.dependencies {
@@ -118,7 +119,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "org.jh.forum.client"
+            packageName = "ForumClient"
             packageVersion = project.findProperty("app.version.name")?.toString() ?: "1.0.0"
         }
     }

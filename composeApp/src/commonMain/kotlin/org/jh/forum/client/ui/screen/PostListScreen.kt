@@ -234,8 +234,30 @@ fun PostListScreen(
         }
     }
 
+    // Snackbar state for error messages
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Show error message in Snackbar
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(
+                message = message
+            )
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState) { snackbarData ->
+                    Snackbar(
+                        snackbarData = snackbarData,
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        actionColor = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
             topBar = {
                 Column(
                     modifier = Modifier.fillMaxWidth()
@@ -384,13 +406,6 @@ fun PostListScreen(
                                 }
                             )
                         }
-                    }
-                }
-
-                // 错误提示
-                errorMessage?.let { message ->
-                    LaunchedEffect(message) {
-                        // 可以显示一个Snackbar或Toast
                     }
                 }
             }

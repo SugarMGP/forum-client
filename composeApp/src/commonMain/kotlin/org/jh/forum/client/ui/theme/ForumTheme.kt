@@ -1,9 +1,10 @@
 package org.jh.forum.client.ui.theme
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.launch
+import org.jh.forum.client.data.storage.ThemePreferencesRepository
+import org.jh.forum.client.data.storage.createDataStore
 import org.jh.forum.client.ui.screen.ThemeMode
 
 @Composable
@@ -30,16 +31,33 @@ data class ThemeState(
 
 @Composable
 fun rememberThemeState(): ThemeState {
-    val themeMode = remember { mutableStateOf(ThemeMode.SYSTEM) }
-    val useDynamicColor = remember { mutableStateOf(supportsDynamicColor()) }
-    val seedColor = remember { mutableStateOf(Color.Red) }
+    val repository = remember { ThemePreferencesRepository(createDataStore("theme.preferences_pb")) }
+    val coroutineScope = rememberCoroutineScope()
+
+    val themeMode by repository.themeModeFlow.collectAsState(initial = ThemeMode.SYSTEM)
+    val useDynamicColor by repository.useDynamicColorFlow.collectAsState(
+        initial = supportsDynamicColor()
+    )
+    val seedColor by repository.seedColorFlow.collectAsState(initial = Color.Red)
 
     return ThemeState(
-        themeMode = themeMode.value,
-        setThemeMode = { mode -> themeMode.value = mode },
-        useDynamicColor = useDynamicColor.value,
-        setUseDynamicColor = { use -> useDynamicColor.value = use },
-        seedColor = seedColor.value,
-        setSeedColor = { color -> seedColor.value = color },
+        themeMode = themeMode,
+        setThemeMode = { mode ->
+            coroutineScope.launch {
+                repository.setThemeMode(mode)
+            }
+        },
+        useDynamicColor = useDynamicColor,
+        setUseDynamicColor = { use ->
+            coroutineScope.launch {
+                repository.setUseDynamicColor(use)
+            }
+        },
+        seedColor = seedColor,
+        setSeedColor = { color ->
+            coroutineScope.launch {
+                repository.setSeedColor(color)
+            }
+        },
     )
 }

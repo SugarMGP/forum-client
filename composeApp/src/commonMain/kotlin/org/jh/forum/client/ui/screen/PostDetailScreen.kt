@@ -419,7 +419,9 @@ fun PostDetailScreen(
                             .fillMaxWidth()
                             .wrapContentHeight(),
                         shadowElevation = 8.dp,
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        tonalElevation = Dimensions.elevationMedium,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
                     ) {
                         Surface(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                             Column {
