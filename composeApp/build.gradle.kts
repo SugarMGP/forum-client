@@ -51,15 +51,16 @@ kotlin {
             implementation(libs.navigation.compose)
 
             implementation("com.materialkolor:material-kolor:4.0.2")
+
+            // DataStore for KMP
+            implementation(libs.datastore)
+            implementation(libs.datastore.preferences)
         }
 
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-
-            // DataStore for Android
-            implementation(libs.datastore.preferences)
         }
 
         commonTest.dependencies {
