@@ -39,6 +39,7 @@ fun App() {
                 onSeedColorChanged = { color ->
                     themeState.setSeedColor(color)
                 },
+                currentThemeMode = themeState.themeMode,
                 currentDynamicColor = themeState.useDynamicColor,
                 currentSeedColor = themeState.seedColor
             )

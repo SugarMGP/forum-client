@@ -66,6 +66,7 @@ fun MainNavigation(
     onThemeChanged: (ThemeMode) -> Unit = { _ -> },
     onDynamicColorChanged: (Boolean) -> Unit = { _ -> },
     onSeedColorChanged: (Color) -> Unit = { _ -> },
+    currentThemeMode: ThemeMode = ThemeMode.SYSTEM,
     currentDynamicColor: Boolean = false,
     currentSeedColor: Color = Color.Red
 ) {
@@ -74,7 +75,7 @@ fun MainNavigation(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    var currentTheme by remember { mutableStateOf(ThemeMode.SYSTEM) }
+    var currentTheme by remember(currentThemeMode) { mutableStateOf(currentThemeMode) }
     var homeRefreshTrigger by remember { mutableStateOf(0) }
     val hasUnreadMessages by messageViewModel.hasUnreadMessages.collectAsState()
 

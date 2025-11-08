@@ -31,9 +31,9 @@ fun ThemeSettingsScreen(
     onSeedColorChanged: (Color) -> Unit = {},
     onNavigateBack: () -> Unit = {}
 ) {
-    var selectedTheme by remember { mutableStateOf(currentTheme) }
-    var dynamicColorEnabled by remember { mutableStateOf(useDynamicColor) }
-    var selectedSeedColor by remember { mutableStateOf(seedColor) }
+    var selectedTheme by remember(currentTheme) { mutableStateOf(currentTheme) }
+    var dynamicColorEnabled by remember(useDynamicColor) { mutableStateOf(useDynamicColor) }
+    var selectedSeedColor by remember(seedColor) { mutableStateOf(seedColor) }
     val isDynamicColorSupported = supportsDynamicColor()
 
     Scaffold(
