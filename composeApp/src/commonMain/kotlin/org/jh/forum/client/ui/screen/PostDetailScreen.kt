@@ -663,12 +663,12 @@ fun PostContent(
                     Text(
                         text = post.title ?: "",
                         style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
+                        modifier = Modifier.padding(bottom = 12.dp)
                     )
 
                     // 帖子内容
                     ParagraphText(
-                        text = post.content ?: "",
+                        text = (post.content ?: "").trimEnd('\n'),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                     )

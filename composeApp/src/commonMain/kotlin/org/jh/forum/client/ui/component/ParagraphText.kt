@@ -16,16 +16,18 @@ fun ParagraphText(
     text: String,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
     modifier: Modifier = Modifier,
-    paragraphSpacing: Dp = 8.dp
+    paragraphSpacing: Dp = 6.dp
 ) {
-    val paragraphs = text.split("\n").filter { text -> text.isNotBlank() }
+    val paragraphs = text.split("\n")
 
     Column(modifier = modifier) {
         paragraphs.forEachIndexed { index, paragraph ->
-            Text(
-                text = paragraph,
-                style = style
-            )
+            if (paragraph.isNotBlank()) {
+                Text(
+                    text = paragraph,
+                    style = style
+                )
+            }
 
             // 在手动换行符处分段添加额外间距
             if (index != paragraphs.lastIndex) {

@@ -144,13 +144,10 @@ fun MainNavigation(
                 startDestination = BottomNavItem.Home.route,
             ) {
                 composable(
-                    BottomNavItem.Home.route + "?refresh={refresh}",
+                    BottomNavItem.Home.route,
                     enterTransition = { fadeInTransition },
                     exitTransition = { fadeOutTransition }
                 ) { backStackEntry ->
-                    val refresh =
-                        backStackEntry.savedStateHandle.get<String>("refresh")?.toBoolean()
-                            ?: false
                     PostListScreen(
                         onPostClick = { postId: Long ->
                             // 导航到帖子详情页
@@ -164,7 +161,7 @@ fun MainNavigation(
                             // 导航到用户主页
                             navController.navigate("user_profile/$userId")
                         },
-                        refresh = refresh || homeRefreshTrigger > 0,
+                        refresh = homeRefreshTrigger > 0,
                         onRefreshComplete = {
                             if (homeRefreshTrigger > 0) {
                                 homeRefreshTrigger = 0

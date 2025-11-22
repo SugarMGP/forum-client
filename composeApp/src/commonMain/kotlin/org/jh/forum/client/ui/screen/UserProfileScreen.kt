@@ -581,7 +581,7 @@ fun PersonalCommentCard(
                 ) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.outlineVariant,
+                        color = MaterialTheme.colorScheme.outline,
                         shape = MaterialTheme.shapes.extraSmall
                     ) {}
                 }

@@ -210,11 +210,6 @@ fun PostListScreen(
             }
     }
 
-    // 在组件初始化时自动加载帖子
-    LaunchedEffect(Unit) {
-        viewModel.loadPosts()
-    }
-
     // Pull-to-refresh state
     var isRefreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullToRefreshState()
@@ -223,6 +218,7 @@ fun PostListScreen(
     LaunchedEffect(refresh) {
         if (refresh) {
             isRefreshing = true
+            viewModel.refresh()
             onRefreshComplete()
         }
     }
@@ -553,7 +549,7 @@ fun PostItem(
 
             // 内容
             Text(
-                text = post.content ?: "",
+                text = (post.content ?: "").trimEnd('\n').replace("\n\n", "\n"),
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
@@ -578,11 +574,10 @@ fun PostItem(
 
             // Display post tags if available
             if (post.topics.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = Dimensions.spaceSmall)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     post.topics.take(3).forEach { topicName ->
                         AssistChip(

@@ -34,6 +34,10 @@ class PostListViewModel : ViewModel() {
     private val _hasMore = MutableStateFlow(true)
     val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
 
+    init {
+        loadPosts()
+    }
+
     fun loadPosts(category: String? = null, sortType: String? = null, reset: Boolean = false) {
         val actualSortType = sortType ?: this._sortType.value.name.lowercase()
         viewModelScope.launch {

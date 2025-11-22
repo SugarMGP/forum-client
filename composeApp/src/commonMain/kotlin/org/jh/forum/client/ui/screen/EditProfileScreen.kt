@@ -38,8 +38,6 @@ fun EditProfileScreen(
     var profile by remember { mutableStateOf(userProfile?.profile ?: "") }
     var email by remember { mutableStateOf(userProfile?.email ?: "") }
     var collegeId by remember { mutableStateOf(userProfile?.collegeId ?: "") }
-    var realname by remember { mutableStateOf(userProfile?.realname ?: "") }
-    var studentId by remember { mutableStateOf(userProfile?.studentId ?: "") }
     var birthday by remember { mutableStateOf(userProfile?.birthday ?: "") }
     var birthdayVisible by remember { mutableStateOf(userProfile?.birthdayVisible ?: false) }
     var realnameVisible by remember { mutableStateOf(userProfile?.realnameVisible ?: false) }
@@ -62,8 +60,6 @@ fun EditProfileScreen(
             profile = profileData.profile ?: ""
             email = profileData.email ?: ""
             collegeId = profileData.collegeId ?: ""
-            realname = profileData.realname ?: ""
-            studentId = profileData.studentId ?: ""
             birthday = profileData.birthday ?: ""
             birthdayVisible = profileData.birthdayVisible ?: false
             realnameVisible = profileData.realnameVisible ?: false
