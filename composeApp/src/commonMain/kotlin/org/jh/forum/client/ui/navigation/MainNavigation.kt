@@ -2,7 +2,6 @@ package org.jh.forum.client.ui.navigation
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -11,12 +10,17 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.*
@@ -26,9 +30,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -85,94 +90,109 @@ private fun UpdateDialog(
     onDismiss: () -> Unit,
     onDownload: (String) -> Unit
 ) {
-    if (visible && updateInfo != null) {
-        val animatedScale by animateFloatAsState(
-            targetValue = if (visible) 1f else 0.8f,
+    AnimatedVisibility(
+        visible = visible && updateInfo != null,
+        enter = scaleIn(
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
                 stiffness = Spring.StiffnessLow
             ),
-            label = "dialogScale"
-        )
-        
-        val animatedAlpha by animateFloatAsState(
-            targetValue = if (visible) 1f else 0f,
+            initialScale = 0.8f
+        ) + fadeIn(animationSpec = tween(200)),
+        exit = scaleOut(
             animationSpec = tween(200),
-            label = "dialogAlpha"
-        )
-        
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { 
-                Text(
-                    "发现新版本",
-                    style = MaterialTheme.typography.headlineSmall
+            targetScale = 0.8f
+        ) + fadeOut(animationSpec = tween(200))
+    ) {
+        // Custom dialog using Box overlay and Card
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .padding(16.dp),
+                shape = MaterialTheme.shapes.extraLarge,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
-            },
-            text = {
+            ) {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    // Title
+                    Text(
+                        "发现新版本",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    
+                    // Content
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(
-                            AppIcons.Refresh,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                AppIcons.Refresh,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Text(
+                                "v${updateInfo?.latestVersion ?: ""}",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        HorizontalDivider()
                         Text(
-                            "v${updateInfo.latestVersion}",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary
+                            "发布时间: ${updateInfo?.publishedAt?.take(10) ?: ""}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    HorizontalDivider()
-                    Text(
-                        "发布时间: ${updateInfo.publishedAt.take(10)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    
+                    // Buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = onDismiss,
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Text(
+                                "忽略本次",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        FilledTonalButton(
+                            onClick = {
+                                onDismiss()
+                                updateInfo?.let { onDownload(it.releaseUrl) }
+                            },
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Icon(
+                                AppIcons.Share,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("下载新版本")
+                        }
+                    }
                 }
-            },
-            confirmButton = {
-                FilledTonalButton(
-                    onClick = {
-                        onDismiss()
-                        onDownload(updateInfo.releaseUrl)
-                    },
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    Icon(
-                        AppIcons.Share,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("下载新版本")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = onDismiss,
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    Text(
-                        "忽略本次",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            shape = MaterialTheme.shapes.extraLarge,
-            modifier = Modifier
-                .graphicsLayer {
-                    scaleX = animatedScale
-                    scaleY = animatedScale
-                    alpha = animatedAlpha
-                }
-        )
+            }
+        }
     }
 }
 
