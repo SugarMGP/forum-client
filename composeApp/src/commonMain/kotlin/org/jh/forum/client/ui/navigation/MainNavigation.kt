@@ -2,6 +2,7 @@ package org.jh.forum.client.ui.navigation
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -25,6 +26,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -83,20 +85,22 @@ private fun UpdateDialog(
     onDismiss: () -> Unit,
     onDownload: (String) -> Unit
 ) {
-    AnimatedVisibility(
-        visible = visible && updateInfo != null,
-        enter = scaleIn(
-            initialScale = 0.8f,
+    if (visible && updateInfo != null) {
+        val animatedScale by animateFloatAsState(
+            targetValue = if (visible) 1f else 0.8f,
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
                 stiffness = Spring.StiffnessLow
-            )
-        ) + fadeIn(),
-        exit = scaleOut(
-            targetScale = 0.8f,
-            animationSpec = tween(200)
-        ) + fadeOut()
-    ) {
+            ),
+            label = "dialogScale"
+        )
+        
+        val animatedAlpha by animateFloatAsState(
+            targetValue = if (visible) 1f else 0f,
+            animationSpec = tween(200),
+            label = "dialogAlpha"
+        )
+        
         AlertDialog(
             onDismissRequest = onDismiss,
             title = { 
@@ -120,14 +124,14 @@ private fun UpdateDialog(
                             modifier = Modifier.size(24.dp)
                         )
                         Text(
-                            "v${updateInfo?.latestVersion}",
+                            "v${updateInfo.latestVersion}",
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
                     HorizontalDivider()
                     Text(
-                        "发布时间: ${updateInfo?.publishedAt?.take(10) ?: ""}",
+                        "发布时间: ${updateInfo.publishedAt.take(10)}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -137,7 +141,7 @@ private fun UpdateDialog(
                 FilledTonalButton(
                     onClick = {
                         onDismiss()
-                        updateInfo?.let { onDownload(it.releaseUrl) }
+                        onDownload(updateInfo.releaseUrl)
                     },
                     shape = MaterialTheme.shapes.medium
                 ) {
@@ -161,7 +165,13 @@ private fun UpdateDialog(
                     )
                 }
             },
-            shape = MaterialTheme.shapes.extraLarge
+            shape = MaterialTheme.shapes.extraLarge,
+            modifier = Modifier
+                .graphicsLayer {
+                    scaleX = animatedScale
+                    scaleY = animatedScale
+                    alpha = animatedAlpha
+                }
         )
     }
 }
