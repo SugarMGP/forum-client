@@ -97,6 +97,25 @@ fun SettingsScreen(
                             title = "通知设置",
                             onClick = onNavigateToNotificationSettings
                         )
+                    }
+                }
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    shape = MaterialTheme.shapes.large
+                ) {
+                    Column {
+                        SettingsMenuItem(
+                            icon = AppIcons.Info,
+                            title = "关于项目",
+                            onClick = onNavigateToAbout
+                        )
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = Dimensions.spaceMedium),
                             color = MaterialTheme.colorScheme.outlineVariant
@@ -105,15 +124,6 @@ fun SettingsScreen(
                             icon = AppIcons.Refresh,
                             title = "检查更新",
                             onClick = onCheckForUpdates
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = Dimensions.spaceMedium),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-                        SettingsMenuItem(
-                            icon = AppIcons.Info,
-                            title = "关于项目",
-                            onClick = onNavigateToAbout
                         )
                     }
                 }

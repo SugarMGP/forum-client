@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import org.jh.forum.client.BuildKonfig
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 
@@ -63,7 +64,7 @@ fun AboutScreen(
             // App Name
             item {
                 Text(
-                    text = "论坛客户端",
+                    text = "精弘论坛",
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -72,20 +73,9 @@ fun AboutScreen(
             // Version
             item {
                 Text(
-                    text = "版本 1.0.0",
+                    text = "v" + BuildKonfig.APP_VERSION,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            // Description
-            item {
-                Text(
-                    text = "一个现代化的论坛客户端应用，支持多平台运行",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = Dimensions.spaceMedium)
                 )
             }
 

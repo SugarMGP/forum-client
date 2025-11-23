@@ -1,3 +1,4 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -8,6 +9,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinSerialization)
+    id("com.codingfeline.buildkonfig") version "0.17.1"
 }
 
 kotlin {
@@ -76,6 +78,15 @@ kotlin {
     }
 }
 
+buildkonfig {
+    packageName = "org.jh.forum.client"
+
+    defaultConfigs {
+        val version = project.findProperty("app.version.name")?.toString() ?: "1.0.0"
+        buildConfigField(FieldSpec.Type.STRING, "APP_VERSION", version)
+    }
+}
+
 android {
     namespace = "org.jh.forum.client"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -86,8 +97,6 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
 
         val versionNameValue = project.findProperty("app.version.name")?.toString() ?: "1.0.0"
-
-        // 去掉 "." 后转成整数，例如 "1.2.3" -> 123
         val versionCodeValue = versionNameValue.replace(".", "").toIntOrNull() ?: 1
 
         versionCode = versionCodeValue
