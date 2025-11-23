@@ -23,7 +23,9 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit = {},
     onNavigateToThemeSettings: () -> Unit = {},
     onNavigateToNotificationSettings: () -> Unit = {},
-    onNavigateToEditProfile: () -> Unit = {}
+    onNavigateToEditProfile: () -> Unit = {},
+    onNavigateToAbout: () -> Unit = {},
+    onCheckForUpdates: () -> Unit = {}
 ) {
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
 
@@ -61,22 +63,11 @@ fun SettingsScreen(
                         ),
                         shape = MaterialTheme.shapes.large
                     ) {
-                        Column {
-                            SettingsMenuItem(
-                                icon = AppIcons.Edit,
-                                title = "编辑资料",
-                                onClick = onNavigateToEditProfile
-                            )
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = Dimensions.spaceMedium),
-                                color = MaterialTheme.colorScheme.outlineVariant
-                            )
-                            SettingsMenuItem(
-                                icon = AppIcons.Lock,
-                                title = "修改密码",
-                                onClick = { /* Navigate to change password */ }
-                            )
-                        }
+                        SettingsMenuItem(
+                            icon = AppIcons.Edit,
+                            title = "编辑资料",
+                            onClick = onNavigateToEditProfile
+                        )
                     }
                 }
             }
@@ -105,6 +96,24 @@ fun SettingsScreen(
                             icon = AppIcons.Notifications,
                             title = "通知设置",
                             onClick = onNavigateToNotificationSettings
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = Dimensions.spaceMedium),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                        SettingsMenuItem(
+                            icon = AppIcons.Refresh,
+                            title = "检查更新",
+                            onClick = onCheckForUpdates
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = Dimensions.spaceMedium),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                        SettingsMenuItem(
+                            icon = AppIcons.Info,
+                            title = "关于项目",
+                            onClick = onNavigateToAbout
                         )
                     }
                 }

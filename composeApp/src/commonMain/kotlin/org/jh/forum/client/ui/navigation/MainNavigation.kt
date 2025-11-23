@@ -5,6 +5,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
@@ -19,6 +22,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.*
@@ -231,6 +235,12 @@ fun MainNavigation(
                     popEnterTransition = { slideInPopTransition + fadeInTransition },
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) {
+                    var showUpdateDialog by remember { mutableStateOf(false) }
+                    var updateInfo by remember { mutableStateOf<org.jh.forum.client.util.UpdateInfo?>(null) }
+                    val scope = rememberCoroutineScope()
+                    val httpClient = remember { io.ktor.client.HttpClient() }
+                    val updateChecker = remember { org.jh.forum.client.util.UpdateChecker(httpClient) }
+
                     SettingsScreen(
                         authViewModel = authViewModel,
                         onNavigateBack = {
@@ -244,8 +254,53 @@ fun MainNavigation(
                         },
                         onNavigateToEditProfile = {
                             navController.navigate("edit_profile")
+                        },
+                        onNavigateToAbout = {
+                            navController.navigate("about")
+                        },
+                        onCheckForUpdates = {
+                            scope.launch {
+                                val info = updateChecker.checkForUpdates()
+                                if (info != null && info.hasUpdate) {
+                                    updateInfo = info
+                                    showUpdateDialog = true
+                                }
+                            }
                         }
                     )
+
+                    if (showUpdateDialog && updateInfo != null) {
+                        AlertDialog(
+                            onDismissRequest = { showUpdateDialog = false },
+                            title = { Text("发现新版本") },
+                            text = {
+                                Column {
+                                    Text("新版本: ${updateInfo!!.latestVersion}")
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text("发布时间: ${updateInfo!!.publishedAt.take(10)}")
+                                }
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        showUpdateDialog = false
+                                        // TODO: Open browser to release URL
+                                        // Platform-specific implementation needed
+                                        println("Release URL: ${updateInfo!!.releaseUrl}")
+                                    }
+                                ) {
+                                    Text("下载新版本")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(
+                                    onClick = { showUpdateDialog = false }
+                                ) {
+                                    Text("忽略本次")
+                                }
+                            }
+                        )
+                    }
                 }
 
                 composable(
@@ -297,6 +352,25 @@ fun MainNavigation(
                         repository = repository,
                         onNavigateBack = {
                             navController.popBackStack()
+                        }
+                    )
+                }
+
+                composable(
+                    "about",
+                    enterTransition = { slideInTransition + fadeInTransition },
+                    exitTransition = { slideOutTransition + fadeOutTransition },
+                    popEnterTransition = { slideInPopTransition + fadeInTransition },
+                    popExitTransition = { slideOutPopTransition + fadeOutTransition }
+                ) {
+                    AboutScreen(
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        },
+                        onOpenGitHub = {
+                            // TODO: Open browser to GitHub repository
+                            // Platform-specific implementation needed
+                            println("GitHub URL: https://github.com/SugarMGP/forum-client")
                         }
                     )
                 }
