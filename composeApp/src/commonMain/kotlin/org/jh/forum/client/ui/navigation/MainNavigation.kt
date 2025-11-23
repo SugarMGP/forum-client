@@ -6,8 +6,8 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.onClick
 import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
@@ -93,7 +93,7 @@ private fun UpdateDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .onClick(true) { onDismiss() },
+                .clickable(true) { onDismiss() },
             contentAlignment = Alignment.Center
         ) {
             Card(

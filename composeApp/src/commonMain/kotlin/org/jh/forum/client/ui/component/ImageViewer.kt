@@ -26,6 +26,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -78,7 +79,7 @@ fun ClickableImage(
 /**
  * Gallery viewer with support for multiple images and swipe navigation
  */
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImageGalleryViewer(
     images: List<String>,
@@ -86,7 +87,6 @@ fun ImageGalleryViewer(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Guard against empty image list
     if (images.isEmpty()) {
         onDismiss()
         return
@@ -102,15 +102,15 @@ fun ImageGalleryViewer(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f))
     ) {
-        // Horizontal pager for swiping between images
         HorizontalPager(
             state = pagerState,
             userScrollEnabled = true,
             modifier = Modifier.fillMaxSize()
         ) { page ->
             var scale by remember { mutableStateOf(1f) }
-            var offsetX by remember { mutableStateOf(0f) }
-            var offsetY by remember { mutableStateOf(0f) }
+            var offset by remember { mutableStateOf(Offset.Zero) }
+            val minScale = 1f
+            val maxScale = 5f
 
             Box(
                 modifier = Modifier
@@ -120,59 +120,54 @@ fun ImageGalleryViewer(
                 AsyncImage(
                     model = images[page],
                     contentDescription = "图片 ${page + 1}",
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .fillMaxSize()
-                        .graphicsLayer(
-                            scaleX = scale,
-                            scaleY = scale,
-                            translationX = offsetX,
-                            translationY = offsetY
-                        )
-                        .onPointerEvent(PointerEventType.Scroll) { event ->
-                            // Mouse wheel zoom support for desktop
-                            val scrollDelta = event.changes.first().scrollDelta.y
-                            val zoomFactor = if (scrollDelta < 0) 1.1f else 0.9f
-                            val newScale = (scale * zoomFactor).coerceIn(1f, 5f)
-
-                            scale = newScale
-
-                            if (scale == 1f) {
-                                offsetX = 0f
-                                offsetY = 0f
-                            }
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = offset.x
+                            translationY = offset.y
                         }
-                        .then(
-                            // Only enable zoom/pan gestures when image is zoomed in
-                            if (scale > 1f) {
-                                Modifier.pointerInput(Unit) {
-                                    detectTransformGestures { _, pan, zoom, _ ->
-                                        scale = (scale * zoom).coerceIn(1f, 5f)
+                        .pointerInput(Unit) {
+                            awaitPointerEventScope {
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val scrollDelta = event.changes.firstOrNull()?.scrollDelta ?: Offset.Zero
+                                    if (scrollDelta != Offset.Zero) {
+                                        val zoomFactor = 1f + (-scrollDelta.y) * 0.15f
+                                        val newScale = (scale * zoomFactor).coerceIn(minScale, maxScale)
 
-                                        if (scale == 1f) {
-                                            offsetX = 0f
-                                            offsetY = 0f
-                                        } else {
-                                            offsetX += pan.x
-                                            offsetY += pan.y
+                                        if (scale != 0f) {
+                                            val ratio = newScale / scale
+                                            offset = offset * ratio
+                                        }
+
+                                        scale = newScale
+                                        if (scale == minScale) {
+                                            offset = Offset.Zero
                                         }
                                     }
                                 }
-                            } else {
-                                Modifier.pointerInput(Unit) {
-                                    detectTransformGestures { _, _, zoom, _ ->
-                                        // Only allow zooming in when at normal scale
-                                        // Don't capture pan gestures to allow pager swiping
-                                        scale = (scale * zoom).coerceIn(1f, 5f)
-                                    }
+                            }
+                        }
+                        .pointerInput(Unit) {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                val newScale = (scale * zoom).coerceIn(minScale, maxScale)
+
+                                if (newScale == minScale) {
+                                    scale = 1f
+                                    offset = Offset.Zero
+                                } else {
+                                    scale = newScale
+                                    offset += pan
                                 }
                             }
-                        ),
-                    contentScale = ContentScale.Fit
+                        }
                 )
             }
         }
 
-        // Image counter at bottom
         if (images.size > 1) {
             Surface(
                 modifier = Modifier
@@ -190,6 +185,7 @@ fun ImageGalleryViewer(
         }
     }
 }
+
 
 /**
  * Gallery viewer dialog with fade in/out animation
