@@ -22,10 +22,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -75,7 +78,7 @@ fun ClickableImage(
 /**
  * Gallery viewer with support for multiple images and swipe navigation
  */
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ImageGalleryViewer(
     images: List<String>,
@@ -125,6 +128,19 @@ fun ImageGalleryViewer(
                             translationX = offsetX,
                             translationY = offsetY
                         )
+                        .onPointerEvent(PointerEventType.Scroll) { event ->
+                            // Mouse wheel zoom support for desktop
+                            val scrollDelta = event.changes.first().scrollDelta.y
+                            val zoomFactor = if (scrollDelta < 0) 1.1f else 0.9f
+                            val newScale = (scale * zoomFactor).coerceIn(1f, 5f)
+                            
+                            scale = newScale
+                            
+                            if (scale == 1f) {
+                                offsetX = 0f
+                                offsetY = 0f
+                            }
+                        }
                         .then(
                             // Only enable zoom/pan gestures when image is zoomed in
                             if (scale > 1f) {
