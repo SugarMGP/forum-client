@@ -125,19 +125,32 @@ fun ImageGalleryViewer(
                             translationX = offsetX,
                             translationY = offsetY
                         )
-                        .pointerInput(Unit) {
-                            detectTransformGestures { _, pan, zoom, _ ->
-                                scale = (scale * zoom).coerceIn(1f, 5f)
+                        .then(
+                            // Only enable zoom/pan gestures when image is zoomed in
+                            if (scale > 1f) {
+                                Modifier.pointerInput(Unit) {
+                                    detectTransformGestures { _, pan, zoom, _ ->
+                                        scale = (scale * zoom).coerceIn(1f, 5f)
 
-                                if (scale == 1f) {
-                                    offsetX = 0f
-                                    offsetY = 0f
-                                } else {
-                                    offsetX += pan.x
-                                    offsetY += pan.y
+                                        if (scale == 1f) {
+                                            offsetX = 0f
+                                            offsetY = 0f
+                                        } else {
+                                            offsetX += pan.x
+                                            offsetY += pan.y
+                                        }
+                                    }
+                                }
+                            } else {
+                                Modifier.pointerInput(Unit) {
+                                    detectTransformGestures { _, _, zoom, _ ->
+                                        // Only allow zooming in when at normal scale
+                                        // Don't capture pan gestures to allow pager swiping
+                                        scale = (scale * zoom).coerceIn(1f, 5f)
+                                    }
                                 }
                             }
-                        },
+                        ),
                     contentScale = ContentScale.Fit
                 )
             }
