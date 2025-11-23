@@ -1,5 +1,6 @@
 package org.jh.forum.client.ui.navigation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -36,6 +37,8 @@ import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.*
 import org.jh.forum.client.ui.theme.AppIcons
+import org.jh.forum.client.util.UpdateChecker
+import org.jh.forum.client.util.UpdateInfo
 import org.jh.forum.client.util.openUrl
 
 sealed class BottomNavItem(
@@ -70,6 +73,99 @@ private val slideOutPopTransition = slideOutHorizontally(
     animationSpec = tween(ANIMATION_DURATION)
 )
 
+/**
+ * Reusable Update Dialog component with smooth animations
+ */
+@Composable
+private fun UpdateDialog(
+    visible: Boolean,
+    updateInfo: UpdateInfo?,
+    onDismiss: () -> Unit,
+    onDownload: (String) -> Unit
+) {
+    AnimatedVisibility(
+        visible = visible && updateInfo != null,
+        enter = scaleIn(
+            initialScale = 0.8f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        ) + fadeIn(),
+        exit = scaleOut(
+            targetScale = 0.8f,
+            animationSpec = tween(200)
+        ) + fadeOut()
+    ) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { 
+                Text(
+                    "发现新版本",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            AppIcons.Refresh,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Text(
+                            "v${updateInfo?.latestVersion}",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    HorizontalDivider()
+                    Text(
+                        "发布时间: ${updateInfo?.publishedAt?.take(10) ?: ""}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                FilledTonalButton(
+                    onClick = {
+                        onDismiss()
+                        updateInfo?.let { onDownload(it.releaseUrl) }
+                    },
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Icon(
+                        AppIcons.Share,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("下载新版本")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = onDismiss,
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Text(
+                        "忽略本次",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            shape = MaterialTheme.shapes.extraLarge
+        )
+    }
+}
+
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalMaterial3AdaptiveNavigationSuiteApi::class
@@ -93,11 +189,11 @@ fun MainNavigation(
     var homeRefreshTrigger by remember { mutableStateOf(0) }
     val hasUnreadMessages by messageViewModel.hasUnreadMessages.collectAsState()
     
-    // State for automatic update check
-    var showAutoUpdateDialog by remember { mutableStateOf(false) }
-    var autoUpdateInfo by remember { mutableStateOf<org.jh.forum.client.util.UpdateInfo?>(null) }
+    // Global state for update checking (used by both auto-check and manual check)
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
     val scope = rememberCoroutineScope()
-    val updateChecker = remember { org.jh.forum.client.util.UpdateChecker() }
+    val updateChecker = remember { UpdateChecker() }
 
     // 在组件初始化时检查用户登录状态和自动检查更新
     LaunchedEffect(Unit) {
@@ -107,8 +203,8 @@ fun MainNavigation(
         scope.launch {
             val info = updateChecker.checkForUpdates()
             if (info != null && info.hasUpdate) {
-                autoUpdateInfo = info
-                showAutoUpdateDialog = true
+                updateInfo = info
+                showUpdateDialog = true
             }
         }
     }
@@ -260,11 +356,6 @@ fun MainNavigation(
                     popEnterTransition = { slideInPopTransition + fadeInTransition },
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) {
-                    var showUpdateDialog by remember { mutableStateOf(false) }
-                    var updateInfo by remember { mutableStateOf<org.jh.forum.client.util.UpdateInfo?>(null) }
-                    val scope = rememberCoroutineScope()
-                    val updateChecker = remember { org.jh.forum.client.util.UpdateChecker() }
-
                     SettingsScreen(
                         authViewModel = authViewModel,
                         onNavigateBack = {
@@ -292,89 +383,6 @@ fun MainNavigation(
                             }
                         }
                     )
-
-                    // Animated update dialog with scale and fade animation
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = showUpdateDialog && updateInfo != null,
-                        enter = androidx.compose.animation.scaleIn(
-                            initialScale = 0.8f,
-                            animationSpec = androidx.compose.animation.core.spring(
-                                dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
-                                stiffness = androidx.compose.animation.core.Spring.StiffnessLow
-                            )
-                        ) + fadeInTransition,
-                        exit = androidx.compose.animation.scaleOut(
-                            targetScale = 0.8f,
-                            animationSpec = androidx.compose.animation.core.tween(200)
-                        ) + fadeOutTransition
-                    ) {
-                        AlertDialog(
-                            onDismissRequest = { showUpdateDialog = false },
-                            title = { 
-                                Text(
-                                    "发现新版本",
-                                    style = MaterialTheme.typography.headlineSmall
-                                )
-                            },
-                            text = {
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(
-                                            AppIcons.Refresh,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                        Text(
-                                            "v${updateInfo?.latestVersion}",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                    HorizontalDivider()
-                                    Text(
-                                        "发布时间: ${updateInfo?.publishedAt?.take(10) ?: ""}",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            },
-                            confirmButton = {
-                                FilledTonalButton(
-                                    onClick = {
-                                        showUpdateDialog = false
-                                        updateInfo?.let { openUrl(it.releaseUrl) }
-                                    },
-                                    shape = MaterialTheme.shapes.medium
-                                ) {
-                                    Icon(
-                                        AppIcons.Share,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("下载新版本")
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(
-                                    onClick = { showUpdateDialog = false },
-                                    shape = MaterialTheme.shapes.medium
-                                ) {
-                                    Text(
-                                        "忽略本次",
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            },
-                            shape = MaterialTheme.shapes.extraLarge
-                        )
-                    }
                 }
 
                 composable(
@@ -576,86 +584,11 @@ fun MainNavigation(
         }
     )
     
-    // Animated auto-update dialog shown on app startup
-    androidx.compose.animation.AnimatedVisibility(
-        visible = showAutoUpdateDialog && autoUpdateInfo != null,
-        enter = scaleIn(
-            initialScale = 0.8f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        ) + fadeInTransition,
-        exit = scaleOut(
-            targetScale = 0.8f,
-            animationSpec = tween(200)
-        ) + fadeOutTransition
-    ) {
-        AlertDialog(
-            onDismissRequest = { showAutoUpdateDialog = false },
-            title = { 
-                Text(
-                    "发现新版本",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            },
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            AppIcons.Refresh,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Text(
-                            "v${autoUpdateInfo?.latestVersion}",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    HorizontalDivider()
-                    Text(
-                        "发布时间: ${autoUpdateInfo?.publishedAt?.take(10) ?: ""}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = {
-                FilledTonalButton(
-                    onClick = {
-                        showAutoUpdateDialog = false
-                        autoUpdateInfo?.let { openUrl(it.releaseUrl) }
-                    },
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    Icon(
-                        AppIcons.Share,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("下载新版本")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showAutoUpdateDialog = false },
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    Text(
-                        "忽略本次",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            shape = MaterialTheme.shapes.extraLarge
-        )
-    }
+    // Global update dialog (shown for both auto-check and manual check)
+    UpdateDialog(
+        visible = showUpdateDialog,
+        updateInfo = updateInfo,
+        onDismiss = { showUpdateDialog = false },
+        onDownload = { url -> openUrl(url) }
+    )
 }
