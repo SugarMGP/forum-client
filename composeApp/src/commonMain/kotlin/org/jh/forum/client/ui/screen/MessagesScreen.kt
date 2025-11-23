@@ -73,22 +73,16 @@ fun MessagesScreen(
         pageCount = { 2 }
     )
 
-    // Sync pager state with selectedType using snapshotFlow
+    // Coroutine scope for programmatic scrolling
+    val scope = rememberCoroutineScope()
+
+    // Sync pager state with selectedType - one direction only
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             if (selectedType != page) {
                 selectedType = page
                 // Reset sub-type when switching main type
                 if (page == 0) selectedNoticeType = 0
-            }
-        }
-    }
-
-    // Sync selectedType changes to pager using snapshotFlow
-    LaunchedEffect(Unit) {
-        snapshotFlow { selectedType }.collect { type ->
-            if (pagerState.currentPage != type) {
-                pagerState.animateScrollToPage(type)
             }
         }
     }
@@ -218,7 +212,9 @@ fun MessagesScreen(
                                 Tab(
                                     selected = selectedType == index,
                                     onClick = {
-                                        selectedType = index
+                                        scope.launch {
+                                            pagerState.animateScrollToPage(index)
+                                        }
                                         // 切换时重置选中的子类型
                                         if (index == 0) selectedNoticeType = 0
                                     },

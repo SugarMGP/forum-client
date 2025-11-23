@@ -59,20 +59,14 @@ fun UserProfileScreen(
         pageCount = { tabCount }
     )
 
-    // Sync pager state with selectedTab using snapshotFlow
+    // Coroutine scope for programmatic scrolling
+    val scope = rememberCoroutineScope()
+
+    // Sync pager state with selectedTab - one direction only
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             if (selectedTab != page) {
                 selectedTab = page
-            }
-        }
-    }
-
-    // Sync selectedTab changes to pager using snapshotFlow
-    LaunchedEffect(Unit) {
-        snapshotFlow { selectedTab }.collect { tab ->
-            if (pagerState.currentPage != tab) {
-                pagerState.animateScrollToPage(tab)
             }
         }
     }
@@ -149,14 +143,22 @@ fun UserProfileScreen(
                     ) {
                         Tab(
                             selected = selectedTab == 0,
-                            onClick = { selectedTab = 0 },
+                            onClick = { 
+                                scope.launch {
+                                    pagerState.animateScrollToPage(0)
+                                }
+                            },
                             text = { Text("帖子") }
                         )
                         // Only show Comments tab for current user
                         if (isCurrentUser) {
                             Tab(
                                 selected = selectedTab == 1,
-                                onClick = { selectedTab = 1 },
+                                onClick = { 
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(1)
+                                    }
+                                },
                                 text = { Text("评论") }
                             )
                         }
