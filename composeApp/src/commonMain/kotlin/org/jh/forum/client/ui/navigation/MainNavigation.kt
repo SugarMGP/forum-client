@@ -1,15 +1,18 @@
 package org.jh.forum.client.ui.navigation
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.onClick
 import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -19,10 +22,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.*
 import org.jh.forum.client.ui.theme.AppIcons
+import org.jh.forum.client.ui.theme.Dimensions
+import org.jh.forum.client.util.UpdateChecker
+import org.jh.forum.client.util.UpdateInfo
+import org.jh.forum.client.util.openUrl
 
 sealed class BottomNavItem(
     val route: String,
@@ -56,6 +64,127 @@ private val slideOutPopTransition = slideOutHorizontally(
     animationSpec = tween(ANIMATION_DURATION)
 )
 
+/**
+ * Reusable Update Dialog component with smooth animations
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun UpdateDialog(
+    visible: Boolean,
+    updateInfo: UpdateInfo?,
+    onDismiss: () -> Unit,
+    onDownload: (String) -> Unit
+) {
+    AnimatedVisibility(
+        visible = visible && updateInfo != null,
+        enter = scaleIn(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            ),
+            initialScale = 0.8f
+        ) + fadeIn(animationSpec = tween(200)),
+        exit = scaleOut(
+            animationSpec = tween(200),
+            targetScale = 0.8f
+        ) + fadeOut(animationSpec = tween(200))
+    ) {
+        // Custom dialog using Box overlay and Card
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .onClick(true) { onDismiss() },
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .padding(16.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = Dimensions.elevationMedium
+                ),
+                shape = MaterialTheme.shapes.extraLarge,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Title
+                    Text(
+                        "发现新版本",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+
+                    // Content
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                AppIcons.Refresh,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Text(
+                                "v${updateInfo?.latestVersion ?: ""}",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        HorizontalDivider()
+                        Text(
+                            "发布时间: ${updateInfo?.publishedAt?.take(10) ?: ""}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    // Buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = onDismiss,
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Text(
+                                "忽略本次",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        FilledTonalButton(
+                            onClick = {
+                                onDismiss()
+                                updateInfo?.let { onDownload(it.releaseUrl) }
+                            },
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Icon(
+                                AppIcons.Share,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("前往下载")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalMaterial3AdaptiveNavigationSuiteApi::class
@@ -79,9 +208,24 @@ fun MainNavigation(
     var homeRefreshTrigger by remember { mutableStateOf(0) }
     val hasUnreadMessages by messageViewModel.hasUnreadMessages.collectAsState()
 
-    // 在组件初始化时检查用户登录状态
+    // Global state for update checking (used by both auto-check and manual check)
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+    val scope = rememberCoroutineScope()
+    val updateChecker = remember { UpdateChecker() }
+
+    // 在组件初始化时检查用户登录状态和自动检查更新
     LaunchedEffect(Unit) {
         authViewModel.checkAuthStatus()
+
+        // Automatically check for updates on app startup
+        scope.launch {
+            val info = updateChecker.checkForUpdates()
+            if (info != null && info.hasUpdate) {
+                updateInfo = info
+                showUpdateDialog = true
+            }
+        }
     }
 
     // 监听登录状态变化，当退出登录时自动导航到登录页面
@@ -210,6 +354,14 @@ fun MainNavigation(
                             onNavigateBack = null, // No back button for bottom nav
                             onNavigateToSettings = {
                                 navController.navigate("settings")
+                            },
+                            onNavigateToPost = { postId, highlightCommentId ->
+                                val route = "post_detail/$postId?highlightCommentId=$highlightCommentId"
+                                navController.navigate(route)
+                            },
+                            onNavigateToComment = { commentId, highlightReplyId ->
+                                val route = "comment_replies/$commentId?highlightReplyId=$highlightReplyId"
+                                navController.navigate(route)
                             }
                         )
                     }
@@ -236,6 +388,18 @@ fun MainNavigation(
                         },
                         onNavigateToEditProfile = {
                             navController.navigate("edit_profile")
+                        },
+                        onNavigateToAbout = {
+                            navController.navigate("about")
+                        },
+                        onCheckForUpdates = {
+                            scope.launch {
+                                val info = updateChecker.checkForUpdates()
+                                if (info != null && info.hasUpdate) {
+                                    updateInfo = info
+                                    showUpdateDialog = true
+                                }
+                            }
                         }
                     )
                 }
@@ -289,6 +453,23 @@ fun MainNavigation(
                         repository = repository,
                         onNavigateBack = {
                             navController.popBackStack()
+                        }
+                    )
+                }
+
+                composable(
+                    "about",
+                    enterTransition = { slideInTransition + fadeInTransition },
+                    exitTransition = { slideOutTransition + fadeOutTransition },
+                    popEnterTransition = { slideInPopTransition + fadeInTransition },
+                    popExitTransition = { slideOutPopTransition + fadeOutTransition }
+                ) {
+                    AboutScreen(
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        },
+                        onOpenGitHub = {
+                            openUrl("https://github.com/SugarMGP/forum-client")
                         }
                     )
                 }
@@ -407,10 +588,26 @@ fun MainNavigation(
                         },
                         onNavigateToSettings = {
                             navController.navigate("settings")
+                        },
+                        onNavigateToPost = { postId, highlightCommentId ->
+                            val route = "post_detail/$postId?highlightCommentId=$highlightCommentId"
+                            navController.navigate(route)
+                        },
+                        onNavigateToComment = { commentId, highlightReplyId ->
+                            val route = "comment_replies/$commentId?highlightReplyId=$highlightReplyId"
+                            navController.navigate(route)
                         }
                     )
                 }
             }
         }
+    )
+
+    // Global update dialog (shown for both auto-check and manual check)
+    UpdateDialog(
+        visible = showUpdateDialog,
+        updateInfo = updateInfo,
+        onDismiss = { showUpdateDialog = false },
+        onDownload = { url -> openUrl(url) }
     )
 }

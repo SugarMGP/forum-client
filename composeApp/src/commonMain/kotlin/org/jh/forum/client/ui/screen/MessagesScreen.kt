@@ -3,12 +3,15 @@ package org.jh.forum.client.ui.screen
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,7 +32,7 @@ import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
 import kotlin.time.ExperimentalTime
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MessagesScreen(
     repository: ForumRepository,
@@ -63,6 +66,26 @@ fun MessagesScreen(
     // List states - hoist outside when branches to preserve scroll position
     val noticeListState = rememberLazyListState()
     val announcementListState = rememberLazyListState()
+
+    // Pager state for swipe navigation between 互动 and 公告
+    val pagerState = rememberPagerState(
+        initialPage = selectedType,
+        pageCount = { 2 }
+    )
+
+    // Coroutine scope for programmatic scrolling
+    val scope = rememberCoroutineScope()
+
+    // Sync pager state with selectedType - one direction only
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            if (selectedType != page) {
+                selectedType = page
+                // Reset sub-type when switching main type
+                if (page == 0) selectedNoticeType = 0
+            }
+        }
+    }
 
     // 加载互动消息
     suspend fun loadNotices(reset: Boolean = false) {
@@ -189,7 +212,9 @@ fun MessagesScreen(
                                 Tab(
                                     selected = selectedType == index,
                                     onClick = {
-                                        selectedType = index
+                                        scope.launch {
+                                            pagerState.animateScrollToPage(index)
+                                        }
                                         // 切换时重置选中的子类型
                                         if (index == 0) selectedNoticeType = 0
                                     },
@@ -245,225 +270,258 @@ fun MessagesScreen(
             }
         }
     ) { paddingValues ->
-        Column(
+        HorizontalPager(
+            state = pagerState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues) // 只在最外层Column应用paddingValues
-        ) {
-            when {
-                isLoading && messages.isEmpty() && announcements.isEmpty() -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-
-                errorMessage != null -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                AppIcons.Error,
-                                contentDescription = "错误",
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = errorMessage ?: "加载失败",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Row {
-                                Button(onClick = {
-                                    // 触发重新加载
-                                    retryTrigger++
-                                }) {
-                                    Text("重试")
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // 显示互动消息列表
-                selectedType == 0 && messages.isEmpty() -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(Dimensions.spaceLarge),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                modifier = Modifier.size(120.dp)
+                .padding(paddingValues)
+        ) { page ->
+            when (page) {
+                0 -> {
+                    // 互动消息页面
+                    when {
+                        isLoading && messages.isEmpty() -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        AppIcons.Message,
-                                        contentDescription = "无消息",
-                                        modifier = Modifier.size(64.dp),
-                                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
-                                    )
-                                }
+                                CircularProgressIndicator()
                             }
-                            Spacer(modifier = Modifier.height(Dimensions.spaceLarge))
-                            Text(
-                                text = "暂无互动消息",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-                            Text(
-                                text = "当有人点赞、评论或收藏您的帖子时\n您将在这里收到通知",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                            )
                         }
-                    }
-                }
 
-                // 显示公告列表
-                selectedType == 1 && announcements.isEmpty() -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(Dimensions.spaceLarge),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                modifier = Modifier.size(120.dp)
+                        errorMessage != null -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        AppIcons.Notifications,
-                                        contentDescription = "无公告",
-                                        modifier = Modifier.size(64.dp),
-                                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(Dimensions.spaceLarge))
-                            Text(
-                                text = "暂无公告",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
-                            Text(
-                                text = "系统公告和学校公告将在这里显示",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                            )
-                        }
-                    }
-                }
-
-                // 显示互动消息
-                selectedType == 0 -> {
-                    // Monitor scroll position for pagination
-                    LaunchedEffect(noticeListState) {
-                        snapshotFlow { noticeListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
-                            .collect { lastVisibleIndex ->
-                                if (lastVisibleIndex != null &&
-                                    lastVisibleIndex >= messages.size - 3 &&
-                                    noticeHasMore &&
-                                    !isLoading
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    coroutineScope.launch {
-                                        loadNotices(reset = false)
+                                    Icon(
+                                        AppIcons.Error,
+                                        contentDescription = "错误",
+                                        modifier = Modifier.size(64.dp),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        text = errorMessage ?: "加载失败",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Button(onClick = { retryTrigger++ }) {
+                                        Text("重试")
                                     }
                                 }
                             }
-                    }
-
-                    LazyColumn(
-                        state = noticeListState,
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentPadding = PaddingValues(Dimensions.spaceMedium),
-                        verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
-                    ) {
-                        items(messages) {
-                            MessageItem(
-                                message = it,
-                                onUserClick = onUserClick,
-                                onNavigateToPost = onNavigateToPost,
-                                onNavigateToComment = onNavigateToComment
-                            )
                         }
 
-                        // Loading indicator - only show during initial load, not pagination
-                        if (isLoading && messages.isEmpty()) {
-                            item {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
+                        messages.isEmpty() -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(Dimensions.spaceLarge),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    CircularProgressIndicator()
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                        modifier = Modifier.size(120.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                AppIcons.Message,
+                                                contentDescription = "无消息",
+                                                modifier = Modifier.size(64.dp),
+                                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(Dimensions.spaceLarge))
+                                    Text(
+                                        text = "暂无互动消息",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                                    Text(
+                                        text = "当有人点赞、评论或收藏您的帖子时\n您将在这里收到通知",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+
+                        else -> {
+                            // Monitor scroll position for pagination
+                            LaunchedEffect(noticeListState) {
+                                snapshotFlow { noticeListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                                    .collect { lastVisibleIndex ->
+                                        if (lastVisibleIndex != null &&
+                                            lastVisibleIndex >= messages.size - 3 &&
+                                            noticeHasMore &&
+                                            !isLoading
+                                        ) {
+                                            coroutineScope.launch {
+                                                loadNotices(reset = false)
+                                            }
+                                        }
+                                    }
+                            }
+
+                            LazyColumn(
+                                state = noticeListState,
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(Dimensions.spaceMedium),
+                                verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
+                            ) {
+                                items(messages) {
+                                    MessageItem(
+                                        message = it,
+                                        onUserClick = onUserClick,
+                                        onNavigateToPost = onNavigateToPost,
+                                        onNavigateToComment = onNavigateToComment
+                                    )
+                                }
+
+                                if (isLoading && messages.isNotEmpty()) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CircularProgressIndicator()
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                // 显示公告
-                else -> {
-                    // Monitor scroll position for pagination
-                    LaunchedEffect(announcementListState) {
-                        snapshotFlow { announcementListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
-                            .collect { lastVisibleIndex ->
-                                if (lastVisibleIndex != null &&
-                                    lastVisibleIndex >= announcements.size - 3 &&
-                                    announcementHasMore &&
-                                    !isLoading
+                1 -> {
+                    // 公告页面
+                    when {
+                        isLoading && announcements.isEmpty() -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+
+                        errorMessage != null -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    coroutineScope.launch {
-                                        loadAnnouncements(reset = false)
+                                    Icon(
+                                        AppIcons.Error,
+                                        contentDescription = "错误",
+                                        modifier = Modifier.size(64.dp),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        text = errorMessage ?: "加载失败",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Button(onClick = { retryTrigger++ }) {
+                                        Text("重试")
                                     }
                                 }
                             }
-                    }
-
-                    LazyColumn(
-                        state = announcementListState,
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentPadding = PaddingValues(Dimensions.spaceMedium),
-                        verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
-                    ) {
-                        items(announcements) {
-                            AnnouncementItem(announcement = it)
                         }
 
-                        // Loading indicator - only show during initial load, not pagination
-                        if (isLoading && announcements.isEmpty()) {
-                            item {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
+                        announcements.isEmpty() -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(Dimensions.spaceLarge),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    CircularProgressIndicator()
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                        modifier = Modifier.size(120.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                AppIcons.Notifications,
+                                                contentDescription = "无公告",
+                                                modifier = Modifier.size(64.dp),
+                                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(Dimensions.spaceLarge))
+                                    Text(
+                                        text = "暂无公告",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
+                                    Text(
+                                        text = "系统公告和学校公告将在这里显示",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+
+                        else -> {
+                            // Monitor scroll position for pagination
+                            LaunchedEffect(announcementListState) {
+                                snapshotFlow { announcementListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                                    .collect { lastVisibleIndex ->
+                                        if (lastVisibleIndex != null &&
+                                            lastVisibleIndex >= announcements.size - 3 &&
+                                            announcementHasMore &&
+                                            !isLoading
+                                        ) {
+                                            coroutineScope.launch {
+                                                loadAnnouncements(reset = false)
+                                            }
+                                        }
+                                    }
+                            }
+
+                            LazyColumn(
+                                state = announcementListState,
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(Dimensions.spaceMedium),
+                                verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                            ) {
+                                items(announcements) {
+                                    AnnouncementItem(announcement = it)
+                                }
+
+                                if (isLoading && announcements.isNotEmpty()) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CircularProgressIndicator()
+                                        }
+                                    }
                                 }
                             }
                         }

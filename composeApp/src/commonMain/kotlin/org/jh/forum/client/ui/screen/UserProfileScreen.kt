@@ -1,10 +1,13 @@
 package org.jh.forum.client.ui.screen
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -13,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.jh.forum.client.data.model.GetPersonalPostListElement
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.ui.component.ClickableImage
@@ -22,7 +26,7 @@ import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
 import org.jh.forum.client.util.TimeUtils
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun UserProfileScreen(
     userId: Long,
@@ -30,7 +34,9 @@ fun UserProfileScreen(
     repository: ForumRepository,
     onPostClick: (Long) -> Unit = {},
     onNavigateBack: (() -> Unit)? = null,
-    onNavigateToSettings: () -> Unit = {}
+    onNavigateToSettings: () -> Unit = {},
+    onNavigateToPost: (postId: Long, highlightCommentId: Long) -> Unit = { _, _ -> },
+    onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val isCurrentUser = authViewModel.userProfile.collectAsState().value?.userId == userId
@@ -45,6 +51,25 @@ fun UserProfileScreen(
     var showImageGallery by remember { mutableStateOf(false) }
     var galleryImages by remember { mutableStateOf<List<String>>(emptyList()) }
     var galleryInitialIndex by remember { mutableStateOf(0) }
+
+    // Pager state for swipe navigation (only if current user)
+    val tabCount = if (isCurrentUser) 2 else 1
+    val pagerState = rememberPagerState(
+        initialPage = selectedTab,
+        pageCount = { tabCount }
+    )
+
+    // Coroutine scope for programmatic scrolling
+    val scope = rememberCoroutineScope()
+
+    // Sync pager state with selectedTab - one direction only
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            if (selectedTab != page) {
+                selectedTab = page
+            }
+        }
+    }
 
     // Load user profile
     LaunchedEffect(userId) {
@@ -118,38 +143,53 @@ fun UserProfileScreen(
                     ) {
                         Tab(
                             selected = selectedTab == 0,
-                            onClick = { selectedTab = 0 },
+                            onClick = {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(0)
+                                }
+                            },
                             text = { Text("帖子") }
                         )
                         // Only show Comments tab for current user
                         if (isCurrentUser) {
                             Tab(
                                 selected = selectedTab == 1,
-                                onClick = { selectedTab = 1 },
+                                onClick = {
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(1)
+                                    }
+                                },
                                 text = { Text("评论") }
                             )
                         }
                     }
 
-                    // Tab Content
-                    when (selectedTab) {
-                        0 -> UserPostsTab(
-                            userId = userId,
-                            repository = repository,
-                            onPostClick = onPostClick,
-                            onImageClick = { images, index ->
-                                galleryImages = images
-                                galleryInitialIndex = index
-                                showImageGallery = true
-                            }
-                        )
+                    // Tab Content with HorizontalPager
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize()
+                    ) { page ->
+                        when (page) {
+                            0 -> UserPostsTab(
+                                userId = userId,
+                                repository = repository,
+                                onPostClick = onPostClick,
+                                onImageClick = { images, index ->
+                                    galleryImages = images
+                                    galleryInitialIndex = index
+                                    showImageGallery = true
+                                }
+                            )
 
-                        1 -> {
-                            if (isCurrentUser) {
-                                UserCommentsTab(
-                                    userId = userId,
-                                    repository = repository
-                                )
+                            1 -> {
+                                if (isCurrentUser) {
+                                    UserCommentsTab(
+                                        userId = userId,
+                                        repository = repository,
+                                        onNavigateToPost = onNavigateToPost,
+                                        onNavigateToComment = onNavigateToComment
+                                    )
+                                }
                             }
                         }
                     }
@@ -161,7 +201,7 @@ fun UserProfileScreen(
         ImageGalleryDialog(
             visible = showImageGallery || showImageViewer,
             images = if (showImageViewer && selectedImageUrl != null) {
-                listOf(selectedImageUrl).filterNotNull()
+                listOfNotNull(selectedImageUrl)
             } else {
                 galleryImages
             },
@@ -431,7 +471,9 @@ fun PostStatChip(
 @Composable
 fun UserCommentsTab(
     userId: Long,
-    repository: ForumRepository
+    repository: ForumRepository,
+    onNavigateToPost: (postId: Long, highlightCommentId: Long) -> Unit = { _, _ -> },
+    onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     var comments by remember {
         mutableStateOf<List<org.jh.forum.client.data.model.PersonalCommentListElement>>(
@@ -493,7 +535,11 @@ fun UserCommentsTab(
                 }
             }
         ) { comment ->
-            PersonalCommentCard(comment = comment)
+            PersonalCommentCard(
+                comment = comment,
+                onNavigateToPost = onNavigateToPost,
+                onNavigateToComment = onNavigateToComment
+            )
         }
 
         if (isLoading && comments.isNotEmpty()) {
@@ -545,10 +591,22 @@ fun UserCommentsTab(
 
 @Composable
 fun PersonalCommentCard(
-    comment: org.jh.forum.client.data.model.PersonalCommentListElement
+    comment: org.jh.forum.client.data.model.PersonalCommentListElement,
+    onNavigateToPost: (postId: Long, highlightCommentId: Long) -> Unit = { _, _ -> },
+    onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
+        onClick = {
+            // Navigate based on whether this is a comment or reply
+            if (comment.replyId != 0L) {
+                // This is a reply to another comment, navigate to the comment thread
+                onNavigateToComment(comment.commentId, comment.replyId)
+            } else {
+                // This is a direct comment on a post, navigate to the post
+                onNavigateToPost(comment.postId, comment.commentId)
+            }
+        },
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant

@@ -51,4 +51,5 @@ object AppIcons {
     val PushPin: ImageVector = Icons.Default.PushPin
     val CheckCircle: ImageVector = Icons.Default.CheckCircle
     val PhotoCamera: ImageVector = Icons.Default.PhotoCamera
+    val Info: ImageVector = Icons.Default.Info
 }
