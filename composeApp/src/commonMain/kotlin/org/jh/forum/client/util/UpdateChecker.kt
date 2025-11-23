@@ -2,9 +2,12 @@ package org.jh.forum.client.util
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.jh.forum.client.BuildKonfig
 
 @Serializable
@@ -23,9 +26,21 @@ data class UpdateInfo(
     val releaseUrl: String
 )
 
-class UpdateChecker(private val httpClient: HttpClient) {
+class UpdateChecker {
     companion object {
         private const val GITHUB_API_URL = "https://api.github.com/repos/SugarMGP/forum-client/releases/latest"
+        
+        // Create a dedicated HttpClient with JSON support for GitHub API
+        private val httpClient: HttpClient by lazy {
+            HttpClient {
+                install(ContentNegotiation) {
+                    json(Json {
+                        ignoreUnknownKeys = true
+                        isLenient = true
+                    })
+                }
+            }
+        }
     }
 
     suspend fun checkForUpdates(): UpdateInfo? {

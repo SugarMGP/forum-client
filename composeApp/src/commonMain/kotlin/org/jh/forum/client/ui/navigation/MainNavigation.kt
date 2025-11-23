@@ -238,8 +238,7 @@ fun MainNavigation(
                     var showUpdateDialog by remember { mutableStateOf(false) }
                     var updateInfo by remember { mutableStateOf<org.jh.forum.client.util.UpdateInfo?>(null) }
                     val scope = rememberCoroutineScope()
-                    val httpClient = remember { io.ktor.client.HttpClient() }
-                    val updateChecker = remember { org.jh.forum.client.util.UpdateChecker(httpClient) }
+                    val updateChecker = remember { org.jh.forum.client.util.UpdateChecker() }
 
                     SettingsScreen(
                         authViewModel = authViewModel,
@@ -284,9 +283,7 @@ fun MainNavigation(
                                 TextButton(
                                     onClick = {
                                         showUpdateDialog = false
-                                        // TODO: Open browser to release URL
-                                        // Platform-specific implementation needed
-                                        println("Release URL: ${updateInfo!!.releaseUrl}")
+                                        org.jh.forum.client.util.UrlOpener.openUrl(updateInfo!!.releaseUrl)
                                     }
                                 ) {
                                     Text("下载新版本")
@@ -368,9 +365,7 @@ fun MainNavigation(
                             navController.popBackStack()
                         },
                         onOpenGitHub = {
-                            // TODO: Open browser to GitHub repository
-                            // Platform-specific implementation needed
-                            println("GitHub URL: https://github.com/SugarMGP/forum-client")
+                            org.jh.forum.client.util.UrlOpener.openUrl("https://github.com/SugarMGP/forum-client")
                         }
                     )
                 }
