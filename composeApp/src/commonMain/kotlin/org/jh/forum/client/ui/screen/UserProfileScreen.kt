@@ -39,7 +39,6 @@ fun UserProfileScreen(
     onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     var selectedTab by remember { mutableStateOf(0) }
-    val coroutineScope = rememberCoroutineScope()
     val isCurrentUser = authViewModel.userProfile.collectAsState().value?.userId == userId
     var userProfile by remember {
         mutableStateOf<org.jh.forum.client.data.model.GetUserProfileResponse?>(
@@ -60,17 +59,21 @@ fun UserProfileScreen(
         pageCount = { tabCount }
     )
 
-    // Sync pager state with selectedTab
-    LaunchedEffect(pagerState.currentPage) {
-        if (selectedTab != pagerState.currentPage) {
-            selectedTab = pagerState.currentPage
+    // Sync pager state with selectedTab using snapshotFlow
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            if (selectedTab != page) {
+                selectedTab = page
+            }
         }
     }
 
-    // Sync selectedTab changes to pager
-    LaunchedEffect(selectedTab) {
-        if (pagerState.currentPage != selectedTab) {
-            pagerState.animateScrollToPage(selectedTab)
+    // Sync selectedTab changes to pager using snapshotFlow
+    LaunchedEffect(Unit) {
+        snapshotFlow { selectedTab }.collect { tab ->
+            if (pagerState.currentPage != tab) {
+                pagerState.animateScrollToPage(tab)
+            }
         }
     }
 

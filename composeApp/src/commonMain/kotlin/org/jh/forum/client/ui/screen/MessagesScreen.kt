@@ -73,19 +73,23 @@ fun MessagesScreen(
         pageCount = { 2 }
     )
 
-    // Sync pager state with selectedType
-    LaunchedEffect(pagerState.currentPage) {
-        if (selectedType != pagerState.currentPage) {
-            selectedType = pagerState.currentPage
-            // Reset sub-type when switching main type
-            if (pagerState.currentPage == 0) selectedNoticeType = 0
+    // Sync pager state with selectedType using snapshotFlow
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            if (selectedType != page) {
+                selectedType = page
+                // Reset sub-type when switching main type
+                if (page == 0) selectedNoticeType = 0
+            }
         }
     }
 
-    // Sync selectedType changes to pager
-    LaunchedEffect(selectedType) {
-        if (pagerState.currentPage != selectedType) {
-            pagerState.animateScrollToPage(selectedType)
+    // Sync selectedType changes to pager using snapshotFlow
+    LaunchedEffect(Unit) {
+        snapshotFlow { selectedType }.collect { type ->
+            if (pagerState.currentPage != type) {
+                pagerState.animateScrollToPage(type)
+            }
         }
     }
 
