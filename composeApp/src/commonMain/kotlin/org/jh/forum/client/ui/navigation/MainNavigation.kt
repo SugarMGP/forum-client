@@ -27,6 +27,7 @@ import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.*
 import org.jh.forum.client.ui.theme.AppIcons
+import org.jh.forum.client.util.openUrl
 
 sealed class BottomNavItem(
     val route: String,
@@ -274,7 +275,7 @@ fun MainNavigation(
                             title = { Text("发现新版本") },
                             text = {
                                 Column {
-                                    Text("新版本: ${updateInfo!!.latestVersion}")
+                                    Text("新版本: v${updateInfo!!.latestVersion}")
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text("发布时间: ${updateInfo!!.publishedAt.take(10)}")
                                 }
@@ -283,7 +284,7 @@ fun MainNavigation(
                                 TextButton(
                                     onClick = {
                                         showUpdateDialog = false
-                                        org.jh.forum.client.util.UrlOpener.openUrl(updateInfo!!.releaseUrl)
+                                        openUrl(updateInfo!!.releaseUrl)
                                     }
                                 ) {
                                     Text("下载新版本")
@@ -365,7 +366,7 @@ fun MainNavigation(
                             navController.popBackStack()
                         },
                         onOpenGitHub = {
-                            org.jh.forum.client.util.UrlOpener.openUrl("https://github.com/SugarMGP/forum-client")
+                            openUrl("https://github.com/SugarMGP/forum-client")
                         }
                     )
                 }

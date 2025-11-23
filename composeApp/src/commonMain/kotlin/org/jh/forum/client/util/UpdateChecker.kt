@@ -3,6 +3,7 @@ package org.jh.forum.client.util
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerialName
@@ -28,8 +29,9 @@ data class UpdateInfo(
 
 class UpdateChecker {
     companion object {
-        private const val GITHUB_API_URL = "https://api.github.com/repos/SugarMGP/forum-client/releases/latest"
-        
+        private const val GITHUB_API_URL =
+            "https://ghproxy.vip/https://api.github.com/repos/SugarMGP/forum-client/releases/latest"
+
         // Create a dedicated HttpClient with JSON support for GitHub API
         private val httpClient: HttpClient by lazy {
             HttpClient {
@@ -38,6 +40,9 @@ class UpdateChecker {
                         ignoreUnknownKeys = true
                         isLenient = true
                     })
+                }
+                install(Logging) {
+                    level = LogLevel.ALL
                 }
             }
         }
@@ -50,6 +55,7 @@ class UpdateChecker {
             val latestVersion = release.tagName.removePrefix("v")
             val hasUpdate = compareVersions(latestVersion, BuildKonfig.APP_VERSION) > 0
 
+            println("Latest version: $latestVersion, Current version: ${BuildKonfig.APP_VERSION}, Has update: $hasUpdate, Published at: ${release.publishedAt}, URL: ${release.htmlUrl}")
             UpdateInfo(
                 hasUpdate = hasUpdate,
                 latestVersion = latestVersion,
