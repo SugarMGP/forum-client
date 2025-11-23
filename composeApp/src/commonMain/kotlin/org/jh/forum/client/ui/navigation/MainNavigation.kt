@@ -210,6 +210,14 @@ fun MainNavigation(
                             onNavigateBack = null, // No back button for bottom nav
                             onNavigateToSettings = {
                                 navController.navigate("settings")
+                            },
+                            onNavigateToPost = { postId, highlightCommentId ->
+                                val route = "post_detail/$postId?highlightCommentId=$highlightCommentId"
+                                navController.navigate(route)
+                            },
+                            onNavigateToComment = { commentId, highlightReplyId ->
+                                val route = "comment_replies/$commentId?highlightReplyId=$highlightReplyId"
+                                navController.navigate(route)
                             }
                         )
                     }
@@ -407,6 +415,14 @@ fun MainNavigation(
                         },
                         onNavigateToSettings = {
                             navController.navigate("settings")
+                        },
+                        onNavigateToPost = { postId, highlightCommentId ->
+                            val route = "post_detail/$postId?highlightCommentId=$highlightCommentId"
+                            navController.navigate(route)
+                        },
+                        onNavigateToComment = { commentId, highlightReplyId ->
+                            val route = "comment_replies/$commentId?highlightReplyId=$highlightReplyId"
+                            navController.navigate(route)
                         }
                     )
                 }
