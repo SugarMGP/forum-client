@@ -145,7 +145,7 @@ fun UserProfileScreen(
                             selected = selectedTab == 0,
                             onClick = {
                                 scope.launch {
-                                    pagerState.scrollToPage(0)
+                                    pagerState.animateScrollToPage(0)
                                 }
                             },
                             text = { Text("帖子") }
@@ -156,7 +156,7 @@ fun UserProfileScreen(
                                 selected = selectedTab == 1,
                                 onClick = {
                                     scope.launch {
-                                        pagerState.scrollToPage(1)
+                                        pagerState.animateScrollToPage(1)
                                     }
                                 },
                                 text = { Text("评论") }

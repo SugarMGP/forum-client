@@ -213,7 +213,7 @@ fun MessagesScreen(
                                     selected = selectedType == index,
                                     onClick = {
                                         scope.launch {
-                                            pagerState.scrollToPage(index)
+                                            pagerState.animateScrollToPage(index)
                                         }
                                         // 切换时重置选中的子类型
                                         if (index == 0) selectedNoticeType = 0
