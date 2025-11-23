@@ -48,14 +48,14 @@ fun AboutScreen(
                 Surface(
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.size(120.dp)
+                    modifier = Modifier.size(100.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             AppIcons.Article,
                             contentDescription = "App Icon",
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(64.dp)
+                            modifier = Modifier.size(52.dp)
                         )
                     }
                 }
@@ -169,7 +169,7 @@ fun AboutScreen(
             // Copyright
             item {
                 Text(
-                    text = "© 2025 SugarMGP. All rights reserved.",
+                    text = "© 2025 精弘网络. All rights reserved.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center,

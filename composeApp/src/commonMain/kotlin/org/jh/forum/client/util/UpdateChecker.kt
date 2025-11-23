@@ -55,7 +55,6 @@ class UpdateChecker {
             val latestVersion = release.tagName.removePrefix("v")
             val hasUpdate = compareVersions(latestVersion, BuildKonfig.APP_VERSION) > 0
 
-            println("Latest version: $latestVersion, Current version: ${BuildKonfig.APP_VERSION}, Has update: $hasUpdate, Published at: ${release.publishedAt}, URL: ${release.htmlUrl}")
             UpdateInfo(
                 hasUpdate = hasUpdate,
                 latestVersion = latestVersion,

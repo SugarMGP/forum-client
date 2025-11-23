@@ -1,28 +1,13 @@
 package org.jh.forum.client.ui.navigation
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.onClick
 import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
@@ -32,8 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -44,6 +27,7 @@ import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.*
 import org.jh.forum.client.ui.theme.AppIcons
+import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.UpdateChecker
 import org.jh.forum.client.util.UpdateInfo
 import org.jh.forum.client.util.openUrl
@@ -83,6 +67,7 @@ private val slideOutPopTransition = slideOutHorizontally(
 /**
  * Reusable Update Dialog component with smooth animations
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun UpdateDialog(
     visible: Boolean,
@@ -108,13 +93,17 @@ private fun UpdateDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f)),
+                .onClick(true) { onDismiss() },
             contentAlignment = Alignment.Center
         ) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth(0.85f)
                     .padding(16.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = Dimensions.elevationMedium
+                ),
                 shape = MaterialTheme.shapes.extraLarge,
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
@@ -129,7 +118,7 @@ private fun UpdateDialog(
                         "发现新版本",
                         style = MaterialTheme.typography.headlineSmall
                     )
-                    
+
                     // Content
                     Column(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -157,7 +146,7 @@ private fun UpdateDialog(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    
+
                     // Buttons
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -187,7 +176,7 @@ private fun UpdateDialog(
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("下载新版本")
+                            Text("前往下载")
                         }
                     }
                 }
@@ -218,7 +207,7 @@ fun MainNavigation(
     var currentTheme by remember(currentThemeMode) { mutableStateOf(currentThemeMode) }
     var homeRefreshTrigger by remember { mutableStateOf(0) }
     val hasUnreadMessages by messageViewModel.hasUnreadMessages.collectAsState()
-    
+
     // Global state for update checking (used by both auto-check and manual check)
     var showUpdateDialog by remember { mutableStateOf(false) }
     var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
@@ -228,7 +217,7 @@ fun MainNavigation(
     // 在组件初始化时检查用户登录状态和自动检查更新
     LaunchedEffect(Unit) {
         authViewModel.checkAuthStatus()
-        
+
         // Automatically check for updates on app startup
         scope.launch {
             val info = updateChecker.checkForUpdates()
@@ -613,7 +602,7 @@ fun MainNavigation(
             }
         }
     )
-    
+
     // Global update dialog (shown for both auto-check and manual check)
     UpdateDialog(
         visible = showUpdateDialog,
