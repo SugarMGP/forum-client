@@ -143,7 +143,7 @@ fun UserProfileScreen(
                     ) {
                         Tab(
                             selected = selectedTab == 0,
-                            onClick = { 
+                            onClick = {
                                 scope.launch {
                                     pagerState.animateScrollToPage(0)
                                 }
@@ -154,7 +154,7 @@ fun UserProfileScreen(
                         if (isCurrentUser) {
                             Tab(
                                 selected = selectedTab == 1,
-                                onClick = { 
+                                onClick = {
                                     scope.launch {
                                         pagerState.animateScrollToPage(1)
                                     }
@@ -201,7 +201,7 @@ fun UserProfileScreen(
         ImageGalleryDialog(
             visible = showImageGallery || showImageViewer,
             images = if (showImageViewer && selectedImageUrl != null) {
-                listOf(selectedImageUrl).filterNotNull()
+                listOfNotNull(selectedImageUrl)
             } else {
                 galleryImages
             },

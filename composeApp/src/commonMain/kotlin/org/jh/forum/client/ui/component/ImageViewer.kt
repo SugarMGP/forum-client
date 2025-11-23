@@ -133,9 +133,9 @@ fun ImageGalleryViewer(
                             val scrollDelta = event.changes.first().scrollDelta.y
                             val zoomFactor = if (scrollDelta < 0) 1.1f else 0.9f
                             val newScale = (scale * zoomFactor).coerceIn(1f, 5f)
-                            
+
                             scale = newScale
-                            
+
                             if (scale == 1f) {
                                 offsetX = 0f
                                 offsetY = 0f
@@ -177,7 +177,7 @@ fun ImageGalleryViewer(
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(16.dp),
+                    .padding(24.dp),
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
                 shape = MaterialTheme.shapes.small
             ) {
