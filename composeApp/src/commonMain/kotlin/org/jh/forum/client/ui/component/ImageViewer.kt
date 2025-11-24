@@ -1,10 +1,7 @@
 package org.jh.forum.client.ui.component
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,18 +16,19 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
-import org.jh.forum.client.ui.gesture.imageViewerGestures
 
 /**
  * Clickable image thumbnail with press animation
@@ -41,7 +39,7 @@ fun ClickableImage(
     contentDescription: String,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
-    shape: androidx.compose.ui.graphics.Shape = MaterialTheme.shapes.medium,
+    shape: Shape = MaterialTheme.shapes.medium,
     onClick: () -> Unit,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
@@ -102,41 +100,16 @@ fun ImageGalleryViewer(
             userScrollEnabled = true,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            var scale by remember { mutableStateOf(1f) }
-            var offsetX by remember { mutableStateOf(0f) }
-            var offsetY by remember { mutableStateOf(0f) }
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clickable { if (scale == 1f) onDismiss() }
+                    .clickable { onDismiss() }
             ) {
                 AsyncImage(
                     model = images[page],
                     contentDescription = "图片 ${page + 1}",
                     contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                            translationX = offsetX
-                            translationY = offsetY
-                        }
-                        .imageViewerGestures(
-                            scale = scale,
-                            onScaleChange = {
-                                scale = it
-                                if (scale == 1f) {
-                                    offsetX = 0f
-                                    offsetY = 0f
-                                }
-                            },
-                            onOffsetChange = { dx, dy ->
-                                offsetX += dx
-                                offsetY += dy
-                            }
-                        )
+                    modifier = Modifier.fillMaxSize()
                 )
             }
         }
@@ -179,18 +152,11 @@ fun ImageGalleryDialog(
                 dismissOnClickOutside = false
             )
         ) {
-            // Fade in/out animation
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(animationSpec = tween(300)),
-                exit = fadeOut(animationSpec = tween(300))
-            ) {
-                ImageGalleryViewer(
-                    images = images,
-                    initialIndex = initialIndex,
-                    onDismiss = onDismiss
-                )
-            }
+            ImageGalleryViewer(
+                images = images,
+                initialIndex = initialIndex,
+                onDismiss = onDismiss
+            )
         }
     }
 }

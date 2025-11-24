@@ -21,6 +21,8 @@ kotlin {
 
     jvm()
 
+    jvmToolchain(21)
+
     sourceSets {
         commonMain.dependencies {
             // Compose multiplatform common artifacts (aliases provided by plugin)
