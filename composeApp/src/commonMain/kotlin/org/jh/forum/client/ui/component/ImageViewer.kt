@@ -1,25 +1,33 @@
 package org.jh.forum.client.ui.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import coil3.compose.AsyncImage
 import coil3.compose.rememberAsyncImagePainter
 import com.jvziyaoyao.scale.image.previewer.ImagePreviewer
+import com.jvziyaoyao.scale.image.previewer.TransformImageView
 import com.jvziyaoyao.scale.zoomable.pager.PagerGestureScope
+import com.jvziyaoyao.scale.zoomable.previewer.PreviewerState
 import com.jvziyaoyao.scale.zoomable.previewer.TransformLayerScope
 import com.jvziyaoyao.scale.zoomable.previewer.VerticalDragType
 import com.jvziyaoyao.scale.zoomable.previewer.rememberPreviewerState
 import kotlinx.coroutines.launch
 
 /**
- * Clickable image thumbnail - simple AsyncImage wrapper
+ * Composition local for sharing PreviewerState across the screen
+ */
+val LocalPreviewerState = compositionLocalOf<PreviewerState?> { null }
+
+/**
+ * Clickable image thumbnail using TransformImageView for transform animations
  */
 @Composable
 fun ClickableImage(
@@ -31,40 +39,63 @@ fun ClickableImage(
     onClick: () -> Unit,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
+    val previewerState = LocalPreviewerState.current
+    val scope = rememberCoroutineScope()
+    
     Box(modifier = modifier) {
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = contentDescription,
-            contentScale = contentScale,
-            modifier = Modifier.fillMaxSize()
-        )
+        if (previewerState != null && imageUrl != null) {
+            // Use TransformImageView for transform animations
+            TransformImageView(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(shape)
+                    .clickable {
+                        // Call the original onClick for compatibility
+                        onClick()
+                    },
+                imageLoader = {
+                    val painter = rememberAsyncImagePainter(model = imageUrl)
+                    Triple(imageUrl, painter, painter.intrinsicSize)
+                },
+                transformState = previewerState,
+            )
+        } else {
+            // Fallback for when PreviewerState is not available
+            coil3.compose.AsyncImage(
+                model = imageUrl,
+                contentDescription = contentDescription,
+                contentScale = contentScale,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(shape)
+                    .clickable(onClick = onClick)
+            )
+        }
         content()
     }
 }
 
 /**
- * Image gallery using scale library's ImagePreviewer
+ * Image gallery with transform animations
+ * Must be used with ImageGalleryProvider to share PreviewerState
  */
 @Composable
 fun ImageGalleryDialog(
     visible: Boolean,
     images: List<String>,
     initialIndex: Int = 0,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onIndexChange: (Int) -> Unit = {}
 ) {
     if (images.isEmpty()) return
 
     val scope = rememberCoroutineScope()
-    val previewerState = rememberPreviewerState(
-        verticalDragType = VerticalDragType.Down,
-        pageCount = { images.size },
-        getKey = { images[it] }
-    )
+    val previewerState = LocalPreviewerState.current ?: return
 
-    // Open when visible changes to true
+    // Trigger enterTransform when visible changes and we have an index
     LaunchedEffect(visible, initialIndex) {
         if (visible) {
-            previewerState.open(initialIndex)
+            previewerState.enterTransform(initialIndex)
         }
     }
 
@@ -80,7 +111,7 @@ fun ImageGalleryDialog(
         detectGesture = PagerGestureScope(
             onTap = {
                 scope.launch {
-                    previewerState.close()
+                    previewerState.exitTransform()
                 }
             }
         ),
@@ -98,4 +129,24 @@ fun ImageGalleryDialog(
             }
         )
     )
+}
+
+/**
+ * Provider that wraps screen content to enable transform animations
+ * Usage: Wrap your screen content with this to enable image transform animations
+ */
+@Composable
+fun ImageGalleryProvider(
+    images: List<String>,
+    content: @Composable () -> Unit
+) {
+    val previewerState = rememberPreviewerState(
+        verticalDragType = VerticalDragType.Down,
+        pageCount = { images.size },
+        getKey = { images.getOrNull(it) ?: "" }
+    )
+
+    CompositionLocalProvider(LocalPreviewerState provides previewerState) {
+        content()
+    }
 }

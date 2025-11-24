@@ -145,8 +145,18 @@ fun PostDetailScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
+    // Prepare images list for PreviewerState
+    val galleryImages = remember(post, selectedImageUrl) {
+        if (selectedImageUrl != null) {
+            listOf(selectedImageUrl!!)
+        } else {
+            post?.pictures?.mapNotNull { it.url } ?: emptyList()
+        }
+    }
+
+    ImageGalleryProvider(images = galleryImages) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
             topBar = {
                 TopAppBar(
                     title = { Text("帖子详情") },
@@ -520,23 +530,20 @@ fun PostDetailScreen(
                 )
             }
         }
+    
+        // Image gallery dialog - placed outside Scaffold but inside Box for proper z-order
+        ImageGalleryDialog(
+            visible = showImageViewer,
+            images = galleryImages,
+            initialIndex = if (selectedImageUrl != null) 0 else selectedImageIndex,
+            onDismiss = {
+                showImageViewer = false
+                selectedImageIndex = 0
+                selectedImageUrl = null
+            }
+        )
     }
-
-    // Image gallery dialog - placed outside Scaffold but inside Box for proper z-order
-    ImageGalleryDialog(
-        visible = showImageViewer,
-        images = if (selectedImageUrl != null) {
-            listOf(selectedImageUrl!!)
-        } else {
-            post?.pictures?.mapNotNull { it.url } ?: emptyList()
-        },
-        initialIndex = if (selectedImageUrl != null) 0 else selectedImageIndex,
-        onDismiss = {
-            showImageViewer = false
-            selectedImageIndex = 0
-            selectedImageUrl = null
-        }
-    )
+    }
 }
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalComposeUiApi::class)
