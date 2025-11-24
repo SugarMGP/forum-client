@@ -69,7 +69,7 @@ fun ClickableImage(
 }
 
 /**
- * Gallery viewer dialog with fade in/out animation
+ * Gallery viewer dialog
  * Uses scale library's ImagePreviewer component
  */
 @Composable
@@ -87,69 +87,68 @@ fun ImageGalleryDialog(
         getKey = { images[it] }
     )
 
-    // Open the previewer when visible becomes true
-    LaunchedEffect(visible) {
-        if (visible) {
-            scope.launch {
-                previewerState.open(initialIndex)
-            }
+    // Handle visibility changes
+    LaunchedEffect(visible, initialIndex) {
+        if (visible && !previewerState.visible) {
+            previewerState.open(initialIndex)
+        } else if (!visible && previewerState.visible) {
+            previewerState.close()
         }
     }
 
-    // Close when state indicates closed
+    // Handle close callback
     LaunchedEffect(previewerState.canClose) {
         if (previewerState.canClose && visible) {
             onDismiss()
         }
     }
 
-    if (visible) {
-        ImagePreviewer(
-            state = previewerState,
-            detectGesture = PagerGestureScope(
-                onTap = {
-                    scope.launch {
-                        previewerState.close()
-                    }
+    // Always render the ImagePreviewer
+    ImagePreviewer(
+        state = previewerState,
+        detectGesture = PagerGestureScope(
+            onTap = {
+                scope.launch {
+                    previewerState.close()
                 }
-            ),
-            imageLoader = { index ->
-                val painter = rememberAsyncImagePainter(model = images[index])
-                Pair(painter, painter.intrinsicSize)
-            },
-            previewerLayer = TransformLayerScope(
-                background = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.9f))
-                    )
-                }
-            ),
-            pageDecoration = { page, innerPage ->
-                var result = false
-                Box(modifier = Modifier.fillMaxSize()) {
-                    result = innerPage()
-                    
-                    // Show page indicator if there are multiple images
-                    if (images.size > 1) {
-                        Surface(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(24.dp),
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                            shape = MaterialTheme.shapes.small
-                        ) {
-                            Text(
-                                text = "${page + 1}/${images.size}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            )
-                        }
-                    }
-                }
-                result
             }
-        )
-    }
+        ),
+        imageLoader = { index ->
+            val painter = rememberAsyncImagePainter(model = images[index])
+            Pair(painter, painter.intrinsicSize)
+        },
+        previewerLayer = TransformLayerScope(
+            background = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.9f))
+                )
+            }
+        ),
+        pageDecoration = { page, innerPage ->
+            var result = false
+            Box(modifier = Modifier.fillMaxSize()) {
+                result = innerPage()
+                
+                // Show page indicator if there are multiple images
+                if (images.size > 1) {
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(24.dp),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                        shape = MaterialTheme.shapes.small
+                    ) {
+                        Text(
+                            text = "${page + 1}/${images.size}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    }
+                }
+            }
+            result
+        }
+    )
 }
