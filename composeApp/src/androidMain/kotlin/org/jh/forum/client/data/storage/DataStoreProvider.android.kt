@@ -1,19 +1,27 @@
 package org.jh.forum.client.data.storage
 
-import androidx.datastore.core.DataStore
+import com.russhwolf.settings.Settings
+import com.russhwolf.settings.ExperimentalSettingsImplementation
+import com.russhwolf.settings.datastore.DataStoreSettings
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import androidx.datastore.preferences.core.Preferences
 import okio.Path.Companion.toPath
 import org.jh.forum.client.ForumApplication
 
 /**
- * Android implementation of DataStore provider.
- * Creates DataStore instances in the app's files directory.
+ * Android implementation of Settings provider using DataStoreSettings.
+ * Creates Settings instances backed by DataStore in the app's files directory.
+ * 
+ * This uses DataStoreSettings which is compatible with the existing DataStore storage.
  */
-actual fun createDataStore(fileName: String): DataStore<Preferences> {
-    return PreferenceDataStoreFactory.createWithPath(
+@OptIn(ExperimentalSettingsImplementation::class)
+actual fun createSettings(name: String): Settings {
+    val fileName = if (name.endsWith(".preferences_pb")) name else "$name.preferences_pb"
+    
+    val dataStore = PreferenceDataStoreFactory.createWithPath(
         produceFile = {
             ForumApplication.instance.filesDir.resolve(fileName).absolutePath.toPath()
         }
     )
+    
+    return DataStoreSettings(dataStore)
 }

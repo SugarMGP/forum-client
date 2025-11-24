@@ -1,20 +1,24 @@
 package org.jh.forum.client.data.storage
 
-import androidx.datastore.core.DataStore
+import com.russhwolf.settings.Settings
+import com.russhwolf.settings.ExperimentalSettingsImplementation
+import com.russhwolf.settings.datastore.DataStoreSettings
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import androidx.datastore.preferences.core.Preferences
 import okio.Path.Companion.toOkioPath
 import java.nio.file.Files
 import java.nio.file.Paths
 
 /**
- * JVM implementation of DataStore provider.
- * Creates DataStore instances following platform-specific storage conventions:
+ * JVM implementation of Settings provider using DataStoreSettings.
+ * Creates Settings instances backed by DataStore following platform-specific storage conventions:
  * - macOS: ~/Library/Application Support/ForumClient/
  * - Linux: ~/.local/share/ForumClient/
  * - Windows: %APPDATA%/ForumClient/
+ * 
+ * This uses DataStoreSettings which is compatible with the existing DataStore storage.
  */
-actual fun createDataStore(fileName: String): DataStore<Preferences> {
+@OptIn(ExperimentalSettingsImplementation::class)
+actual fun createSettings(name: String): Settings {
     val dataDir = getDataStoreDirectory()
     try {
         if (!Files.exists(dataDir)) {
@@ -24,11 +28,15 @@ actual fun createDataStore(fileName: String): DataStore<Preferences> {
         // Ignore directory creation errors
     }
 
-    return PreferenceDataStoreFactory.createWithPath(
+    val fileName = if (name.endsWith(".preferences_pb")) name else "$name.preferences_pb"
+    
+    val dataStore = PreferenceDataStoreFactory.createWithPath(
         produceFile = {
             dataDir.resolve(fileName).toAbsolutePath().toOkioPath()
         }
     )
+    
+    return DataStoreSettings(dataStore)
 }
 
 /**

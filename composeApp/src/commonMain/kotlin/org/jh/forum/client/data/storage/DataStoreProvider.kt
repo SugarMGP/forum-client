@@ -1,10 +1,10 @@
 package org.jh.forum.client.data.storage
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
+import com.russhwolf.settings.Settings
 
 /**
- * Platform-specific DataStore provider.
- * Each platform implements its own way of creating DataStore instances.
+ * Platform-specific Settings provider.
+ * Each platform implements its own way of creating Settings instances.
  */
-expect fun createDataStore(fileName: String): DataStore<Preferences>
+expect fun createSettings(name: String = "app_settings"): Settings
+

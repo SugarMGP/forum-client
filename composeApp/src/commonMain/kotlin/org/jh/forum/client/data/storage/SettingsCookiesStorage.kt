@@ -1,31 +1,26 @@
 package org.jh.forum.client.data.storage
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
+import com.russhwolf.settings.Settings
 import io.ktor.client.plugins.cookies.*
 import io.ktor.http.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 /**
- * Common KMP implementation of CookiesStorage using DataStore Preferences.
+ * Common KMP implementation of CookiesStorage using multiplatform-settings.
  *
- * This implementation stores HTTP cookies persistently using DataStore,
+ * This implementation stores HTTP cookies persistently using Settings,
  * allowing the Ktor HTTP client to maintain authentication and session state
  * across app restarts.
  *
  * Cookies are stored as key-value pairs in the format:
  * "name|domain|path" -> "value|expires|secure|httpOnly|maxAge"
  */
-class DataStoreCookiesStorage(
-    private val dataStore: DataStore<Preferences>
+class SettingsCookiesStorage(
+    private val settings: Settings
 ) : CookiesStorage {
 
     private val mutex = Mutex()
@@ -34,10 +29,7 @@ class DataStoreCookiesStorage(
         mutex.withLock {
             val key = cookieKey(cookie.name, cookie.domain, cookie.path)
             val value = cookieValue(cookie)
-
-            dataStore.edit { preferences ->
-                preferences[stringPreferencesKey(key)] = value
-            }
+            settings.putString(key, value)
         }
     }
 
@@ -45,48 +37,37 @@ class DataStoreCookiesStorage(
     override suspend fun get(requestUrl: Url): List<Cookie> {
         return mutex.withLock {
             val nowMillis = Clock.System.now().toEpochMilliseconds()
-            val allCookies = mutableMapOf<String, String>()
-
-            dataStore.data.map { preferences ->
-                preferences.asMap().mapNotNull { (key, value) ->
-                    @Suppress("USELESS_IS_CHECK")
-                    if (key is Preferences.Key<*> && value is String) {
-                        key.name to value
-                    } else null
-                }.toMap()
-            }.first().also { allCookies.putAll(it) }
+            val allCookies = settings.keys.associateWith { settings.getString(it, "") }
 
             // Parse cookies and filter expired ones
             val validCookies = mutableListOf<Cookie>()
             val expiredKeys = mutableListOf<String>()
 
             allCookies.forEach { (key, value) ->
-                try {
-                    val cookie = parseCookie(key, value)
+                if (value.isNotEmpty()) {
+                    try {
+                        val cookie = parseCookie(key, value)
 
-                    // Check if expired
-                    val expires = cookie.expires?.timestamp
-                    if (expires != null && expires <= nowMillis) {
-                        expiredKeys.add(key)
-                    } else {
-                        // Check if matches URL
-                        if (cookieMatchesUrl(cookie, requestUrl)) {
-                            validCookies.add(cookie)
+                        // Check if expired
+                        val expires = cookie.expires?.timestamp
+                        if (expires != null && expires <= nowMillis) {
+                            expiredKeys.add(key)
+                        } else {
+                            // Check if matches URL
+                            if (cookieMatchesUrl(cookie, requestUrl)) {
+                                validCookies.add(cookie)
+                            }
                         }
+                    } catch (_: Exception) {
+                        // Invalid cookie, mark for deletion
+                        expiredKeys.add(key)
                     }
-                } catch (_: Exception) {
-                    // Invalid cookie, mark for deletion
-                    expiredKeys.add(key)
                 }
             }
 
             // Remove expired cookies
-            if (expiredKeys.isNotEmpty()) {
-                dataStore.edit { preferences ->
-                    expiredKeys.forEach { key ->
-                        preferences.remove(stringPreferencesKey(key))
-                    }
-                }
+            expiredKeys.forEach { key ->
+                settings.remove(key)
             }
 
             validCookies
@@ -94,7 +75,7 @@ class DataStoreCookiesStorage(
     }
 
     override fun close() {
-        // DataStore handles cleanup automatically
+        // Settings handles cleanup automatically
     }
 
     /**

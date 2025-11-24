@@ -40,7 +40,6 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation(compose.ui)
             implementation(compose.components.resources)
-            implementation(compose.preview)
 
             // Kotlinx
             implementation(libs.kotlinx.serialization.json)
@@ -62,15 +61,20 @@ kotlin {
 
             implementation("com.materialkolor:material-kolor:4.0.2")
 
-            // DataStore for KMP
-            implementation(libs.datastore)
-            implementation(libs.datastore.preferences)
+            // Multiplatform Settings
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.settings.no.arg)
         }
 
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            
+            // DataStore for Android
+            implementation(libs.datastore)
+            implementation(libs.datastore.preferences)
+            implementation(libs.multiplatform.settings.datastore)
         }
 
         commonTest.dependencies {
@@ -80,8 +84,18 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(compose.preview)
 
             implementation("org.slf4j:slf4j-simple:2.0.7")
+            
+            // DataStore for JVM
+            implementation(libs.datastore)
+            implementation(libs.datastore.preferences)
+            implementation(libs.multiplatform.settings.datastore)
+        }
+        
+        wasmJsMain.dependencies {
+            // No DataStore for wasmJs - will use StorageSettings
         }
     }
 }
