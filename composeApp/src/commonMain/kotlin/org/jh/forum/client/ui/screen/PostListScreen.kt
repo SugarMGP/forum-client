@@ -420,8 +420,7 @@ fun PostListScreen(
             initialIndex = galleryInitialIndex,
             onDismiss = {
                 showImageGallery = false
-                galleryImages = emptyList()
-                galleryInitialIndex = 0
+                // Don't clear galleryImages immediately to allow exit animation to complete
             }
         )
         }

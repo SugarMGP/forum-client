@@ -220,9 +220,8 @@ fun UserProfileScreen(
             onDismiss = {
                 showImageGallery = false
                 showImageViewer = false
-                galleryImages = emptyList()
-                galleryInitialIndex = 0
                 selectedImageUrl = null
+                // Don't clear galleryImages immediately to allow exit animation to complete
             }
         )
         }
