@@ -70,6 +70,7 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(compose.preview)
             
             // DataStore for Android
             implementation(libs.datastore)
