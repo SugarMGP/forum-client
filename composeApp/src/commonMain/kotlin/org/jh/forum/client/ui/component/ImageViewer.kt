@@ -8,7 +8,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
@@ -25,14 +24,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
+import org.jh.forum.client.ui.gesture.imageViewerGestures
 
 /**
  * Clickable image thumbnail with press animation
@@ -105,9 +103,8 @@ fun ImageGalleryViewer(
             modifier = Modifier.fillMaxSize()
         ) { page ->
             var scale by remember { mutableStateOf(1f) }
-            var offset by remember { mutableStateOf(Offset.Zero) }
-            val minScale = 1f
-            val maxScale = 5f
+            var offsetX by remember { mutableStateOf(0f) }
+            var offsetY by remember { mutableStateOf(0f) }
 
             Box(
                 modifier = Modifier
@@ -123,44 +120,23 @@ fun ImageGalleryViewer(
                         .graphicsLayer {
                             scaleX = scale
                             scaleY = scale
-                            translationX = offset.x
-                            translationY = offset.y
+                            translationX = offsetX
+                            translationY = offsetY
                         }
-                        .pointerInput(Unit) {
-                            awaitPointerEventScope {
-                                while (true) {
-                                    val event = awaitPointerEvent()
-                                    val scrollDelta = event.changes.firstOrNull()?.scrollDelta ?: Offset.Zero
-                                    if (scrollDelta != Offset.Zero) {
-                                        val zoomFactor = 1f + (-scrollDelta.y) * 0.15f
-                                        val newScale = (scale * zoomFactor).coerceIn(minScale, maxScale)
-
-                                        if (scale != 0f) {
-                                            val ratio = newScale / scale
-                                            offset = offset * ratio
-                                        }
-
-                                        scale = newScale
-                                        if (scale == minScale) {
-                                            offset = Offset.Zero
-                                        }
-                                    }
+                        .imageViewerGestures(
+                            scale = scale,
+                            onScaleChange = {
+                                scale = it
+                                if (scale == 1f) {
+                                    offsetX = 0f
+                                    offsetY = 0f
                                 }
+                            },
+                            onOffsetChange = { dx, dy ->
+                                offsetX += dx
+                                offsetY += dy
                             }
-                        }
-                        .pointerInput(Unit) {
-                            detectTransformGestures { _, pan, zoom, _ ->
-                                val newScale = (scale * zoom).coerceIn(minScale, maxScale)
-
-                                if (newScale == minScale) {
-                                    scale = 1f
-                                    offset = Offset.Zero
-                                } else {
-                                    scale = newScale
-                                    offset += pan
-                                }
-                            }
-                        }
+                        )
                 )
             }
         }
