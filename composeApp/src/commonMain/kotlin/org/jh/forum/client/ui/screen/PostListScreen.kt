@@ -28,6 +28,7 @@ import org.jh.forum.client.data.model.SortType
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.component.ClickableImage
 import org.jh.forum.client.ui.component.ImageGalleryDialog
+import org.jh.forum.client.ui.component.ImageGalleryProvider
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
@@ -242,8 +243,12 @@ fun PostListScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
+    // Prepare images list for PreviewerState
+    val allImages = remember(galleryImages) { galleryImages }
+
+    ImageGalleryProvider(images = allImages) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState) { snackbarData ->
                     Snackbar(
@@ -419,6 +424,7 @@ fun PostListScreen(
                 galleryInitialIndex = 0
             }
         )
+        }
     }
 }
 

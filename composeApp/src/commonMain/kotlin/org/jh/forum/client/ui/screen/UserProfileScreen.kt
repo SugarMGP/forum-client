@@ -21,6 +21,7 @@ import org.jh.forum.client.data.model.GetPersonalPostListElement
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.ui.component.ClickableImage
 import org.jh.forum.client.ui.component.ImageGalleryDialog
+import org.jh.forum.client.ui.component.ImageGalleryProvider
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
@@ -85,8 +86,18 @@ fun UserProfileScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
+    // Prepare images list for PreviewerState
+    val allImages = remember(showImageViewer, selectedImageUrl, galleryImages) {
+        if (showImageViewer && selectedImageUrl != null) {
+            listOfNotNull(selectedImageUrl)
+        } else {
+            galleryImages
+        }
+    }
+
+    ImageGalleryProvider(images = allImages) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
             topBar = {
                 TopAppBar(
                     title = { Text(userProfile?.nickname ?: "用户主页") },
@@ -214,6 +225,7 @@ fun UserProfileScreen(
                 selectedImageUrl = null
             }
         )
+        }
     }
 }
 

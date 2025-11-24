@@ -33,6 +33,7 @@ import org.jh.forum.client.data.model.ReplyElement
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.component.CommentEditor
 import org.jh.forum.client.ui.component.ImageGalleryDialog
+import org.jh.forum.client.ui.component.ImageGalleryProvider
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.ReplyViewModel
@@ -103,8 +104,14 @@ fun CommentRepliesScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
+    // Prepare images list for PreviewerState
+    val allImages = remember(selectedImageUrl) {
+        selectedImageUrl?.let { listOf(it) } ?: emptyList()
+    }
+
+    ImageGalleryProvider(images = allImages) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
             topBar = {
                 TopAppBar(
                     title = { Text("评论详情") },
@@ -377,6 +384,7 @@ fun CommentRepliesScreen(
             selectedImageUrl = null
         }
     )
+    }
 }
 
 @Composable

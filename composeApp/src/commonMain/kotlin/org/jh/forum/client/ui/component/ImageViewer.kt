@@ -43,14 +43,12 @@ fun ClickableImage(
     val scope = rememberCoroutineScope()
     
     Box(modifier = modifier) {
-        if (previewerState != null && imageUrl != null) {
-            // Use TransformImageView for transform animations
+        if (imageUrl != null && previewerState != null) {
             TransformImageView(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(shape)
                     .clickable {
-                        // Call the original onClick for compatibility
                         onClick()
                     },
                 imageLoader = {
@@ -58,17 +56,6 @@ fun ClickableImage(
                     Triple(imageUrl, painter, painter.intrinsicSize)
                 },
                 transformState = previewerState,
-            )
-        } else {
-            // Fallback for when PreviewerState is not available
-            coil3.compose.AsyncImage(
-                model = imageUrl,
-                contentDescription = contentDescription,
-                contentScale = contentScale,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(shape)
-                    .clickable(onClick = onClick)
             )
         }
         content()

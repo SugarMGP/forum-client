@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
 import org.jh.forum.client.data.model.PostCategory
 import org.jh.forum.client.ui.component.ImageGalleryDialog
+import org.jh.forum.client.ui.component.ImageGalleryProvider
 import org.jh.forum.client.ui.component.ImagePicker
 import org.jh.forum.client.ui.component.LocalImagePickerClick
 import org.jh.forum.client.ui.theme.AppIcons
@@ -115,7 +116,11 @@ fun CreatePostScreen(
         }
     }
 
-    Scaffold(
+    // Prepare images list for PreviewerState
+    val allImages = remember(selectedImages) { selectedImages }
+
+    ImageGalleryProvider(images = allImages) {
+        Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("发布帖子", style = MaterialTheme.typography.titleLarge) },
@@ -608,6 +613,7 @@ fun CreatePostScreen(
         initialIndex = imageViewerIndex,
         onDismiss = { showImageViewer = false }
     )
+    }
 }
 
 // FlowRow implementation for topics
