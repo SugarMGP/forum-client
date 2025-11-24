@@ -72,6 +72,6 @@ private fun getFilenameFromUri(context: Context, uri: Uri): String? {
     }
 }
 
-actual val LocalImagePickerClick = staticCompositionLocalOf<() -> Unit> {
+actual val LocalImagePickerClick = staticCompositionLocalOf {
     { }
 }
