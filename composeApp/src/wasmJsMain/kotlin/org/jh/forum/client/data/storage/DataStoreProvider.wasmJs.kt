@@ -9,6 +9,4 @@ import com.russhwolf.settings.StorageSettings
  * 
  * StorageSettings uses the Web Storage API which persists data in the browser.
  */
-actual fun createSettings(name: String): Settings {
-    return StorageSettings()
-}
+actual fun createSettings(name: String): Settings = StorageSettings()

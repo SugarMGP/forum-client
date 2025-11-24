@@ -1,23 +1,20 @@
 package org.jh.forum.client.data.storage
 
 import com.russhwolf.settings.Settings
-import com.russhwolf.settings.ExperimentalSettingsImplementation
-import com.russhwolf.settings.datastore.DataStoreSettings
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import okio.Path.Companion.toOkioPath
 import java.nio.file.Files
 import java.nio.file.Paths
 
 /**
- * JVM implementation of Settings provider using DataStoreSettings.
+ * JVM implementation of Settings provider using DataStore.
  * Creates Settings instances backed by DataStore following platform-specific storage conventions:
  * - macOS: ~/Library/Application Support/ForumClient/
  * - Linux: ~/.local/share/ForumClient/
  * - Windows: %APPDATA%/ForumClient/
  * 
- * This uses DataStoreSettings which is compatible with the existing DataStore storage.
+ * This uses DataStore which is compatible with the existing storage.
  */
-@OptIn(ExperimentalSettingsImplementation::class)
 actual fun createSettings(name: String): Settings {
     val dataDir = getDataStoreDirectory()
     try {
@@ -36,7 +33,7 @@ actual fun createSettings(name: String): Settings {
         }
     )
     
-    return DataStoreSettings(dataStore)
+    return DataStoreSettingsImpl(dataStore)
 }
 
 /**
