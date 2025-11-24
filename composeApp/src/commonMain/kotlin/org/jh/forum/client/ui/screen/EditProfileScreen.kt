@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlinx.datetime.*
 import org.jh.forum.client.data.model.UpdateUserProfileRequest
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.component.ImagePicker
@@ -556,7 +557,7 @@ fun EditProfileScreen(
                         verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                     ) {
                         // Year selector (1900 to current year)
-                        val currentYear = java.time.LocalDate.now().year
+                        val currentYear = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
                         OutlinedTextField(
                             value = selectedYear.toString(),
                             onValueChange = {
@@ -600,12 +601,18 @@ fun EditProfileScreen(
                     TextButton(
                         onClick = {
                             // Validate date is not today or in the future
-                            val selectedDate = java.time.LocalDate.of(selectedYear, selectedMonth, selectedDay)
-                            val yesterday = java.time.LocalDate.now().minusDays(1)
-                            val minDate = java.time.LocalDate.of(1900, 1, 2)
+                            val selectedDate = LocalDate(selectedYear, selectedMonth, selectedDay)
+                            val yesterday = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.minus(1, DateTimeUnit.DAY)
+                            val minDate = LocalDate(1900, 1, 2)
 
-                            if (!selectedDate.isAfter(yesterday) && !selectedDate.isBefore(minDate)) {
-                                birthday = String.format("%04d-%02d-%02d", selectedYear, selectedMonth, selectedDay)
+                            if (selectedDate <= yesterday && selectedDate >= minDate) {
+                                birthday = buildString {
+                                    append(selectedYear.toString().padStart(4, '0'))
+                                    append('-')
+                                    append(selectedMonth.toString().padStart(2, '0'))
+                                    append('-')
+                                    append(selectedDay.toString().padStart(2, '0'))
+                                }
                                 showDatePicker = false
                             }
                         }
