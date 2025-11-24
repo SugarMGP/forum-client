@@ -54,6 +54,9 @@ kotlin {
 
             implementation("com.materialkolor:material-kolor:4.0.2")
 
+            // Scale Image Viewer
+            implementation(libs.scale.image.viewer)
+
             // DataStore for KMP
             implementation(libs.datastore)
             implementation(libs.datastore.preferences)
