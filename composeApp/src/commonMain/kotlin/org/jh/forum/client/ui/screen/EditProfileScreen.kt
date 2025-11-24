@@ -557,7 +557,8 @@ fun EditProfileScreen(
                         verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                     ) {
                         // Year selector (1900 to current year)
-                        // Using a fixed current year for simplicity and WASM compatibility
+                        // Note: Using a fixed current year for simplicity and WASM compatibility
+                        // TODO: Update this value periodically or use a platform-specific date API
                         val currentYear = 2025
                         OutlinedTextField(
                             value = selectedYear.toString(),

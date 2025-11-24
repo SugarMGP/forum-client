@@ -9,6 +9,10 @@ import kotlinx.coroutines.runBlocking
 /**
  * Settings implementation backed by DataStore Preferences.
  * This provides a bridge between DataStore and multiplatform-settings API.
+ * 
+ * Note: This implementation uses `runBlocking` to provide synchronous access to DataStore,
+ * which is asynchronous by nature. This may block the calling thread briefly.
+ * Consider this trade-off when using Settings methods from performance-critical code.
  */
 class DataStoreSettingsImpl(
     private val dataStore: DataStore<Preferences>
