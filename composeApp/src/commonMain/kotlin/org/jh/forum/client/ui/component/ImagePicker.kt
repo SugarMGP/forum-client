@@ -1,6 +1,7 @@
 package org.jh.forum.client.ui.component
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ProvidableCompositionLocal
 
 // Platform-specific image picker implementation
 @Composable
@@ -11,4 +12,4 @@ expect fun ImagePicker(
 )
 
 // CompositionLocal for providing the image picker click handler (for platforms that need it)
-expect val LocalImagePickerClick: androidx.compose.runtime.ProvidableCompositionLocal<() -> Unit>
+expect val LocalImagePickerClick: ProvidableCompositionLocal<() -> Unit>

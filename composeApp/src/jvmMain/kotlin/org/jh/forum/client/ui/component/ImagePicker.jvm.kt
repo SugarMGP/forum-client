@@ -59,6 +59,6 @@ actual fun ImagePicker(
 }
 
 // CompositionLocal for providing the image picker click handler
-actual val LocalImagePickerClick = staticCompositionLocalOf<() -> Unit> {
+actual val LocalImagePickerClick = staticCompositionLocalOf {
     { }
 }
