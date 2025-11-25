@@ -352,7 +352,9 @@ fun CommentItem(
 @Composable
 fun CommentEditor(
     onSubmit: (String, String?) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    shouldRequestFocus: Boolean = false,
+    focusDelayMillis: Long = 0L
 ) {
     var text by remember { mutableStateOf("") }
     var selectedImage by remember { mutableStateOf<String?>(null) }
@@ -364,8 +366,13 @@ fun CommentEditor(
     // focus 控件
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+    LaunchedEffect(shouldRequestFocus, focusDelayMillis) {
+        if (shouldRequestFocus) {
+            if (focusDelayMillis > 0L) {
+                kotlinx.coroutines.delay(focusDelayMillis)
+            }
+            focusRequester.requestFocus()
+        }
     }
 
     // 使用紧凑布局的评论编辑器

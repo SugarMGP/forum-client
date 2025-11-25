@@ -357,6 +357,8 @@ fun CommentRepliesScreen(
                                         showReplyDialog = false
                                         replyTarget = null
                                     },
+                                    shouldRequestFocus = true,
+                                    focusDelayMillis = 350,
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }

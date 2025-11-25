@@ -462,6 +462,8 @@ fun PostDetailScreen(
                                         commentViewModel.publishComment(postId, content, picture)
                                         showCommentDialog = false
                                     },
+                                    shouldRequestFocus = true,
+                                    focusDelayMillis = 350,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                 )
