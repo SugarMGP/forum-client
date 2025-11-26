@@ -422,7 +422,7 @@ fun OriginalCommentItem(
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
-                    Spacer(Modifier.width(Dimensions.spaceSmall))
+                    Spacer(Modifier.width(Dimensions.spaceMedium))
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
