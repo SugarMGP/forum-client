@@ -174,60 +174,45 @@ fun ImageGrid(
 fun PostListScreen(
     onPostClick: (Long) -> Unit,
     onNavigateToCreatePost: () -> Unit,
-    onUserClick: (Long) -> Unit = {}, // New parameter for user profile navigation
-    refresh: Boolean = false,
-    onRefreshComplete: () -> Unit = {}
+    onUserClick: (Long) -> Unit = {}
 ) {
     val viewModel = AppModule.postListViewModel
     val posts by viewModel.posts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-    val selectedCategory by viewModel.selectedCategory.collectAsState()
-    val sortType by viewModel.sortType.collectAsState()
     val hasMore by viewModel.hasMore.collectAsState()
 
     val listState = rememberLazyListState()
     var showTabs by remember { mutableStateOf(false) }
+    var selectedCategory by remember { mutableStateOf<String?>(null) }
+    var sortType by remember { mutableStateOf(SortType.NEWEST) }
+    var retryTrigger by remember { mutableStateOf(0) }
 
     // Image gallery state
     var showImageGallery by remember { mutableStateOf(false) }
     var galleryImages by remember { mutableStateOf<List<String>>(emptyList()) }
     var galleryInitialIndex by remember { mutableStateOf(0) }
 
-
     val categories = PostCategory.entries
-
-    // 监听滚动到底部，加载更多
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
-            .collect { lastVisibleIndex ->
-                if (lastVisibleIndex != null && lastVisibleIndex >= posts.size - 3 && hasMore && !isLoading) {
-                    viewModel.loadPosts(
-                        category = selectedCategory,
-                        sortType = sortType.name.lowercase()
-                    )
-                }
-            }
-    }
 
     // Pull-to-refresh state
     var isRefreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullToRefreshState()
-
-    // 处理刷新参数 - 触发下拉刷新UI
-    LaunchedEffect(refresh) {
-        if (refresh) {
-            isRefreshing = true
-            viewModel.refresh()
-            onRefreshComplete()
-        }
-    }
 
     // Monitor loading state to update refresh indicator
     LaunchedEffect(isLoading) {
         if (!isLoading && isRefreshing) {
             isRefreshing = false
         }
+    }
+
+    // Retry loading posts when filters change or user retries
+    LaunchedEffect(Unit, retryTrigger, selectedCategory, sortType) {
+        viewModel.loadPosts(
+            category = selectedCategory,
+            sortType = sortType,
+            reset = true
+        )
     }
 
     // Snackbar state for error messages
@@ -292,14 +277,14 @@ fun PostListScreen(
                                     Tab(
                                         selected = sortType == SortType.NEWEST,
                                         onClick = {
-                                            viewModel.setSortType(SortType.NEWEST)
+                                            sortType = SortType.NEWEST
                                         },
                                         text = { Text("最新") }
                                     )
                                     Tab(
                                         selected = sortType == SortType.HOT,
                                         onClick = {
-                                            viewModel.setSortType(SortType.HOT)
+                                            sortType = SortType.HOT
                                         },
                                         text = { Text("最热") }
                                     )
@@ -327,7 +312,7 @@ fun PostListScreen(
                                     Tab(
                                         selected = selectedCategory == null,
                                         onClick = {
-                                            viewModel.selectCategory(null)
+                                            selectedCategory = null
                                         },
                                         text = { Text("全部") }
                                     )
@@ -337,7 +322,7 @@ fun PostListScreen(
                                         Tab(
                                             selected = selectedCategory == category.value,
                                             onClick = {
-                                                viewModel.selectCategory(category.value)
+                                                selectedCategory = category.value
                                             },
                                             text = { Text(category.displayName) },
                                         )
@@ -358,7 +343,7 @@ fun PostListScreen(
                 isRefreshing = isRefreshing,
                 onRefresh = {
                     isRefreshing = true
-                    viewModel.refresh()
+                    viewModel.refresh(selectedCategory, sortType)
                 },
                 state = pullRefreshState,
                 modifier = Modifier.fillMaxSize().padding(paddingValues)
@@ -381,8 +366,30 @@ fun PostListScreen(
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
+                        Button(onClick = { retryTrigger++ }) {
+                            Text("重试")
+                        }
                     }
                 } else {
+                    // 监听滚动到底部，加载更多
+                    LaunchedEffect(listState) {
+                        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                            .collect { lastVisibleIndex ->
+                                if (
+                                    lastVisibleIndex != null &&
+                                    lastVisibleIndex >= posts.size - 3 &&
+                                    hasMore &&
+                                    !isLoading
+                                ) {
+                                    viewModel.loadPosts(
+                                        category = selectedCategory,
+                                        sortType = sortType
+                                    )
+                                }
+                            }
+                    }
+
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.fillMaxSize(),

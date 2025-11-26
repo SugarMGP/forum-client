@@ -205,7 +205,6 @@ fun MainNavigation(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     var currentTheme by remember(currentThemeMode) { mutableStateOf(currentThemeMode) }
-    var homeRefreshTrigger by remember { mutableStateOf(0) }
     val hasUnreadMessages by messageViewModel.hasUnreadMessages.collectAsState()
 
     // Global state for update checking (used by both auto-check and manual check)
@@ -262,12 +261,6 @@ fun MainNavigation(
                     label = { Text(it.title) },
                     selected = currentDestination?.route?.startsWith(it.route) == true,
                     onClick = {
-                        // If clicking home button while already on home, trigger refresh
-                        if (it.route == BottomNavItem.Home.route &&
-                            currentDestination?.route?.startsWith(BottomNavItem.Home.route) == true
-                        ) {
-                            homeRefreshTrigger++
-                        }
                         if (it.route == BottomNavItem.Messages.route) {
                             messageViewModel.cleanUnreadBadge()
                         }
@@ -275,8 +268,6 @@ fun MainNavigation(
                             popUpTo(navController.graph.findStartDestination().id) {
                                 inclusive = false
                             }
-                            launchSingleTop = true
-                            restoreState = false
                         }
                     }
                 )
@@ -285,13 +276,13 @@ fun MainNavigation(
         content = {
             NavHost(
                 navController = navController,
-                startDestination = BottomNavItem.Home.route,
+                startDestination = "login",
             ) {
                 composable(
                     BottomNavItem.Home.route,
                     enterTransition = { fadeInTransition },
                     exitTransition = { fadeOutTransition }
-                ) { backStackEntry ->
+                ) {
                     PostListScreen(
                         onPostClick = { postId: Long ->
                             // 导航到帖子详情页
@@ -304,12 +295,6 @@ fun MainNavigation(
                         onUserClick = { userId: Long ->
                             // 导航到用户主页
                             navController.navigate("user_profile/$userId")
-                        },
-                        refresh = homeRefreshTrigger > 0,
-                        onRefreshComplete = {
-                            if (homeRefreshTrigger > 0) {
-                                homeRefreshTrigger = 0
-                            }
                         }
                     )
                 }

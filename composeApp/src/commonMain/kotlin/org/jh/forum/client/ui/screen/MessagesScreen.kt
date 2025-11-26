@@ -26,7 +26,6 @@ import kotlinx.coroutines.launch
 import org.jh.forum.client.data.model.GetAnnouncementListElement
 import org.jh.forum.client.data.model.GetNoticeListElement
 import org.jh.forum.client.data.repository.ForumRepository
-import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
@@ -41,15 +40,12 @@ fun MessagesScreen(
     onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val messageViewModel = AppModule.messageViewModel
 
     // 消息相关状态
     var messages by remember { mutableStateOf<List<GetNoticeListElement>>(emptyList()) }
     var announcements by remember { mutableStateOf<List<GetAnnouncementListElement>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var unreadNoticeCount by remember { mutableStateOf(0) }
-    var unreadAnnouncementCount by remember { mutableStateOf(0) }
     var retryTrigger by remember { mutableStateOf(0) }
 
     // Pagination state

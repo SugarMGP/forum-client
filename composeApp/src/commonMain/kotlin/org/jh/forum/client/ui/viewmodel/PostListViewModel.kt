@@ -22,24 +22,18 @@ class PostListViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    private val _selectedCategory = MutableStateFlow<String?>(null)
-    val selectedCategory: StateFlow<String?> = _selectedCategory.asStateFlow()
-
-    private val _sortType = MutableStateFlow(SortType.NEWEST)
-    val sortType: StateFlow<SortType> = _sortType.asStateFlow()
-
     private val _currentPage = MutableStateFlow(1)
     private val _totalPages = MutableStateFlow(1)
 
     private val _hasMore = MutableStateFlow(true)
     val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
 
-    init {
-        loadPosts()
-    }
-
-    fun loadPosts(category: String? = null, sortType: String? = null, reset: Boolean = false) {
-        val actualSortType = sortType ?: this._sortType.value.name.lowercase()
+    fun loadPosts(
+        category: String? = null,
+        sortType: SortType = SortType.NEWEST,
+        reset: Boolean = false
+    ) {
+        val actualSortType = sortType.name.lowercase()
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
@@ -119,34 +113,12 @@ class PostListViewModel : ViewModel() {
         }
     }
 
-    fun refresh() {
+    fun refresh(category: String?, sortType: SortType) {
         loadPosts(
-            category = _selectedCategory.value,
-            sortType = _sortType.value.name.lowercase(),
+            category = category,
+            sortType = sortType,
             reset = true
         )
-    }
-
-    fun selectCategory(category: String?) {
-        if (_selectedCategory.value != category) {
-            _selectedCategory.value = category
-            loadPosts(
-                category = category,
-                sortType = _sortType.value.name.lowercase(),
-                reset = true
-            )
-        }
-    }
-
-    fun setSortType(sortType: SortType) {
-        if (_sortType.value != sortType) {
-            _sortType.value = sortType
-            loadPosts(
-                category = _selectedCategory.value,
-                sortType = sortType.name.lowercase(),
-                reset = true
-            )
-        }
     }
 
     /**

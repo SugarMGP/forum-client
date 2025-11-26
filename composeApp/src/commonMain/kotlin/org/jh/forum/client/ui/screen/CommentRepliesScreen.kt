@@ -96,9 +96,11 @@ fun CommentRepliesScreen(
         if (highlightReplyId > 0 && replies.isNotEmpty()) {
             val highlightIndex = replies.indexOfFirst { it.replyId == highlightReplyId }
             if (highlightIndex >= 0) {
-                // Scroll to the highlighted reply (add offset for header items)
-                // +2 accounts for comment item and replies title item
-                listState.animateScrollToItem(highlightIndex + 2)
+                delay(150)
+                listState.animateScrollToItem(
+                    index = highlightIndex + 2,
+                    scrollOffset = -56
+                )
             }
         }
     }

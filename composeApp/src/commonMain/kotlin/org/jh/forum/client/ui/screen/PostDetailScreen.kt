@@ -24,6 +24,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jh.forum.client.data.model.GetPostInfoResponse
 import org.jh.forum.client.data.model.PostCategory
@@ -127,8 +128,7 @@ fun PostDetailScreen(
 
     LaunchedEffect(errorMessage) {
         if (errorMessage != null && post != null) {
-            // Only auto-clear error if post loaded successfully
-            kotlinx.coroutines.delay(3000)
+            delay(3000)
             viewModel.clearError()
         }
     }
@@ -138,9 +138,11 @@ fun PostDetailScreen(
         if (highlightCommentId > 0 && comments.isNotEmpty()) {
             val highlightIndex = comments.indexOfFirst { it.commentId == highlightCommentId }
             if (highlightIndex >= 0) {
-                // Scroll to the highlighted comment (add offset for header items)
-                // +2 accounts for post item and comment title item
-                listState.animateScrollToItem(highlightIndex + 2)
+                delay(150)
+                listState.animateScrollToItem(
+                    index = highlightIndex + 2,
+                    scrollOffset = -56
+                )
             }
         }
     }
