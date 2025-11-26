@@ -25,10 +25,12 @@ actual fun ForumTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        else -> animateColorScheme(rememberDynamicColorScheme(
-            seedColor = seedColor,
-            isDark = darkTheme
-        ))
+        else -> animateColorScheme(
+            rememberDynamicColorScheme(
+                seedColor = seedColor,
+                isDark = darkTheme
+            )
+        )
     }
 
     MaterialTheme(
