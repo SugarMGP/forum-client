@@ -170,7 +170,7 @@ fun SettingsMenuItem(
     ) {
         Surface(
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.surface.copy(0.6f),
+            color = MaterialTheme.colorScheme.surface.copy(0.75f),
             modifier = Modifier.size(40.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {

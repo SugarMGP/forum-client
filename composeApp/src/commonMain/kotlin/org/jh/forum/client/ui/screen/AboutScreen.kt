@@ -100,7 +100,7 @@ fun AboutScreen(
                     ) {
                         Surface(
                             shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            color = MaterialTheme.colorScheme.surface.copy(0.75f),
                             modifier = Modifier.size(40.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
