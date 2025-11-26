@@ -19,8 +19,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import org.jh.forum.client.data.model.CommentElement
@@ -249,16 +252,26 @@ fun CommentItem(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.Top
                                 ) {
+                                    val nickname = reply.publisherInfo.nickname ?: "未知用户"
                                     Text(
-                                        text = "${reply.publisherInfo.nickname ?: "未知用户"}: ",
+                                        text = buildAnnotatedString {
+                                            withStyle(
+                                                style = SpanStyle(
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                            ) {
+                                                append("$nickname: ")
+                                            }
+                                            withStyle(
+                                                style = SpanStyle(
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            ) {
+                                                append(reply.content)
+                                            }
+                                        },
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                    Text(
-                                        text = reply.content,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis
                                     )
