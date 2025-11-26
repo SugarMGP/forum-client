@@ -14,10 +14,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.jh.forum.client.data.model.GetPersonalPostListElement
+import org.jh.forum.client.data.model.PersonalCommentListElement
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.ui.component.ClickableImage
 import org.jh.forum.client.ui.component.ImageGalleryDialog
@@ -387,21 +389,21 @@ fun PersonalPostCard(
                 }
             }
 
-            // Topic tags (below content)
             if (post.topics.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = Dimensions.spaceSmall),
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    post.topics.take(2).forEach { topic ->
+                    post.topics.take(3).forEach { topicName ->
                         AssistChip(
                             onClick = { },
                             label = {
                                 Text(
-                                    text = "#$topic",
-                                    style = MaterialTheme.typography.labelSmall
+                                    text = "#$topicName",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             },
                             colors = AssistChipDefaults.assistChipColors(
@@ -413,6 +415,27 @@ fun PersonalPostCard(
                                 color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
                             ),
                             shape = RoundedCornerShape(Dimensions.cornerRadiusSmall),
+                            modifier = Modifier.height(24.dp).weight(1f, fill = false)
+                        )
+                    }
+                    if (post.topics.size > 3) {
+                        AssistChip(
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = "+${post.topics.size - 3}",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                            ),
+                            shape = RoundedCornerShape(Dimensions.cornerRadiusSmall),
                             modifier = Modifier.height(24.dp)
                         )
                     }
@@ -420,10 +443,10 @@ fun PersonalPostCard(
             }
 
             // Stats row
+            Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = Dimensions.spaceSmall),
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -447,7 +470,7 @@ fun PersonalPostCard(
 
 @Composable
 fun PostStatChip(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     count: Int
 ) {
     Row(
@@ -476,7 +499,7 @@ fun UserCommentsTab(
     onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     var comments by remember {
-        mutableStateOf<List<org.jh.forum.client.data.model.PersonalCommentListElement>>(
+        mutableStateOf<List<PersonalCommentListElement>>(
             emptyList()
         )
     }
@@ -591,7 +614,7 @@ fun UserCommentsTab(
 
 @Composable
 fun PersonalCommentCard(
-    comment: org.jh.forum.client.data.model.PersonalCommentListElement,
+    comment: PersonalCommentListElement,
     onNavigateToPost: (postId: Long, highlightCommentId: Long) -> Unit = { _, _ -> },
     onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
@@ -629,7 +652,6 @@ fun PersonalCommentCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = Dimensions.spaceSmall)
             ) {
                 Box(
                     modifier = Modifier
