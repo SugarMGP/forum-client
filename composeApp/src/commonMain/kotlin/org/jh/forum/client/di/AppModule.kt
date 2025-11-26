@@ -13,7 +13,7 @@ import org.jh.forum.client.ui.viewmodel.*
 
 object AppModule {
     // 基础URL，可根据环境配置修改
-    private const val BASE_URL = "http://115.190.140.99:8080"
+    private const val BASE_URL = "https://bbs.mggovo.cn/"
 
     // 统一创建 HttpClient（common）
     private val httpClient: HttpClient by lazy {
