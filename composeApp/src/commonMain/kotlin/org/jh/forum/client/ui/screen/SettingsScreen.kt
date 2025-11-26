@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import org.jh.forum.client.ui.theme.AppIcons
@@ -136,7 +137,7 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationMedium),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.error
+                            containerColor = MaterialTheme.colorScheme.errorContainer
                         ),
                         shape = MaterialTheme.shapes.large
                     ) {
@@ -144,7 +145,7 @@ fun SettingsScreen(
                             icon = AppIcons.Logout,
                             title = "退出登录",
                             onClick = { authViewModel.logout() },
-                            textColor = MaterialTheme.colorScheme.onError
+                            textColor = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
                 }
@@ -158,7 +159,7 @@ fun SettingsMenuItem(
     icon: ImageVector,
     title: String,
     onClick: () -> Unit,
-    textColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
+    textColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
         modifier = Modifier
@@ -169,7 +170,7 @@ fun SettingsMenuItem(
     ) {
         Surface(
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+            color = MaterialTheme.colorScheme.surface.copy(0.6f),
             modifier = Modifier.size(40.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {

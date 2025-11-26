@@ -7,10 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
@@ -118,8 +115,9 @@ fun ImageGalleryViewer(
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(24.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                    .navigationBarsPadding()
+                    .padding(28.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
                 shape = MaterialTheme.shapes.small
             ) {
                 Text(

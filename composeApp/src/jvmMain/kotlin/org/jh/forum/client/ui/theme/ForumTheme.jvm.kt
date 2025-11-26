@@ -3,7 +3,6 @@ package org.jh.forum.client.ui.theme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.materialkolor.DynamicMaterialTheme
-import com.materialkolor.dynamiccolor.ColorSpec
 
 @Composable
 actual fun ForumTheme(
@@ -17,7 +16,6 @@ actual fun ForumTheme(
         isDark = darkTheme,
         animate = true,
         content = content,
-        specVersion = ColorSpec.SpecVersion.SPEC_2025,
         typography = AppTypography()
     )
 }

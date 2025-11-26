@@ -7,7 +7,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import com.materialkolor.dynamiccolor.ColorSpec
+import com.materialkolor.ktx.animateColorScheme
 import com.materialkolor.rememberDynamicColorScheme
 
 @Composable
@@ -21,19 +21,18 @@ actual fun ForumTheme(
 
     // Dynamic color is available on Android 12+ (API 31+)
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        dynamicColor && supportsDynamicColor() -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
         else -> rememberDynamicColorScheme(
             seedColor = seedColor,
-            isDark = darkTheme,
-            specVersion = ColorSpec.SpecVersion.SPEC_2025
+            isDark = darkTheme
         )
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = animateColorScheme(colorScheme),
         content = content,
         typography = AppTypography()
     )
