@@ -1,6 +1,9 @@
 package org.jh.forum.client.ui.screen
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -16,12 +19,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.materialkolor.PaletteStyle
-import com.materialkolor.rememberDynamicColorScheme
+import com.materialkolor.dynamicColorScheme
 import org.jh.forum.client.data.preferences.ThemePreferences
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
@@ -32,19 +37,20 @@ enum class ThemeMode {
 }
 
 /**
- * Get localized name for PaletteStyle
+ * Get display name for PaletteStyle (using English names)
  */
-private fun PaletteStyle.getLocalizedName(): String = when (this) {
-    PaletteStyle.TonalSpot -> "色调斑点"
-    PaletteStyle.Neutral -> "中性"
-    PaletteStyle.Vibrant -> "鲜艳"
-    PaletteStyle.Expressive -> "表达性"
-    PaletteStyle.Rainbow -> "彩虹"
-    PaletteStyle.FruitSalad -> "水果沙拉"
-    PaletteStyle.Monochrome -> "单色"
-    PaletteStyle.Fidelity -> "保真"
-    PaletteStyle.Content -> "内容"
-}
+private val PaletteStyle.displayName: String
+    get() = when (this) {
+        PaletteStyle.TonalSpot -> "Tonal Spot"
+        PaletteStyle.Neutral -> "Neutral"
+        PaletteStyle.Vibrant -> "Vibrant"
+        PaletteStyle.Expressive -> "Expressive"
+        PaletteStyle.Rainbow -> "Rainbow"
+        PaletteStyle.FruitSalad -> "Fruit Salad"
+        PaletteStyle.Monochrome -> "Monochrome"
+        PaletteStyle.Fidelity -> "Fidelity"
+        PaletteStyle.Content -> "Content"
+    }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -252,7 +258,7 @@ fun ThemeSettingsScreen(
                                         },
                                         label = {
                                             Text(
-                                                text = style.getLocalizedName(),
+                                                text = style.displayName,
                                                 style = MaterialTheme.typography.labelMedium
                                             )
                                         },
@@ -280,8 +286,10 @@ fun ThemeSettingsScreen(
             // Color picker card (only show when dynamic color is disabled or not supported)
             AnimatedVisibility(
                 visible = !dynamicColorEnabled || !isDynamicColorSupported,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
+                enter = fadeIn(animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)) +
+                        expandVertically(animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)),
+                exit = fadeOut(animationSpec = tween(durationMillis = 250, easing = FastOutSlowInEasing)) +
+                        shrinkVertically(animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing))
             ) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -308,38 +316,46 @@ fun ThemeSettingsScreen(
 
                         // Color grid using BoxWithConstraints for responsive layout
                         BoxWithConstraints(
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
                         ) {
-                            val columns = when {
-                                maxWidth < 300.dp -> 4
-                                maxWidth < 400.dp -> 5
-                                else -> 6
-                            }
+                            val itemMinWidth = 88.dp
+                            val columns = (maxWidth / itemMinWidth).toInt().coerceAtLeast(1)
+                            val chunkedColors = ThemePreferences.availableColors.chunked(columns)
 
                             Column(
-                                verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                ThemePreferences.availableColors.chunked(columns).forEach { rowColors ->
+                                chunkedColors.forEach { rowColors ->
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
+                                        horizontalArrangement = Arrangement.Center
                                     ) {
                                         rowColors.forEach { themeColor ->
-                                            ColorSwatchPreview(
+                                            Box(
                                                 modifier = Modifier.weight(1f),
-                                                seedColor = themeColor.color,
-                                                name = themeColor.name,
-                                                paletteStyle = selectedPaletteStyle,
-                                                isSelected = selectedSeedColor == themeColor.color,
-                                                onClick = {
-                                                    selectedSeedColor = themeColor.color
-                                                    onSeedColorChanged(themeColor.color)
-                                                }
-                                            )
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                ColorSwatchPreview(
+                                                    seedColor = themeColor.color,
+                                                    name = themeColor.name,
+                                                    paletteStyle = selectedPaletteStyle,
+                                                    isSelected = selectedSeedColor == themeColor.color,
+                                                    onClick = {
+                                                        selectedSeedColor = themeColor.color
+                                                        onSeedColorChanged(themeColor.color)
+                                                    }
+                                                )
+                                            }
                                         }
                                         // Fill remaining space if row is incomplete
-                                        repeat(columns - rowColors.size) {
-                                            Spacer(modifier = Modifier.weight(1f))
+                                        val remaining = columns - rowColors.size
+                                        if (remaining > 0) {
+                                            repeat(remaining) {
+                                                Spacer(modifier = Modifier.weight(1f))
+                                            }
                                         }
                                     }
                                 }
@@ -369,9 +385,9 @@ fun ThemeSettingsScreen(
 
                     Text(
                         text = if (isDynamicColorSupported) {
-                            "本应用支持 Material 3 动态取色（Android 12+），会根据您的壁纸自动调整主题色。您也可以选择不同的调色盘风格来改变配色方案的生成方式。关闭动态取色后，可以从 17 种预设颜色中选择主题色。"
+                            "本应用支持 Material 3 动态取色（Android 12+），会根据您的壁纸自动调整主题色。您也可以选择不同的调色盘风格来改变配色方案的生成方式。关闭动态取色后，可以从 18 种预设颜色中选择主题色。"
                         } else {
-                            "本应用使用 MaterialKolor 生成 Material 3 配色方案。您可以从 17 种预设颜色中选择主题色，并选择不同的调色盘风格来改变配色方案的生成方式。"
+                            "本应用使用 MaterialKolor 生成 Material 3 配色方案。您可以从 18 种预设颜色中选择主题色，并选择不同的调色盘风格来改变配色方案的生成方式。"
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -390,9 +406,17 @@ fun ThemeOption(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1f else 0.98f,
+        animationSpec = tween(durationMillis = 200),
+        label = "scale"
+    )
+
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .scale(scale),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) {
                 MaterialTheme.colorScheme.primaryContainer
@@ -464,115 +488,115 @@ fun ThemeOption(
 }
 
 /**
- * Color swatch preview component that shows a four-quarter pie chart
- * displaying primaryContainer, secondaryContainer, and tertiaryContainer colors
+ * Color swatch preview component based on InstallerX-Revived design
+ * Shows a squircle background with circular swatch inside
+ * Displays primaryContainer (top half), tertiaryContainer (bottom-left), secondaryContainer (bottom-right)
+ * with a central primary circle showing check if selected
  */
 @Composable
 fun ColorSwatchPreview(
-    modifier: Modifier = Modifier,
     seedColor: Color,
     name: String,
     paletteStyle: PaletteStyle,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    // Generate color scheme for preview
-    val colorScheme = rememberDynamicColorScheme(
-        seedColor = seedColor,
-        isDark = false,
-        style = paletteStyle
+    // Generate color scheme for preview (always use light mode for consistency)
+    val scheme = remember(seedColor, paletteStyle) {
+        dynamicColorScheme(
+            seedColor = seedColor,
+            isDark = false,
+            style = paletteStyle
+        )
+    }
+
+    val primaryForSwatch = scheme.primaryContainer.copy(alpha = 0.9f)
+    val secondaryForSwatch = scheme.secondaryContainer.copy(alpha = 0.6f)
+    val tertiaryForSwatch = scheme.tertiaryContainer.copy(alpha = 0.9f)
+    val squircleBackgroundColor = scheme.primary.copy(alpha = 0.3f)
+
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1.05f else 1f,
+        animationSpec = tween(durationMillis = 200),
+        label = "swatch_scale"
     )
 
     Column(
-        modifier = modifier
-            .clickable(onClick = onClick)
-            .padding(Dimensions.spaceExtraSmall),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Dimensions.spaceExtraSmall)
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp)
+            .scale(scale)
     ) {
+        // Squircle background with circular swatch inside
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f),
+                .size(64.dp)
+                .background(color = squircleBackgroundColor, shape = RoundedCornerShape(16.dp)),
             contentAlignment = Alignment.Center
         ) {
-            // Draw the color swatch as a circular pie chart
-            Canvas(
+            // Inner circular swatch
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
+                    .size(48.dp)
+                    .clip(CircleShape),
+                contentAlignment = Alignment.Center
             ) {
-                val sweepAngle = 90f
-
-                // Primary container - top-left quarter
-                drawArc(
-                    color = colorScheme.primaryContainer,
-                    startAngle = 180f,
-                    sweepAngle = sweepAngle,
-                    useCenter = true
-                )
-
-                // Secondary container - top-right quarter
-                drawArc(
-                    color = colorScheme.secondaryContainer,
-                    startAngle = 270f,
-                    sweepAngle = sweepAngle,
-                    useCenter = true
-                )
-
-                // Tertiary container - bottom-right quarter
-                drawArc(
-                    color = colorScheme.tertiaryContainer,
-                    startAngle = 0f,
-                    sweepAngle = sweepAngle,
-                    useCenter = true
-                )
-
-                // Surface variant - bottom-left quarter
-                drawArc(
-                    color = colorScheme.surfaceVariant,
-                    startAngle = 90f,
-                    sweepAngle = sweepAngle,
-                    useCenter = true
-                )
-
-                // Draw selection border if selected
-                if (isSelected) {
-                    drawCircle(
-                        color = colorScheme.primary,
-                        style = Stroke(width = 4.dp.toPx())
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    // Primary container - top half (180 degrees)
+                    drawArc(
+                        color = primaryForSwatch,
+                        startAngle = 180f,
+                        sweepAngle = 180f,
+                        useCenter = true
+                    )
+                    // Tertiary container - bottom-left quarter
+                    drawArc(
+                        color = tertiaryForSwatch,
+                        startAngle = 90f,
+                        sweepAngle = 90f,
+                        useCenter = true
+                    )
+                    // Secondary container - bottom-right quarter
+                    drawArc(
+                        color = secondaryForSwatch,
+                        startAngle = 0f,
+                        sweepAngle = 90f,
+                        useCenter = true
                     )
                 }
-            }
 
-            // Check icon when selected
-            if (isSelected) {
+                // Central circle with primary color
                 Box(
                     modifier = Modifier
-                        .size(24.dp)
+                        .size(26.dp)
                         .clip(CircleShape)
-                        .background(colorScheme.primary),
+                        .background(scheme.primary),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        tint = colorScheme.onPrimary,
-                        modifier = Modifier.size(16.dp)
-                    )
+                    // Show check icon if selected
+                    if (isSelected) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Selected",
+                            tint = scheme.inversePrimary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
             }
         }
 
+        Spacer(Modifier.height(12.dp))
+
+        // Color name label
         Text(
             text = name,
-            style = MaterialTheme.typography.labelSmall,
-            color = if (isSelected) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            },
-            maxLines = 1
+            style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp),
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
