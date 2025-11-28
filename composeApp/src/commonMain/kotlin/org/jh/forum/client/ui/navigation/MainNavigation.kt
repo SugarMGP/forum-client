@@ -208,7 +208,6 @@ fun MainNavigation(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    var currentTheme by remember(currentThemeMode) { mutableStateOf(currentThemeMode) }
     val hasUnreadMessages by messageViewModel.hasUnreadMessages.collectAsState()
 
     // Global state for update checking (used by both auto-check and manual check)
@@ -416,11 +415,8 @@ fun MainNavigation(
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) {
                     ThemeSettingsScreen(
-                        currentTheme = currentTheme,
-                        onThemeChanged = { themeMode ->
-                            currentTheme = themeMode
-                            onThemeChanged(themeMode)
-                        },
+                        currentTheme = currentThemeMode,
+                        onThemeChanged = onThemeChanged,
                         useDynamicColor = currentDynamicColor,
                         onDynamicColorChanged = onDynamicColorChanged,
                         seedColor = currentSeedColor,

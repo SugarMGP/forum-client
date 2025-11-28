@@ -6,6 +6,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -306,84 +309,38 @@ fun ThemeSettingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
-                        // Color grid using BoxWithConstraints for responsive layout
                         BoxWithConstraints(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .heightIn(max = 710.dp)
                                 .padding(vertical = 8.dp)
                         ) {
                             val itemMinWidth = 88.dp
-                            val columns = (maxWidth / itemMinWidth).toInt().coerceAtLeast(1)
-                            val chunkedColors = ThemePreferences.availableColors.chunked(columns)
+                            val gridCells = remember { GridCells.Adaptive(minSize = itemMinWidth) }
 
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            LazyVerticalGrid(
+                                columns = gridCells,
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                                verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall),
+                                userScrollEnabled = false
                             ) {
-                                chunkedColors.forEach { rowColors ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.Center
-                                    ) {
-                                        rowColors.forEach { themeColor ->
-                                            Box(
-                                                modifier = Modifier.weight(1f),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                ColorSwatchPreview(
-                                                    seedColor = themeColor.color,
-                                                    name = themeColor.name,
-                                                    paletteStyle = selectedPaletteStyle,
-                                                    isSelected = selectedSeedColor == themeColor.color,
-                                                    onClick = {
-                                                        selectedSeedColor = themeColor.color
-                                                        onSeedColorChanged(themeColor.color)
-                                                    }
-                                                )
-                                            }
+                                items(ThemePreferences.availableColors, key = { it.key }) { themeColor ->
+                                    ColorSwatchPreview(
+                                        seedColor = themeColor.color,
+                                        name = themeColor.name,
+                                        paletteStyle = selectedPaletteStyle,
+                                        isSelected = selectedSeedColor == themeColor.color,
+                                        onClick = {
+                                            selectedSeedColor = themeColor.color
+                                            onSeedColorChanged(themeColor.color)
                                         }
-                                        // Fill remaining space if row is incomplete
-                                        val remaining = columns - rowColors.size
-                                        if (remaining > 0) {
-                                            repeat(remaining) {
-                                                Spacer(modifier = Modifier.weight(1f))
-                                            }
-                                        }
-                                    }
+                                    )
                                 }
                             }
                         }
                     }
-                }
-            }
-
-            // Info card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Column(
-                    modifier = Modifier.padding(Dimensions.spaceMedium),
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
-                ) {
-                    Text(
-                        text = "关于主题定制",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    Text(
-                        text = if (isDynamicColorSupported) {
-                            "本应用支持 Material 3 动态取色（Android 12+），可根据您的壁纸自动调整主题色。您也可以选择不同的调色盘风格来改变配色方案的生成方式。关闭动态取色后，可以从 18 种预设颜色中选择主题色。"
-                        } else {
-                            "本应用使用 MaterialKolor 生成配色方案。您可以从 18 种预设颜色中选择主题色，并选择不同的调色盘风格来改变配色方案的生成方式。"
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             }
         }

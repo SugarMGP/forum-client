@@ -17,7 +17,6 @@ actual fun ForumTheme(
         seedColor = seedColor,
         isDark = darkTheme,
         style = paletteStyle,
-        animate = true,
         content = content,
         typography = AppTypography()
     )

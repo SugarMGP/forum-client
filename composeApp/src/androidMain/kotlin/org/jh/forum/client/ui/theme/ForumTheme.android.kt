@@ -23,7 +23,6 @@ actual fun ForumTheme(
 
     DynamicMaterialTheme(
         seedColor = effectiveSeedColor,
-        animate = true,
         isDark = darkTheme,
         style = paletteStyle,
         content = content,
