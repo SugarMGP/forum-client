@@ -24,6 +24,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.materialkolor.PaletteStyle
 import kotlinx.coroutines.launch
+import org.jh.forum.client.data.preferences.ThemePreferences
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.*
@@ -199,7 +200,7 @@ fun MainNavigation(
     onPaletteStyleChanged: (PaletteStyle) -> Unit = { _ -> },
     currentThemeMode: ThemeMode = ThemeMode.SYSTEM,
     currentDynamicColor: Boolean = false,
-    currentSeedColor: Color = Color.Red,
+    currentSeedColor: Color = ThemePreferences.defaultColor,
     currentPaletteStyle: PaletteStyle = PaletteStyle.TonalSpot
 ) {
     val authViewModel = AppModule.authViewModel

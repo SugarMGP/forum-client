@@ -1,13 +1,9 @@
 package org.jh.forum.client.ui.screen
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -36,21 +32,17 @@ enum class ThemeMode {
     SYSTEM, LIGHT, DARK
 }
 
-/**
- * Get display name for PaletteStyle (using English names)
- */
-private val PaletteStyle.displayName: String
-    get() = when (this) {
-        PaletteStyle.TonalSpot -> "Tonal Spot"
-        PaletteStyle.Neutral -> "Neutral"
-        PaletteStyle.Vibrant -> "Vibrant"
-        PaletteStyle.Expressive -> "Expressive"
-        PaletteStyle.Rainbow -> "Rainbow"
-        PaletteStyle.FruitSalad -> "Fruit Salad"
-        PaletteStyle.Monochrome -> "Monochrome"
-        PaletteStyle.Fidelity -> "Fidelity"
-        PaletteStyle.Content -> "Content"
-    }
+private fun PaletteStyle.getLocalizedName(): String = when (this) {
+    PaletteStyle.TonalSpot -> "色调斑点"
+    PaletteStyle.Neutral -> "中性"
+    PaletteStyle.Vibrant -> "鲜艳"
+    PaletteStyle.Expressive -> "表达性"
+    PaletteStyle.Rainbow -> "彩虹"
+    PaletteStyle.FruitSalad -> "水果沙拉"
+    PaletteStyle.Monochrome -> "单色"
+    PaletteStyle.Fidelity -> "保真"
+    PaletteStyle.Content -> "内容"
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -258,7 +250,7 @@ fun ThemeSettingsScreen(
                                         },
                                         label = {
                                             Text(
-                                                text = style.displayName,
+                                                text = style.getLocalizedName(),
                                                 style = MaterialTheme.typography.labelMedium
                                             )
                                         },
@@ -385,9 +377,9 @@ fun ThemeSettingsScreen(
 
                     Text(
                         text = if (isDynamicColorSupported) {
-                            "本应用支持 Material 3 动态取色（Android 12+），会根据您的壁纸自动调整主题色。您也可以选择不同的调色盘风格来改变配色方案的生成方式。关闭动态取色后，可以从 18 种预设颜色中选择主题色。"
+                            "本应用支持 Material 3 动态取色（Android 12+），可根据您的壁纸自动调整主题色。您也可以选择不同的调色盘风格来改变配色方案的生成方式。关闭动态取色后，可以从 18 种预设颜色中选择主题色。"
                         } else {
-                            "本应用使用 MaterialKolor 生成 Material 3 配色方案。您可以从 18 种预设颜色中选择主题色，并选择不同的调色盘风格来改变配色方案的生成方式。"
+                            "本应用使用 MaterialKolor 生成配色方案。您可以从 18 种预设颜色中选择主题色，并选择不同的调色盘风格来改变配色方案的生成方式。"
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -412,6 +404,12 @@ fun ThemeOption(
         label = "scale"
     )
 
+    val borderStroke = if (isSelected) {
+        BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+    } else {
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    }
+
     Card(
         onClick = onClick,
         modifier = Modifier
@@ -424,9 +422,7 @@ fun ThemeOption(
                 MaterialTheme.colorScheme.surfaceVariant
             }
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isSelected) Dimensions.elevationMedium else Dimensions.elevationSmall
-        ),
+        border = borderStroke,
         shape = MaterialTheme.shapes.medium
     ) {
         Row(
@@ -527,7 +523,6 @@ fun ColorSwatchPreview(
             .clip(RoundedCornerShape(20.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 8.dp)
-            .scale(scale)
     ) {
         // Squircle background with circular swatch inside
         Box(
@@ -539,6 +534,7 @@ fun ColorSwatchPreview(
             // Inner circular swatch
             Box(
                 modifier = Modifier
+                    .scale(scale)
                     .size(48.dp)
                     .clip(CircleShape),
                 contentAlignment = Alignment.Center
