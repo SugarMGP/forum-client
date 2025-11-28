@@ -23,7 +23,8 @@ fun App() {
     ForumTheme(
         darkTheme = darkTheme,
         dynamicColor = themeState.useDynamicColor,
-        seedColor = themeState.seedColor
+        seedColor = themeState.seedColor,
+        paletteStyle = themeState.paletteStyle
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
@@ -39,9 +40,13 @@ fun App() {
                 onSeedColorChanged = { color ->
                     themeState.setSeedColor(color)
                 },
+                onPaletteStyleChanged = { style ->
+                    themeState.setPaletteStyle(style)
+                },
                 currentThemeMode = themeState.themeMode,
                 currentDynamicColor = themeState.useDynamicColor,
-                currentSeedColor = themeState.seedColor
+                currentSeedColor = themeState.seedColor,
+                currentPaletteStyle = themeState.paletteStyle
             )
         }
     }

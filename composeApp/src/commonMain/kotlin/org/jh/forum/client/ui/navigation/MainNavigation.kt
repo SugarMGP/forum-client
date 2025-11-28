@@ -22,6 +22,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.materialkolor.PaletteStyle
 import kotlinx.coroutines.launch
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
@@ -195,9 +196,11 @@ fun MainNavigation(
     onThemeChanged: (ThemeMode) -> Unit = { _ -> },
     onDynamicColorChanged: (Boolean) -> Unit = { _ -> },
     onSeedColorChanged: (Color) -> Unit = { _ -> },
+    onPaletteStyleChanged: (PaletteStyle) -> Unit = { _ -> },
     currentThemeMode: ThemeMode = ThemeMode.SYSTEM,
     currentDynamicColor: Boolean = false,
-    currentSeedColor: Color = Color.Red
+    currentSeedColor: Color = Color.Red,
+    currentPaletteStyle: PaletteStyle = PaletteStyle.TonalSpot
 ) {
     val authViewModel = AppModule.authViewModel
     val messageViewModel = AppModule.messageViewModel
@@ -421,6 +424,8 @@ fun MainNavigation(
                         onDynamicColorChanged = onDynamicColorChanged,
                         seedColor = currentSeedColor,
                         onSeedColorChanged = onSeedColorChanged,
+                        paletteStyle = currentPaletteStyle,
+                        onPaletteStyleChanged = onPaletteStyleChanged,
                         onNavigateBack = {
                             navController.popBackStack()
                         }
