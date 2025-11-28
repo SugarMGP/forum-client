@@ -24,6 +24,5 @@ actual fun ForumTheme(
 }
 
 actual fun supportsDynamicColor(): Boolean {
-    // Desktop/JVM doesn't support dynamic color from wallpaper
     return false
 }
