@@ -22,7 +22,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.materialkolor.PaletteStyle
 import kotlinx.coroutines.launch
+import org.jh.forum.client.data.preferences.ThemePreferences
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.*
@@ -195,16 +197,17 @@ fun MainNavigation(
     onThemeChanged: (ThemeMode) -> Unit = { _ -> },
     onDynamicColorChanged: (Boolean) -> Unit = { _ -> },
     onSeedColorChanged: (Color) -> Unit = { _ -> },
+    onPaletteStyleChanged: (PaletteStyle) -> Unit = { _ -> },
     currentThemeMode: ThemeMode = ThemeMode.SYSTEM,
     currentDynamicColor: Boolean = false,
-    currentSeedColor: Color = Color.Red
+    currentSeedColor: Color = ThemePreferences.defaultColor,
+    currentPaletteStyle: PaletteStyle = PaletteStyle.TonalSpot
 ) {
     val authViewModel = AppModule.authViewModel
     val messageViewModel = AppModule.messageViewModel
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    var currentTheme by remember(currentThemeMode) { mutableStateOf(currentThemeMode) }
     val hasUnreadMessages by messageViewModel.hasUnreadMessages.collectAsState()
 
     // Global state for update checking (used by both auto-check and manual check)
@@ -412,15 +415,14 @@ fun MainNavigation(
                     popExitTransition = { slideOutPopTransition + fadeOutTransition }
                 ) {
                     ThemeSettingsScreen(
-                        currentTheme = currentTheme,
-                        onThemeChanged = { themeMode ->
-                            currentTheme = themeMode
-                            onThemeChanged(themeMode)
-                        },
+                        currentTheme = currentThemeMode,
+                        onThemeChanged = onThemeChanged,
                         useDynamicColor = currentDynamicColor,
                         onDynamicColorChanged = onDynamicColorChanged,
                         seedColor = currentSeedColor,
                         onSeedColorChanged = onSeedColorChanged,
+                        paletteStyle = currentPaletteStyle,
+                        onPaletteStyleChanged = onPaletteStyleChanged,
                         onNavigateBack = {
                             navController.popBackStack()
                         }

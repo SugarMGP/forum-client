@@ -4,8 +4,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
+import com.materialkolor.PaletteStyle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.jh.forum.client.data.preferences.ThemePreferences
 import org.jh.forum.client.ui.screen.ThemeMode
 
 /**
@@ -19,6 +21,7 @@ class ThemePreferencesRepository(
         private val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
         private val USE_DYNAMIC_COLOR_KEY = booleanPreferencesKey("use_dynamic_color")
         private val SEED_COLOR_KEY = intPreferencesKey("seed_color")
+        private val PALETTE_STYLE_KEY = stringPreferencesKey("palette_style")
     }
 
     /**
@@ -44,8 +47,20 @@ class ThemePreferencesRepository(
      * Flow of seed color
      */
     val seedColorFlow: Flow<Color> = dataStore.data.map { preferences ->
-        val colorInt = preferences[SEED_COLOR_KEY] ?: Color.Red.toArgb()
+        val colorInt = preferences[SEED_COLOR_KEY] ?: ThemePreferences.defaultColor.toArgb()
         Color(colorInt)
+    }
+
+    /**
+     * Flow of palette style
+     */
+    val paletteStyleFlow: Flow<PaletteStyle> = dataStore.data.map { preferences ->
+        val styleName = preferences[PALETTE_STYLE_KEY] ?: PaletteStyle.TonalSpot.name
+        try {
+            PaletteStyle.valueOf(styleName)
+        } catch (_: Exception) {
+            PaletteStyle.TonalSpot
+        }
     }
 
     /**
@@ -72,6 +87,15 @@ class ThemePreferencesRepository(
     suspend fun setSeedColor(color: Color) {
         dataStore.edit { preferences ->
             preferences[SEED_COLOR_KEY] = color.toArgb()
+        }
+    }
+
+    /**
+     * Save palette style
+     */
+    suspend fun setPaletteStyle(style: PaletteStyle) {
+        dataStore.edit { preferences ->
+            preferences[PALETTE_STYLE_KEY] = style.name
         }
     }
 }

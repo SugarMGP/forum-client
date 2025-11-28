@@ -556,7 +556,7 @@ fun PostItem(
 
             // 内容
             Text(
-                text = (post.content ?: "").trimEnd('\n').replace("\n\n", "\n"),
+                text = (post.content ?: "").trimEnd('\n'),
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,

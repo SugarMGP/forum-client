@@ -54,7 +54,7 @@ kotlin {
 
             implementation(libs.navigation.compose)
 
-            implementation("com.materialkolor:material-kolor:4.0.2")
+            implementation(libs.material.kolor)
 
             // DataStore for KMP
             implementation(libs.datastore)
