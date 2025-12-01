@@ -31,6 +31,8 @@ import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
+import org.jh.forum.client.util.getAvatarOrDefault
+import org.jh.forum.client.util.rememberDebouncedClick
 import kotlin.enums.EnumEntries
 
 
@@ -439,10 +441,13 @@ fun PostItem(
     onImageClick: (List<String>, Int) -> Unit = { _, _ -> }, // New parameter for image gallery
     modifier: Modifier = Modifier
 ) {
+    // Debounced click handler to prevent multiple navigations
+    val debouncedOnClick = rememberDebouncedClick(delayMillis = 300L, onClick = onClick)
+    
     Card(
         modifier = modifier
             .fillMaxWidth(),
-        onClick = onClick,
+        onClick = debouncedOnClick,
         elevation = CardDefaults.cardElevation(
             defaultElevation = Dimensions.elevationSmall,
             pressedElevation = Dimensions.elevationMedium
@@ -471,7 +476,7 @@ fun PostItem(
                         }
                 ) {
                     AsyncImage(
-                        model = post.publisherInfo.avatar ?: "",
+                        model = post.publisherInfo.avatar.getAvatarOrDefault(),
                         contentDescription = "用户头像",
                         modifier = Modifier
                             .size(Dimensions.avatarMedium)

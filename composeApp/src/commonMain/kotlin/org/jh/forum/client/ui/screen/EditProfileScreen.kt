@@ -1,6 +1,7 @@
 package org.jh.forum.client.ui.screen
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +21,8 @@ import org.jh.forum.client.ui.component.LocalImagePickerClick
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
+import org.jh.forum.client.util.getAvatarOrDefault
+import org.jh.forum.client.util.rememberDebouncedClick
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,11 +47,36 @@ fun EditProfileScreen(
     var studentIdVisible by remember { mutableStateOf(userProfile?.studentIdVisible ?: false) }
 
     var showSuccessMessage by remember { mutableStateOf(false) }
-    var showGenderDialog by remember { mutableStateOf(false) }
+    var showGenderMenu by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var isUploadingImage by remember { mutableStateOf(false) }
 
     val postViewModel = AppModule.postViewModel
+
+    // Debounced save handler
+    val debouncedSave = rememberDebouncedClick {
+        // Validate and save
+        if (nickname.isBlank()) {
+            return@rememberDebouncedClick
+        }
+
+        val request = UpdateUserProfileRequest(
+            avatar = avatar,
+            nickname = nickname,
+            signature = signature,
+            gender = gender,
+            profile = profile,
+            email = email,
+            collegeId = collegeId,
+            birthday = birthday.takeIf { it.isNotBlank() },
+            birthdayVisible = birthdayVisible,
+            realnameVisible = realnameVisible,
+            studentIdVisible = studentIdVisible
+        )
+
+        authViewModel.updateProfile(request)
+        showSuccessMessage = true
+    }
 
     // Update state when profile loads
     LaunchedEffect(userProfile) {
@@ -78,29 +106,7 @@ fun EditProfileScreen(
                 },
                 actions = {
                     TextButton(
-                        onClick = {
-                            // Validate and save
-                            if (nickname.isBlank()) {
-                                return@TextButton
-                            }
-
-                            val request = UpdateUserProfileRequest(
-                                avatar = avatar,
-                                nickname = nickname,
-                                signature = signature,
-                                gender = gender,
-                                profile = profile,
-                                email = email,
-                                collegeId = collegeId,
-                                birthday = birthday.takeIf { it.isNotBlank() },
-                                birthdayVisible = birthdayVisible,
-                                realnameVisible = realnameVisible,
-                                studentIdVisible = studentIdVisible
-                            )
-
-                            authViewModel.updateProfile(request)
-                            showSuccessMessage = true
-                        },
+                        onClick = debouncedSave,
                         enabled = !isLoading && nickname.isNotBlank()
                     ) {
                         Text("保存")
@@ -155,7 +161,7 @@ fun EditProfileScreen(
                                     }
                                 ) {
                                     AsyncImage(
-                                        model = avatar,
+                                        model = avatar.getAvatarOrDefault(),
                                         contentDescription = "头像",
                                         modifier = Modifier
                                             .size(120.dp)
@@ -222,8 +228,15 @@ fun EditProfileScreen(
 
                             OutlinedTextField(
                                 value = nickname,
-                                onValueChange = { nickname = it },
+                                onValueChange = { if (it.length <= 12) nickname = it },
                                 label = { Text("昵称") },
+                                supportingText = {
+                                    Text(
+                                        "${nickname.length}/12",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (nickname.length >= 12) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
                                 isError = nickname.isBlank()
@@ -233,18 +246,34 @@ fun EditProfileScreen(
 
                             OutlinedTextField(
                                 value = signature,
-                                onValueChange = { signature = it },
+                                onValueChange = { if (it.length <= 20) signature = it },
                                 label = { Text("个性签名") },
+                                supportingText = {
+                                    Text(
+                                        "${signature.length}/20",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (signature.length >= 20) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
                                 modifier = Modifier.fillMaxWidth(),
                                 maxLines = 3
                             )
 
                             Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
 
-                            // Gender selector
-                            OutlinedCard(
-                                onClick = { showGenderDialog = true },
-                                modifier = Modifier.fillMaxWidth()
+                            // Gender selector - similar to post category menu
+                            Text(
+                                text = "性别",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
+                            )
+                            
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.medium,
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                onClick = { showGenderMenu = !showGenderMenu }
                             ) {
                                 Row(
                                     modifier = Modifier
@@ -254,27 +283,68 @@ fun EditProfileScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "性别",
-                                        style = MaterialTheme.typography.bodyLarge
+                                        text = when (gender) {
+                                            "MALE" -> "男"
+                                            "FEMALE" -> "女"
+                                            else -> "未知"
+                                        },
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
-                                    ) {
-                                        Text(
-                                            text = when (gender) {
-                                                "MALE" -> "男"
-                                                "FEMALE" -> "女"
-                                                else -> "未知"
+                                    Icon(
+                                        if (showGenderMenu) AppIcons.ExpandLess else AppIcons.ExpandMore,
+                                        contentDescription = "选择性别",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            // Animated dropdown menu for gender
+                            AnimatedVisibility(
+                                visible = showGenderMenu,
+                                enter = expandVertically(animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)),
+                                exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(animationSpec = tween(300))
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = Dimensions.spaceSmall)
+                                ) {
+                                    listOf(
+                                        "MALE" to "男",
+                                        "FEMALE" to "女",
+                                        "UNKNOWN" to "未知"
+                                    ).forEach { (value, label) ->
+                                        Surface(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = MaterialTheme.shapes.small,
+                                            color = if (gender == value) {
+                                                MaterialTheme.colorScheme.primaryContainer
+                                            } else {
+                                                MaterialTheme.colorScheme.surface
                                             },
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Icon(
-                                            AppIcons.KeyboardArrowRight,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
+                                            onClick = {
+                                                gender = value
+                                                showGenderMenu = false
+                                            }
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(Dimensions.spaceMedium),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    label,
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    color = if (gender == value) {
+                                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                                    } else {
+                                                        MaterialTheme.colorScheme.onSurface
+                                                    }
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -305,8 +375,15 @@ fun EditProfileScreen(
 
                             OutlinedTextField(
                                 value = profile,
-                                onValueChange = { profile = it },
+                                onValueChange = { if (it.length <= 50) profile = it },
                                 label = { Text("个人简介") },
+                                supportingText = {
+                                    Text(
+                                        "${profile.length}/50",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (profile.length >= 50) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
                                 modifier = Modifier.fillMaxWidth(),
                                 maxLines = 5,
                                 minLines = 3
@@ -338,8 +415,15 @@ fun EditProfileScreen(
 
                             OutlinedTextField(
                                 value = email,
-                                onValueChange = { email = it },
+                                onValueChange = { if (it.length <= 40) email = it },
                                 label = { Text("邮箱") },
+                                supportingText = {
+                                    Text(
+                                        "${email.length}/40",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (email.length >= 40) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true
                             )
@@ -616,49 +700,6 @@ fun EditProfileScreen(
                 dismissButton = {
                     TextButton(onClick = { showDatePicker = false }) {
                         Text("取消")
-                    }
-                }
-            )
-        }
-
-        // Gender selection dialog
-        if (showGenderDialog) {
-            AlertDialog(
-                onDismissRequest = { showGenderDialog = false },
-                title = { Text("选择性别") },
-                text = {
-                    Column {
-                        listOf(
-                            "MALE" to "男",
-                            "FEMALE" to "女",
-                            "UNKNOWN" to "未知"
-                        ).forEach { (value, label) ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        gender = value
-                                        showGenderDialog = false
-                                    }
-                                    .padding(Dimensions.spaceMedium),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                RadioButton(
-                                    selected = gender == value,
-                                    onClick = {
-                                        gender = value
-                                        showGenderDialog = false
-                                    }
-                                )
-                                Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
-                                Text(text = label)
-                            }
-                        }
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = { showGenderDialog = false }) {
-                        Text("关闭")
                     }
                 }
             )

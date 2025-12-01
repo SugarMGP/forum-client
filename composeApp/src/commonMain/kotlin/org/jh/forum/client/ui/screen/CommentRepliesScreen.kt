@@ -37,6 +37,7 @@ import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.ReplyViewModel
 import org.jh.forum.client.util.TimeUtils
+import org.jh.forum.client.util.getAvatarOrDefault
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
@@ -417,7 +418,7 @@ fun OriginalCommentItem(
                         .clickable { onUserProfileClick() }
                 ) {
                     AsyncImage(
-                        model = comment.publisherInfo.avatar,
+                        model = comment.publisherInfo.avatar.getAvatarOrDefault(),
                         contentDescription = "用户头像",
                         modifier = Modifier
                             .size(Dimensions.avatarLarge)
@@ -606,7 +607,7 @@ fun ReplyItem(
                             }
                     ) {
                         AsyncImage(
-                            model = reply.publisherInfo.avatar,
+                            model = reply.publisherInfo.avatar.getAvatarOrDefault(),
                             contentDescription = "用户头像",
                             modifier = Modifier
                                 .size(Dimensions.avatarMedium)

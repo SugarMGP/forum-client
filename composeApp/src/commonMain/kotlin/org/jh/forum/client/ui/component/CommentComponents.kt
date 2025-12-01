@@ -31,6 +31,8 @@ import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
+import org.jh.forum.client.util.getAvatarOrDefault
+import org.jh.forum.client.util.rememberDebouncedClick
 
 @Composable
 fun CommentItem(
@@ -107,7 +109,7 @@ fun CommentItem(
                     ) {
                         // 用户头像
                         AsyncImage(
-                            model = comment.publisherInfo.avatar,
+                            model = comment.publisherInfo.avatar.getAvatarOrDefault(),
                             contentDescription = "用户头像",
                             modifier = Modifier
                                 .size(Dimensions.avatarMedium)
@@ -379,6 +381,15 @@ fun CommentEditor(
     // focus 控件
     val focusRequester = remember { FocusRequester() }
 
+    // Debounced submit handler
+    val debouncedSubmit = rememberDebouncedClick {
+        if (text.isNotBlank()) {
+            onSubmit(text, selectedImage)
+            text = ""
+            selectedImage = null
+        }
+    }
+
     LaunchedEffect(shouldRequestFocus, focusDelayMillis) {
         if (shouldRequestFocus) {
             if (focusDelayMillis > 0L) {
@@ -395,9 +406,16 @@ fun CommentEditor(
         // 更紧凑的输入框
         OutlinedTextField(
             value = text,
-            onValueChange = { text = it },
+            onValueChange = { if (it.length <= 400) text = it },
             modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             placeholder = { Text("写下你的评论...") },
+            supportingText = {
+                Text(
+                    "${text.length}/400",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (text.length >= 400) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             maxLines = 4,
             shape = MaterialTheme.shapes.medium,
             colors = OutlinedTextFieldDefaults.colors(
@@ -488,13 +506,7 @@ fun CommentEditor(
 
             // 更紧凑的发布按钮 - Enhanced design
             FilledTonalButton(
-                onClick = {
-                    if (text.isNotBlank()) {
-                        onSubmit(text, selectedImage)
-                        text = ""
-                        selectedImage = null
-                    }
-                },
+                onClick = debouncedSubmit,
                 enabled = text.isNotBlank(),
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.filledTonalButtonColors(

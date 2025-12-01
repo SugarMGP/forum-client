@@ -27,6 +27,7 @@ import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
 import org.jh.forum.client.util.TimeUtils
+import org.jh.forum.client.util.getAvatarOrDefault
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -730,7 +731,7 @@ fun UserInfoCard(
                 color = MaterialTheme.colorScheme.surface
             ) {
                 ClickableImage(
-                    imageUrl = userProfile?.avatar,
+                    imageUrl = userProfile?.avatar.getAvatarOrDefault(),
                     contentDescription = "用户头像",
                     modifier = Modifier
                         .size(72.dp)

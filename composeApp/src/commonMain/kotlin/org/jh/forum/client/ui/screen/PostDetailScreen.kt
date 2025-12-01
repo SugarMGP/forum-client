@@ -35,6 +35,7 @@ import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.CommentViewModel
 import org.jh.forum.client.ui.viewmodel.PostViewModel
 import org.jh.forum.client.util.TimeUtils
+import org.jh.forum.client.util.getAvatarOrDefault
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
@@ -601,7 +602,7 @@ fun PostContent(
                     ) {
                         // 用户头像
                         AsyncImage(
-                            model = post.publisherInfo.avatar ?: "",
+                            model = post.publisherInfo.avatar.getAvatarOrDefault(),
                             contentDescription = "用户头像",
                             modifier = Modifier
                                 .size(Dimensions.avatarLarge)
