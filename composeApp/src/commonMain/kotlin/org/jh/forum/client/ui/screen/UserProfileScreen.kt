@@ -15,10 +15,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.jh.forum.client.data.model.GetPersonalPostListElement
+import org.jh.forum.client.data.model.GetUserProfileResponse
 import org.jh.forum.client.data.model.PersonalCommentListElement
 import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.ui.component.ClickableImage
@@ -28,6 +30,7 @@ import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
 import org.jh.forum.client.util.TimeUtils
 import org.jh.forum.client.util.getAvatarOrDefault
+import org.jh.forum.client.util.rememberDebouncedClick
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -44,7 +47,7 @@ fun UserProfileScreen(
     var selectedTab by remember { mutableStateOf(0) }
     val isCurrentUser = authViewModel.userProfile.collectAsState().value?.userId == userId
     var userProfile by remember {
-        mutableStateOf<org.jh.forum.client.data.model.GetUserProfileResponse?>(
+        mutableStateOf<GetUserProfileResponse?>(
             null
         )
     }
@@ -326,7 +329,7 @@ fun PersonalPostCard(
     Card(
         modifier = Modifier
             .fillMaxWidth(),
-        onClick = onClick,
+        onClick = rememberDebouncedClick(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.elevationSmall),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -621,13 +624,10 @@ fun PersonalCommentCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        onClick = {
-            // Navigate based on whether this is a comment or reply
+        onClick = rememberDebouncedClick {
             if (comment.replyId != 0L) {
-                // This is a reply to another comment, navigate to the comment thread
                 onNavigateToComment(comment.commentId, comment.replyId)
             } else {
-                // This is a direct comment on a post, navigate to the post
                 onNavigateToPost(comment.postId, comment.commentId)
             }
         },
@@ -706,7 +706,7 @@ fun PersonalCommentCard(
 
 @Composable
 fun UserInfoCard(
-    userProfile: org.jh.forum.client.data.model.GetUserProfileResponse?,
+    userProfile: GetUserProfileResponse?,
     onAvatarClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -736,10 +736,10 @@ fun UserInfoCard(
                     modifier = Modifier
                         .size(72.dp)
                         .padding(Dimensions.spaceExtraSmall),
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    contentScale = ContentScale.Crop,
                     shape = CircleShape,
                     onClick = {
-                        userProfile?.avatar?.let { onAvatarClick(it) }
+                        userProfile?.avatar?.let { onAvatarClick(it.getAvatarOrDefault()) }
                     }
                 )
             }

@@ -90,11 +90,6 @@ fun CreatePostScreen(
         }
     }
 
-    // Debounced submit handler (must be after submitPost definition)
-    val debouncedSubmit = rememberDebouncedClick {
-        submitPost()
-    }
-
     // 上传图片
     fun uploadImage(bytes: ByteArray, filename: String) {
         isUploadingImage = true
@@ -133,7 +128,9 @@ fun CreatePostScreen(
                 actions = {
                     // Move submit button to the top bar for better UX - using icon instead of text
                     IconButton(
-                        onClick = debouncedSubmit,
+                        onClick = rememberDebouncedClick {
+                            submitPost()
+                        },
                         enabled = !isSubmitting && title.isNotBlank() && content.isNotBlank() && selectedCategory != null
                     ) {
                         if (isSubmitting) {

@@ -268,7 +268,7 @@ fun EditProfileScreen(
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
                             )
-                            
+
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = MaterialTheme.shapes.medium,

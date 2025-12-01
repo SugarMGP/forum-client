@@ -37,6 +37,7 @@ import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.ReplyViewModel
 import org.jh.forum.client.util.TimeUtils
+import org.jh.forum.client.util.debouncedClickable
 import org.jh.forum.client.util.getAvatarOrDefault
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
@@ -415,7 +416,7 @@ fun OriginalCommentItem(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .weight(1f, fill = false)
-                        .clickable { onUserProfileClick() }
+                        .debouncedClickable { onUserProfileClick() }
                 ) {
                     AsyncImage(
                         model = comment.publisherInfo.avatar.getAvatarOrDefault(),
@@ -602,7 +603,7 @@ fun ReplyItem(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .weight(1f, fill = false)
-                            .clickable {
+                            .debouncedClickable {
                                 reply.publisherInfo.id?.let { onUserProfileClick(it) }
                             }
                     ) {

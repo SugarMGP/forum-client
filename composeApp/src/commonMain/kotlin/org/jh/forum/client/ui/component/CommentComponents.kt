@@ -31,6 +31,7 @@ import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
+import org.jh.forum.client.util.debouncedClickable
 import org.jh.forum.client.util.getAvatarOrDefault
 import org.jh.forum.client.util.rememberDebouncedClick
 
@@ -67,13 +68,9 @@ fun CommentItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall)
-            .then(
-                if (onViewReplies != null) {
-                    Modifier.clickable { onViewReplies() }
-                } else {
-                    Modifier
-                }
-            ),
+            .debouncedClickable(enabled = onViewReplies != null) {
+                onViewReplies?.let { it() }
+            },
         color = MaterialTheme.colorScheme.surfaceVariant,
         shape = MaterialTheme.shapes.medium,
         tonalElevation = Dimensions.elevationSmall
@@ -101,7 +98,7 @@ fun CommentItem(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .weight(1f, fill = false)
-                            .clickable {
+                            .debouncedClickable {
                                 comment.publisherInfo.id?.let {
                                     onUserProfileClick(it)
                                 }
@@ -381,15 +378,6 @@ fun CommentEditor(
     // focus 控件
     val focusRequester = remember { FocusRequester() }
 
-    // Debounced submit handler
-    val debouncedSubmit = rememberDebouncedClick {
-        if (text.isNotBlank()) {
-            onSubmit(text, selectedImage)
-            text = ""
-            selectedImage = null
-        }
-    }
-
     LaunchedEffect(shouldRequestFocus, focusDelayMillis) {
         if (shouldRequestFocus) {
             if (focusDelayMillis > 0L) {
@@ -506,7 +494,13 @@ fun CommentEditor(
 
             // 更紧凑的发布按钮 - Enhanced design
             FilledTonalButton(
-                onClick = debouncedSubmit,
+                onClick = rememberDebouncedClick {
+                    if (text.isNotBlank()) {
+                        onSubmit(text, selectedImage)
+                        text = ""
+                        selectedImage = null
+                    }
+                },
                 enabled = text.isNotBlank(),
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.filledTonalButtonColors(

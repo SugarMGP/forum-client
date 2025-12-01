@@ -35,6 +35,7 @@ import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.CommentViewModel
 import org.jh.forum.client.ui.viewmodel.PostViewModel
 import org.jh.forum.client.util.TimeUtils
+import org.jh.forum.client.util.debouncedClickable
 import org.jh.forum.client.util.getAvatarOrDefault
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
@@ -596,7 +597,7 @@ fun PostContent(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .weight(1f, fill = false)
-                            .clickable {
+                            .debouncedClickable {
                                 onUserProfileClick()
                             }
                     ) {

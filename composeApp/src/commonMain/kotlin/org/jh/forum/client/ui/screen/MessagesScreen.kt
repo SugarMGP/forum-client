@@ -5,7 +5,6 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,6 +28,8 @@ import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
+import org.jh.forum.client.util.debouncedClickable
+import org.jh.forum.client.util.getAvatarOrDefault
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -539,7 +540,7 @@ fun MessageItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = message.positionContent != null) {
+            .debouncedClickable(enabled = message.positionContent != null) {
                 when {
                     message.type == "comment" -> {
                         when {
@@ -595,12 +596,12 @@ fun MessageItem(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .weight(1f, fill = false)
-                        .clickable {
+                        .debouncedClickable {
                             message.senderInfo.id?.let { onUserClick(it) }
                         }
                 ) {
                     AsyncImage(
-                        model = message.senderInfo.avatar,
+                        model = message.senderInfo.avatar.getAvatarOrDefault(),
                         contentDescription = "用户头像",
                         modifier = Modifier
                             .size(40.dp)
