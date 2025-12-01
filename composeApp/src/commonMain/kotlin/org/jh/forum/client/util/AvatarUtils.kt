@@ -5,7 +5,7 @@ package org.jh.forum.client.util
  */
 fun String?.getAvatarOrDefault(): String {
     return if (this.isNullOrEmpty()) {
-        "https://blog.sugarmgp.cn/img/avatar.png"
+        Constants.DEFAULT_AVATAR_URL
     } else {
         this
     }
