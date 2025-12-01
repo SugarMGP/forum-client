@@ -378,7 +378,7 @@ fun MessagesScreen(
                                 contentPadding = PaddingValues(Dimensions.spaceMedium),
                                 verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
                             ) {
-                                items(messages) {
+                                items(messages, key = { it.id }) {
                                     MessageItem(
                                         message = it,
                                         onUserClick = onUserClick,
@@ -506,7 +506,7 @@ fun MessagesScreen(
                                 contentPadding = PaddingValues(Dimensions.spaceMedium),
                                 verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                             ) {
-                                items(announcements) {
+                                items(announcements, key = { it.id }) {
                                     AnnouncementItem(announcement = it)
                                 }
 

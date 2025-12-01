@@ -553,8 +553,6 @@ fun UserCommentsTab(
         items(
             items = comments,
             key = { comment ->
-                // Create unique key combining commentId and replyId
-                // If replyId is non-zero, it's a reply, otherwise it's a comment
                 if (comment.replyId != 0L) {
                     "reply_${comment.replyId}"
                 } else {

@@ -398,7 +398,7 @@ fun PostListScreen(
                         contentPadding = PaddingValues(Dimensions.spaceMedium),
                         verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
                     ) {
-                        items(posts) {
+                        items(posts, key = { it.id }) {
                             PostItem(
                                 post = it,
                                 onClick = { onPostClick(it.id) },
