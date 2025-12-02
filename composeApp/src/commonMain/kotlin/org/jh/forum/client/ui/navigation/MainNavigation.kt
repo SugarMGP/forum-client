@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -201,7 +202,7 @@ private fun MainWithBottomBar(
     repository: ForumRepository,
     authViewModel: AuthViewModel,
     messageViewModel: MessageViewModel,
-    outerNavController: androidx.navigation.NavHostController,
+    outerNavController: NavHostController,
     onThemeChanged: (ThemeMode) -> Unit,
     onDynamicColorChanged: (Boolean) -> Unit,
     onSeedColorChanged: (Color) -> Unit,
