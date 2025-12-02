@@ -65,6 +65,8 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+
+            implementation("org.slf4j:slf4j-android:1.7.36")
         }
 
         commonTest.dependencies {

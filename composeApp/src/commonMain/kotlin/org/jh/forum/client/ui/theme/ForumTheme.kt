@@ -1,12 +1,14 @@
 package org.jh.forum.client.ui.theme
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import com.materialkolor.PaletteStyle
 import kotlinx.coroutines.launch
 import org.jh.forum.client.data.preferences.ThemePreferences
-import org.jh.forum.client.data.storage.ThemePreferencesRepository
-import org.jh.forum.client.data.storage.createDataStore
+import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.ThemeMode
 
 @Composable
@@ -36,7 +38,7 @@ data class ThemeState(
 
 @Composable
 fun rememberThemeState(): ThemeState {
-    val repository = remember { ThemePreferencesRepository(createDataStore("theme.preferences_pb")) }
+    val repository = AppModule.themePreferencesRepository
     val coroutineScope = rememberCoroutineScope()
 
     val themeMode by repository.themeModeFlow.collectAsState(initial = ThemeMode.SYSTEM)
