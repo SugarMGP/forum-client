@@ -31,6 +31,9 @@ import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
+import org.jh.forum.client.util.debouncedClickable
+import org.jh.forum.client.util.getAvatarOrDefault
+import org.jh.forum.client.util.rememberDebouncedClick
 
 @Composable
 fun CommentItem(
@@ -65,13 +68,9 @@ fun CommentItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = Dimensions.spaceMedium, vertical = Dimensions.spaceSmall)
-            .then(
-                if (onViewReplies != null) {
-                    Modifier.clickable { onViewReplies() }
-                } else {
-                    Modifier
-                }
-            ),
+            .debouncedClickable(enabled = onViewReplies != null) {
+                onViewReplies?.let { it() }
+            },
         color = MaterialTheme.colorScheme.surfaceVariant,
         shape = MaterialTheme.shapes.medium,
         tonalElevation = Dimensions.elevationSmall
@@ -99,7 +98,7 @@ fun CommentItem(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .weight(1f, fill = false)
-                            .clickable {
+                            .debouncedClickable {
                                 comment.publisherInfo.id?.let {
                                     onUserProfileClick(it)
                                 }
@@ -107,7 +106,7 @@ fun CommentItem(
                     ) {
                         // 用户头像
                         AsyncImage(
-                            model = comment.publisherInfo.avatar,
+                            model = comment.publisherInfo.avatar.getAvatarOrDefault(),
                             contentDescription = "用户头像",
                             modifier = Modifier
                                 .size(Dimensions.avatarMedium)
@@ -395,9 +394,16 @@ fun CommentEditor(
         // 更紧凑的输入框
         OutlinedTextField(
             value = text,
-            onValueChange = { text = it },
+            onValueChange = { if (it.length <= 400) text = it },
             modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             placeholder = { Text("写下你的评论...") },
+            supportingText = {
+                Text(
+                    "${text.length}/400",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (text.length >= 400) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             maxLines = 4,
             shape = MaterialTheme.shapes.medium,
             colors = OutlinedTextFieldDefaults.colors(
@@ -488,7 +494,7 @@ fun CommentEditor(
 
             // 更紧凑的发布按钮 - Enhanced design
             FilledTonalButton(
-                onClick = {
+                onClick = rememberDebouncedClick {
                     if (text.isNotBlank()) {
                         onSubmit(text, selectedImage)
                         text = ""

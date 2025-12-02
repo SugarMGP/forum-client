@@ -78,7 +78,7 @@ fun ImageGalleryViewer(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f))
+            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f))
     ) {
         HorizontalPager(
             state = pagerState,

@@ -30,6 +30,7 @@ import org.jh.forum.client.ui.component.LocalImagePickerClick
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.PostViewModel
+import org.jh.forum.client.util.rememberDebouncedClick
 
 @OptIn(ExperimentalMaterial3Api::class)
 
@@ -60,7 +61,7 @@ fun CreatePostScreen(
 
     // 添加标签
     fun addTopic() {
-        if (topicInput.isNotBlank() && !topics.contains(topicInput)) {
+        if (topicInput.isNotBlank() && !topics.contains(topicInput) && topics.size < 10) {
             topics = topics + topicInput
             topicInput = ""
         }
@@ -127,7 +128,9 @@ fun CreatePostScreen(
                 actions = {
                     // Move submit button to the top bar for better UX - using icon instead of text
                     IconButton(
-                        onClick = ::submitPost,
+                        onClick = rememberDebouncedClick {
+                            submitPost()
+                        },
                         enabled = !isSubmitting && title.isNotBlank() && content.isNotBlank() && selectedCategory != null
                     ) {
                         if (isSubmitting) {
@@ -179,11 +182,18 @@ fun CreatePostScreen(
                         )
                         OutlinedTextField(
                             value = title,
-                            onValueChange = { title = it },
+                            onValueChange = { if (it.length <= 30) title = it },
                             placeholder = {
                                 Text(
                                     "请输入帖子标题",
                                     style = MaterialTheme.typography.bodyLarge
+                                )
+                            },
+                            supportingText = {
+                                Text(
+                                    "${title.length}/30",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (title.length >= 30) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
                             keyboardOptions = KeyboardOptions(
@@ -355,11 +365,18 @@ fun CreatePostScreen(
                         )
                         OutlinedTextField(
                             value = content,
-                            onValueChange = { content = it },
+                            onValueChange = { if (it.length <= 1000) content = it },
                             placeholder = {
                                 Text(
                                     "分享你的想法...",
                                     style = MaterialTheme.typography.bodyLarge
+                                )
+                            },
+                            supportingText = {
+                                Text(
+                                    "${content.length}/1000",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (content.length >= 1000) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
                             keyboardOptions = KeyboardOptions(
@@ -391,23 +408,41 @@ fun CreatePostScreen(
                     )
                 ) {
                     Column(modifier = Modifier.padding(Dimensions.spaceMedium)) {
-                        Text(
-                            text = "话题标签",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(bottom = Dimensions.spaceSmall)
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "话题标签",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "${topics.size}/10",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (topics.size >= 10) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(Dimensions.spaceSmall))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             OutlinedTextField(
                                 value = topicInput,
-                                onValueChange = { topicInput = it },
+                                onValueChange = { if (it.length <= 30) topicInput = it },
                                 placeholder = {
                                     Text(
                                         "添加话题...",
                                         style = MaterialTheme.typography.bodyMedium
+                                    )
+                                },
+                                supportingText = {
+                                    Text(
+                                        "${topicInput.length}/30",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (topicInput.length >= 30) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 },
                                 keyboardOptions = KeyboardOptions(
@@ -424,12 +459,13 @@ fun CreatePostScreen(
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                                     unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                                )
+                                ),
+                                enabled = topics.size < 10
                             )
                             Spacer(modifier = Modifier.width(Dimensions.spaceSmall))
                             FilledIconButton(
                                 onClick = { addTopic() },
-                                enabled = topicInput.isNotBlank()
+                                enabled = topicInput.isNotBlank() && topics.size < 10
                             ) {
                                 Icon(AppIcons.Add, contentDescription = "添加话题")
                             }
