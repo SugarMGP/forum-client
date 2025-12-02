@@ -30,6 +30,8 @@ import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.*
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
+import org.jh.forum.client.ui.viewmodel.AuthViewModel
+import org.jh.forum.client.ui.viewmodel.MessageViewModel
 import org.jh.forum.client.util.UpdateChecker
 import org.jh.forum.client.util.UpdateInfo
 import org.jh.forum.client.util.openUrl
@@ -187,54 +189,39 @@ private fun UpdateDialog(
     }
 }
 
+/**
+ * Main navigation component with bottom bar for pages that should show the bottom navigation
+ */
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalMaterial3AdaptiveNavigationSuiteApi::class
 )
 @Composable
-fun MainNavigation(
-    repository: ForumRepository = AppModule.forumRepository,
-    onThemeChanged: (ThemeMode) -> Unit = { _ -> },
-    onDynamicColorChanged: (Boolean) -> Unit = { _ -> },
-    onSeedColorChanged: (Color) -> Unit = { _ -> },
-    onPaletteStyleChanged: (PaletteStyle) -> Unit = { _ -> },
-    currentThemeMode: ThemeMode = ThemeMode.SYSTEM,
-    currentDynamicColor: Boolean = false,
-    currentSeedColor: Color = ThemePreferences.defaultColor,
-    currentPaletteStyle: PaletteStyle = PaletteStyle.TonalSpot
+private fun MainWithBottomBar(
+    repository: ForumRepository,
+    authViewModel: AuthViewModel,
+    messageViewModel: MessageViewModel,
+    outerNavController: androidx.navigation.NavHostController,
+    onThemeChanged: (ThemeMode) -> Unit,
+    onDynamicColorChanged: (Boolean) -> Unit,
+    onSeedColorChanged: (Color) -> Unit,
+    onPaletteStyleChanged: (PaletteStyle) -> Unit,
+    currentThemeMode: ThemeMode,
+    currentDynamicColor: Boolean,
+    currentSeedColor: Color,
+    currentPaletteStyle: PaletteStyle,
+    onCheckForUpdates: () -> Unit
 ) {
-    val authViewModel = AppModule.authViewModel
-    val messageViewModel = AppModule.messageViewModel
-    val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val innerNavController = rememberNavController()
+    val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val hasUnreadMessages by messageViewModel.hasUnreadMessages.collectAsState()
-
-    // Global state for update checking (used by both auto-check and manual check)
-    var showUpdateDialog by remember { mutableStateOf(false) }
-    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
-    val scope = rememberCoroutineScope()
-    val updateChecker = remember { UpdateChecker() }
-
-    // 在组件初始化时检查用户登录状态和自动检查更新
-    LaunchedEffect(Unit) {
-        authViewModel.checkAuthStatus()
-
-        // Automatically check for updates on app startup
-        scope.launch {
-            val info = updateChecker.checkForUpdates()
-            if (info != null && info.hasUpdate) {
-                updateInfo = info
-                showUpdateDialog = true
-            }
-        }
-    }
 
     // 监听登录状态变化，当退出登录时自动导航到登录页面
     LaunchedEffect(authViewModel.isLoggedIn.collectAsState().value, currentDestination) {
         // 确保currentDestination不为null，并且导航控制器已设置导航图
         if (!authViewModel.isLoggedIn.value && currentDestination != null && currentDestination.route != "login") {
-            navController.navigate("login") {
+            innerNavController.navigate("login") {
                 popUpTo(0)
             }
         }
@@ -267,8 +254,8 @@ fun MainNavigation(
                         if (it.route == BottomNavItem.Messages.route) {
                             messageViewModel.cleanUnreadBadge()
                         }
-                        navController.navigate(it.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
+                        innerNavController.navigate(it.route) {
+                            popUpTo(innerNavController.graph.findStartDestination().id) {
                                 inclusive = false
                             }
                         }
@@ -278,7 +265,7 @@ fun MainNavigation(
         },
         content = {
             NavHost(
-                navController = navController,
+                navController = innerNavController,
                 startDestination = "login",
             ) {
                 composable(
@@ -289,15 +276,15 @@ fun MainNavigation(
                     PostListScreen(
                         onPostClick = { postId: Long ->
                             // 导航到帖子详情页
-                            navController.navigate("post_detail/$postId")
+                            innerNavController.navigate("post_detail/$postId")
                         },
                         onNavigateToCreatePost = {
-                            // 导航到发帖页面
-                            navController.navigate("create_post")
+                            // 导航到发帖页面 - 使用外层导航控制器
+                            outerNavController.navigate("create_post")
                         },
                         onUserClick = { userId: Long ->
                             // 导航到用户主页
-                            navController.navigate("user_profile/$userId")
+                            innerNavController.navigate("user_profile/$userId")
                         }
                     )
                 }
@@ -310,15 +297,15 @@ fun MainNavigation(
                     MessagesScreen(
                         repository = repository,
                         onUserClick = { userId ->
-                            navController.navigate("user_profile/$userId")
+                            innerNavController.navigate("user_profile/$userId")
                         },
                         onNavigateToPost = { postId, highlightCommentId ->
                             val route = "post_detail/$postId?highlightCommentId=$highlightCommentId"
-                            navController.navigate(route)
+                            innerNavController.navigate(route)
                         },
                         onNavigateToComment = { commentId, highlightReplyId ->
                             val route = "comment_replies/$commentId?highlightReplyId=$highlightReplyId"
-                            navController.navigate(route)
+                            innerNavController.navigate(route)
                         }
                     )
                 }
@@ -337,128 +324,23 @@ fun MainNavigation(
                             authViewModel = authViewModel,
                             repository = repository,
                             onPostClick = { postId ->
-                                navController.navigate("post_detail/$postId")
+                                innerNavController.navigate("post_detail/$postId")
                             },
                             onNavigateBack = null, // No back button for bottom nav
                             onNavigateToSettings = {
-                                navController.navigate("settings")
+                                // 导航到设置页面 - 使用外层导航控制器
+                                outerNavController.navigate("settings")
                             },
                             onNavigateToPost = { postId, highlightCommentId ->
                                 val route = "post_detail/$postId?highlightCommentId=$highlightCommentId"
-                                navController.navigate(route)
+                                innerNavController.navigate(route)
                             },
                             onNavigateToComment = { commentId, highlightReplyId ->
                                 val route = "comment_replies/$commentId?highlightReplyId=$highlightReplyId"
-                                navController.navigate(route)
+                                innerNavController.navigate(route)
                             }
                         )
                     }
-                }
-
-                // Settings screens
-                composable(
-                    "settings",
-                    enterTransition = { slideInTransition + fadeInTransition },
-                    exitTransition = { slideOutTransition + fadeOutTransition },
-                    popEnterTransition = { slideInPopTransition + fadeInTransition },
-                    popExitTransition = { slideOutPopTransition + fadeOutTransition }
-                ) {
-                    SettingsScreen(
-                        authViewModel = authViewModel,
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        },
-                        onNavigateToThemeSettings = {
-                            navController.navigate("theme_settings")
-                        },
-                        onNavigateToNotificationSettings = {
-                            navController.navigate("notification_settings")
-                        },
-                        onNavigateToEditProfile = {
-                            navController.navigate("edit_profile")
-                        },
-                        onNavigateToAbout = {
-                            navController.navigate("about")
-                        },
-                        onCheckForUpdates = {
-                            scope.launch {
-                                val info = updateChecker.checkForUpdates()
-                                if (info != null && info.hasUpdate) {
-                                    updateInfo = info
-                                    showUpdateDialog = true
-                                }
-                            }
-                        }
-                    )
-                }
-
-                composable(
-                    "edit_profile",
-                    enterTransition = { slideInTransition + fadeInTransition },
-                    exitTransition = { slideOutTransition + fadeOutTransition },
-                    popEnterTransition = { slideInPopTransition + fadeInTransition },
-                    popExitTransition = { slideOutPopTransition + fadeOutTransition }
-                ) {
-                    EditProfileScreen(
-                        authViewModel = authViewModel,
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        }
-                    )
-                }
-
-                composable(
-                    "theme_settings",
-                    enterTransition = { slideInTransition + fadeInTransition },
-                    exitTransition = { slideOutTransition + fadeOutTransition },
-                    popEnterTransition = { slideInPopTransition + fadeInTransition },
-                    popExitTransition = { slideOutPopTransition + fadeOutTransition }
-                ) {
-                    ThemeSettingsScreen(
-                        currentTheme = currentThemeMode,
-                        onThemeChanged = onThemeChanged,
-                        useDynamicColor = currentDynamicColor,
-                        onDynamicColorChanged = onDynamicColorChanged,
-                        seedColor = currentSeedColor,
-                        onSeedColorChanged = onSeedColorChanged,
-                        paletteStyle = currentPaletteStyle,
-                        onPaletteStyleChanged = onPaletteStyleChanged,
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        }
-                    )
-                }
-
-                composable(
-                    "notification_settings",
-                    enterTransition = { slideInTransition + fadeInTransition },
-                    exitTransition = { slideOutTransition + fadeOutTransition },
-                    popEnterTransition = { slideInPopTransition + fadeInTransition },
-                    popExitTransition = { slideOutPopTransition + fadeOutTransition }
-                ) {
-                    NotificationSettingsScreen(
-                        repository = repository,
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        }
-                    )
-                }
-
-                composable(
-                    "about",
-                    enterTransition = { slideInTransition + fadeInTransition },
-                    exitTransition = { slideOutTransition + fadeOutTransition },
-                    popEnterTransition = { slideInPopTransition + fadeInTransition },
-                    popExitTransition = { slideOutPopTransition + fadeOutTransition }
-                ) {
-                    AboutScreen(
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        },
-                        onOpenGitHub = {
-                            openUrl("https://github.com/SugarMGP/forum-client")
-                        }
-                    )
                 }
 
 
@@ -470,7 +352,7 @@ fun MainNavigation(
                 ) {
                     LoginScreen(
                         onLoginSuccess = {
-                            navController.navigate(BottomNavItem.Home.route) {
+                            innerNavController.navigate(BottomNavItem.Home.route) {
                                 popUpTo("login") { inclusive = true }
                             }
                         }
@@ -493,12 +375,12 @@ fun MainNavigation(
                         highlightCommentId = highlightCommentId,
                         viewModel = AppModule.postViewModel,
                         commentViewModel = AppModule.commentViewModel,
-                        onBack = { navController.popBackStack() },
+                        onBack = { innerNavController.popBackStack() },
                         onUserClick = { userId ->
-                            navController.navigate("user_profile/$userId")
+                            innerNavController.navigate("user_profile/$userId")
                         },
                         onCommentClick = { commentId ->
-                            navController.navigate("comment_replies/$commentId")
+                            innerNavController.navigate("comment_replies/$commentId")
                         },
                         onPostUpdated = { postId, isLiked, likeCount ->
                             // Update the post in the list when like status changes
@@ -526,29 +408,9 @@ fun MainNavigation(
                         commentId = commentId,
                         highlightReplyId = highlightReplyId,
                         viewModel = AppModule.replyViewModel,
-                        onBack = { navController.popBackStack() },
+                        onBack = { innerNavController.popBackStack() },
                         onUserClick = { userId ->
-                            navController.navigate("user_profile/$userId")
-                        }
-                    )
-                }
-
-
-                // 发帖页面
-                composable(
-                    "create_post",
-                    enterTransition = { slideInTransition + fadeInTransition },
-                    exitTransition = { fadeOutTransition },
-                    popEnterTransition = { fadeInTransition },
-                    popExitTransition = { slideOutPopTransition + fadeOutTransition }
-                ) {
-                    CreatePostScreen(
-                        viewModel = AppModule.postViewModel,
-                        onBack = {
-                            navController.popBackStack()
-                        },
-                        onPostCreated = {
-                            navController.popBackStack()
+                            innerNavController.navigate("user_profile/$userId")
                         }
                     )
                 }
@@ -568,27 +430,237 @@ fun MainNavigation(
                         authViewModel = authViewModel,
                         repository = repository,
                         onPostClick = { postId ->
-                            navController.navigate("post_detail/$postId")
+                            innerNavController.navigate("post_detail/$postId")
                         },
                         onNavigateBack = {
-                            navController.popBackStack()
+                            innerNavController.popBackStack()
                         },
                         onNavigateToSettings = {
-                            navController.navigate("settings")
+                            // 导航到设置页面 - 使用外层导航控制器
+                            outerNavController.navigate("settings")
                         },
                         onNavigateToPost = { postId, highlightCommentId ->
                             val route = "post_detail/$postId?highlightCommentId=$highlightCommentId"
-                            navController.navigate(route)
+                            innerNavController.navigate(route)
                         },
                         onNavigateToComment = { commentId, highlightReplyId ->
                             val route = "comment_replies/$commentId?highlightReplyId=$highlightReplyId"
-                            navController.navigate(route)
+                            innerNavController.navigate(route)
                         }
                     )
                 }
             }
         }
     )
+}
+
+/**
+ * Main navigation component with nested navigation structure.
+ * Outer NavHost handles fullscreen pages, inner NavigationSuiteScaffold handles pages with bottom bar.
+ */
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3AdaptiveNavigationSuiteApi::class
+)
+@Composable
+fun MainNavigation(
+    repository: ForumRepository = AppModule.forumRepository,
+    onThemeChanged: (ThemeMode) -> Unit = { _ -> },
+    onDynamicColorChanged: (Boolean) -> Unit = { _ -> },
+    onSeedColorChanged: (Color) -> Unit = { _ -> },
+    onPaletteStyleChanged: (PaletteStyle) -> Unit = { _ -> },
+    currentThemeMode: ThemeMode = ThemeMode.SYSTEM,
+    currentDynamicColor: Boolean = false,
+    currentSeedColor: Color = ThemePreferences.defaultColor,
+    currentPaletteStyle: PaletteStyle = PaletteStyle.TonalSpot
+) {
+    val authViewModel = AppModule.authViewModel
+    val messageViewModel = AppModule.messageViewModel
+    val outerNavController = rememberNavController()
+
+    // Global state for update checking (used by both auto-check and manual check)
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+    val scope = rememberCoroutineScope()
+    val updateChecker = remember { UpdateChecker() }
+
+    // 在组件初始化时检查用户登录状态和自动检查更新
+    LaunchedEffect(Unit) {
+        authViewModel.checkAuthStatus()
+
+        // Automatically check for updates on app startup
+        scope.launch {
+            val info = updateChecker.checkForUpdates()
+            if (info != null && info.hasUpdate) {
+                updateInfo = info
+                showUpdateDialog = true
+            }
+        }
+    }
+
+    // Outer NavHost for all pages
+    NavHost(
+        navController = outerNavController,
+        startDestination = "main"
+    ) {
+        // Main screen with bottom bar
+        composable(
+            "main",
+            enterTransition = { fadeInTransition },
+            exitTransition = { fadeOutTransition }
+        ) {
+            MainWithBottomBar(
+                repository = repository,
+                authViewModel = authViewModel,
+                messageViewModel = messageViewModel,
+                outerNavController = outerNavController,
+                onThemeChanged = onThemeChanged,
+                onDynamicColorChanged = onDynamicColorChanged,
+                onSeedColorChanged = onSeedColorChanged,
+                onPaletteStyleChanged = onPaletteStyleChanged,
+                currentThemeMode = currentThemeMode,
+                currentDynamicColor = currentDynamicColor,
+                currentSeedColor = currentSeedColor,
+                currentPaletteStyle = currentPaletteStyle,
+                onCheckForUpdates = {
+                    scope.launch {
+                        val info = updateChecker.checkForUpdates()
+                        if (info != null && info.hasUpdate) {
+                            updateInfo = info
+                            showUpdateDialog = true
+                        }
+                    }
+                }
+            )
+        }
+
+        // Fullscreen pages (without bottom bar)
+        
+        // 发帖页面
+        composable(
+            "create_post",
+            enterTransition = { slideInTransition + fadeInTransition },
+            exitTransition = { fadeOutTransition },
+            popEnterTransition = { fadeInTransition },
+            popExitTransition = { slideOutPopTransition + fadeOutTransition }
+        ) {
+            CreatePostScreen(
+                viewModel = AppModule.postViewModel,
+                onBack = {
+                    outerNavController.popBackStack()
+                },
+                onPostCreated = {
+                    outerNavController.popBackStack()
+                }
+            )
+        }
+
+        // Settings screens
+        composable(
+            "settings",
+            enterTransition = { slideInTransition + fadeInTransition },
+            exitTransition = { slideOutTransition + fadeOutTransition },
+            popEnterTransition = { slideInPopTransition + fadeInTransition },
+            popExitTransition = { slideOutPopTransition + fadeOutTransition }
+        ) {
+            SettingsScreen(
+                authViewModel = authViewModel,
+                onNavigateBack = {
+                    outerNavController.popBackStack()
+                },
+                onNavigateToThemeSettings = {
+                    outerNavController.navigate("theme_settings")
+                },
+                onNavigateToNotificationSettings = {
+                    outerNavController.navigate("notification_settings")
+                },
+                onNavigateToEditProfile = {
+                    outerNavController.navigate("edit_profile")
+                },
+                onNavigateToAbout = {
+                    outerNavController.navigate("about")
+                },
+                onCheckForUpdates = {
+                    scope.launch {
+                        val info = updateChecker.checkForUpdates()
+                        if (info != null && info.hasUpdate) {
+                            updateInfo = info
+                            showUpdateDialog = true
+                        }
+                    }
+                }
+            )
+        }
+
+        composable(
+            "edit_profile",
+            enterTransition = { slideInTransition + fadeInTransition },
+            exitTransition = { slideOutTransition + fadeOutTransition },
+            popEnterTransition = { slideInPopTransition + fadeInTransition },
+            popExitTransition = { slideOutPopTransition + fadeOutTransition }
+        ) {
+            EditProfileScreen(
+                authViewModel = authViewModel,
+                onNavigateBack = {
+                    outerNavController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            "theme_settings",
+            enterTransition = { slideInTransition + fadeInTransition },
+            exitTransition = { slideOutTransition + fadeOutTransition },
+            popEnterTransition = { slideInPopTransition + fadeInTransition },
+            popExitTransition = { slideOutPopTransition + fadeOutTransition }
+        ) {
+            ThemeSettingsScreen(
+                currentTheme = currentThemeMode,
+                onThemeChanged = onThemeChanged,
+                useDynamicColor = currentDynamicColor,
+                onDynamicColorChanged = onDynamicColorChanged,
+                seedColor = currentSeedColor,
+                onSeedColorChanged = onSeedColorChanged,
+                paletteStyle = currentPaletteStyle,
+                onPaletteStyleChanged = onPaletteStyleChanged,
+                onNavigateBack = {
+                    outerNavController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            "notification_settings",
+            enterTransition = { slideInTransition + fadeInTransition },
+            exitTransition = { slideOutTransition + fadeOutTransition },
+            popEnterTransition = { slideInPopTransition + fadeInTransition },
+            popExitTransition = { slideOutPopTransition + fadeOutTransition }
+        ) {
+            NotificationSettingsScreen(
+                repository = repository,
+                onNavigateBack = {
+                    outerNavController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            "about",
+            enterTransition = { slideInTransition + fadeInTransition },
+            exitTransition = { slideOutTransition + fadeOutTransition },
+            popEnterTransition = { slideInPopTransition + fadeInTransition },
+            popExitTransition = { slideOutPopTransition + fadeOutTransition }
+        ) {
+            AboutScreen(
+                onNavigateBack = {
+                    outerNavController.popBackStack()
+                },
+                onOpenGitHub = {
+                    openUrl("https://github.com/SugarMGP/forum-client")
+                }
+            )
+        }
+    }
 
     // Global update dialog (shown for both auto-check and manual check)
     UpdateDialog(
