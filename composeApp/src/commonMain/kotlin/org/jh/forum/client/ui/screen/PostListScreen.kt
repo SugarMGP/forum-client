@@ -3,7 +3,6 @@ package org.jh.forum.client.ui.screen
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,6 +30,9 @@ import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
+import org.jh.forum.client.util.debouncedClickable
+import org.jh.forum.client.util.getAvatarOrDefault
+import org.jh.forum.client.util.rememberDebouncedClick
 import kotlin.enums.EnumEntries
 
 
@@ -396,7 +398,7 @@ fun PostListScreen(
                         contentPadding = PaddingValues(Dimensions.spaceMedium),
                         verticalArrangement = Arrangement.spacedBy(Dimensions.spaceMedium)
                     ) {
-                        items(posts) {
+                        items(posts, key = { it.id }) {
                             PostItem(
                                 post = it,
                                 onClick = { onPostClick(it.id) },
@@ -442,7 +444,7 @@ fun PostItem(
     Card(
         modifier = modifier
             .fillMaxWidth(),
-        onClick = onClick,
+        onClick = rememberDebouncedClick(onClick = onClick),
         elevation = CardDefaults.cardElevation(
             defaultElevation = Dimensions.elevationSmall,
             pressedElevation = Dimensions.elevationMedium
@@ -461,17 +463,16 @@ fun PostItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 用户头像和名称 - 改为可点击，但不占满整行
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .weight(1f, fill = false)
-                        .clickable {
+                        .debouncedClickable {
                             post.publisherInfo.id?.let { onUserClick(it) }
                         }
                 ) {
                     AsyncImage(
-                        model = post.publisherInfo.avatar ?: "",
+                        model = post.publisherInfo.avatar.getAvatarOrDefault(),
                         contentDescription = "用户头像",
                         modifier = Modifier
                             .size(Dimensions.avatarMedium)
