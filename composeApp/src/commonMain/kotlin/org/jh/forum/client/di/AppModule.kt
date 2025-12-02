@@ -9,11 +9,26 @@ import kotlinx.serialization.json.Json
 import org.jh.forum.client.data.api.ForumApi
 import org.jh.forum.client.data.api.KtorForumApi
 import org.jh.forum.client.data.repository.ForumRepository
+import org.jh.forum.client.data.storage.DataStoreCookiesStorage
+import org.jh.forum.client.data.storage.ThemePreferencesRepository
+import org.jh.forum.client.data.storage.createDataStore
 import org.jh.forum.client.ui.viewmodel.*
 
 object AppModule {
     // 基础URL，可根据环境配置修改
     private const val BASE_URL = "https://bbs.mggovo.cn/"
+
+    private val themeDataStore by lazy {
+        createDataStore("theme.preferences_pb")
+    }
+
+    private val cookiesDataStore by lazy {
+        createDataStore("cookies.preferences_pb")
+    }
+
+    val themePreferencesRepository by lazy {
+        ThemePreferencesRepository(themeDataStore)
+    }
 
     // 统一创建 HttpClient（common）
     private val httpClient: HttpClient by lazy {
@@ -24,7 +39,7 @@ object AppModule {
                 })
             }
             install(HttpCookies) {
-                storage = provideCookiesStorage()
+                storage = DataStoreCookiesStorage(cookiesDataStore)
             }
             install(Logging) {
                 level = LogLevel.ALL

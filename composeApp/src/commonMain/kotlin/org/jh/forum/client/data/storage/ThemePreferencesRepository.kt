@@ -10,10 +10,6 @@ import kotlinx.coroutines.flow.map
 import org.jh.forum.client.data.preferences.ThemePreferences
 import org.jh.forum.client.ui.screen.ThemeMode
 
-/**
- * Repository for theme preferences using DataStore.
- * Persists user's theme customization choices.
- */
 class ThemePreferencesRepository(
     private val dataStore: DataStore<Preferences>
 ) {

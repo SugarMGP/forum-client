@@ -190,9 +190,7 @@ private fun UpdateDialog(
     }
 }
 
-/**
- * Main navigation component with bottom bar for pages that should show the bottom navigation
- */
+
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalMaterial3AdaptiveNavigationSuiteApi::class
@@ -203,15 +201,6 @@ private fun MainWithBottomBar(
     authViewModel: AuthViewModel,
     messageViewModel: MessageViewModel,
     outerNavController: NavHostController,
-    onThemeChanged: (ThemeMode) -> Unit,
-    onDynamicColorChanged: (Boolean) -> Unit,
-    onSeedColorChanged: (Color) -> Unit,
-    onPaletteStyleChanged: (PaletteStyle) -> Unit,
-    currentThemeMode: ThemeMode,
-    currentDynamicColor: Boolean,
-    currentSeedColor: Color,
-    currentPaletteStyle: PaletteStyle,
-    onCheckForUpdates: () -> Unit
 ) {
     val innerNavController = rememberNavController()
     val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
@@ -455,10 +444,6 @@ private fun MainWithBottomBar(
     )
 }
 
-/**
- * Main navigation component with nested navigation structure.
- * Outer NavHost handles fullscreen pages, inner NavigationSuiteScaffold handles pages with bottom bar.
- */
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalMaterial3AdaptiveNavigationSuiteApi::class
@@ -514,29 +499,10 @@ fun MainNavigation(
                 repository = repository,
                 authViewModel = authViewModel,
                 messageViewModel = messageViewModel,
-                outerNavController = outerNavController,
-                onThemeChanged = onThemeChanged,
-                onDynamicColorChanged = onDynamicColorChanged,
-                onSeedColorChanged = onSeedColorChanged,
-                onPaletteStyleChanged = onPaletteStyleChanged,
-                currentThemeMode = currentThemeMode,
-                currentDynamicColor = currentDynamicColor,
-                currentSeedColor = currentSeedColor,
-                currentPaletteStyle = currentPaletteStyle,
-                onCheckForUpdates = {
-                    scope.launch {
-                        val info = updateChecker.checkForUpdates()
-                        if (info != null && info.hasUpdate) {
-                            updateInfo = info
-                            showUpdateDialog = true
-                        }
-                    }
-                }
+                outerNavController = outerNavController
             )
         }
 
-        // Fullscreen pages (without bottom bar)
-        
         // 发帖页面
         composable(
             "create_post",
