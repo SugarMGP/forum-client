@@ -41,6 +41,7 @@ fun MessagesScreen(
     onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val messageViewModel = AppModule.messageViewModel
 
     // 消息相关状态
     var messages by remember { mutableStateOf<List<GetNoticeListElement>>(emptyList()) }
@@ -49,11 +50,11 @@ fun MessagesScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var retryTrigger by remember { mutableStateOf(0) }
 
-    // Pagination state
-    var noticeCurrentPage by remember { mutableStateOf(1) }
-    var noticeHasMore by remember { mutableStateOf(true) }
-    var announcementCurrentPage by remember { mutableStateOf(1) }
-    var announcementHasMore by remember { mutableStateOf(true) }
+    // Pagination state from ViewModel
+    val noticeCurrentPage by messageViewModel.noticeCurrentPage.collectAsState()
+    val noticeHasMore by messageViewModel.noticeHasMore.collectAsState()
+    val announcementCurrentPage by messageViewModel.announcementCurrentPage.collectAsState()
+    val announcementHasMore by messageViewModel.announcementHasMore.collectAsState()
 
     // UI状态
     var selectedNoticeType by remember { mutableStateOf(0) } // 0:全部, 1:点赞, 2:收藏, 3:评论和@
@@ -101,7 +102,6 @@ fun MessagesScreen(
 
                 messages = if (reset) {
                     // Reset: replace with new data
-                    noticeCurrentPage = 1
                     newNotices
                 } else {
                     // Append: merge with deduplication across pages
@@ -110,9 +110,10 @@ fun MessagesScreen(
                     messages + uniqueNewNotices
                 }
 
-                // Update pagination state
-                noticeHasMore = page * response.pageSize < response.total
-                if (noticeHasMore) noticeCurrentPage++
+                // Update pagination state in ViewModel
+                val hasMore = page * response.pageSize < response.total
+                val nextPage = if (hasMore) page + 1 else page
+                messageViewModel.updateNoticePagination(nextPage, hasMore)
             } else {
                 errorMessage = "加载通知失败"
             }
@@ -146,7 +147,6 @@ fun MessagesScreen(
 
                 announcements = if (reset) {
                     // Reset: replace with new data
-                    announcementCurrentPage = 1
                     newAnnouncements
                 } else {
                     // Append: merge with deduplication across pages
@@ -155,9 +155,10 @@ fun MessagesScreen(
                     announcements + uniqueNewAnnouncements
                 }
 
-                // Update pagination state
-                announcementHasMore = page * response.pageSize < response.total
-                if (announcementHasMore) announcementCurrentPage++
+                // Update pagination state in ViewModel
+                val hasMore = page * response.pageSize < response.total
+                val nextPage = if (hasMore) page + 1 else page
+                messageViewModel.updateAnnouncementPagination(nextPage, hasMore)
             } else {
                 errorMessage = "加载公告失败"
             }
@@ -171,10 +172,8 @@ fun MessagesScreen(
 
     // 初始加载和重试加载（在 LaunchedEffect 中启动 suspend 加载）
     LaunchedEffect(Unit, retryTrigger, selectedNoticeType, selectedType, selectedAnnouncementType) {
-        noticeCurrentPage = 1
-        noticeHasMore = true
-        announcementCurrentPage = 1
-        announcementHasMore = true
+        messageViewModel.resetNoticePagination()
+        messageViewModel.resetAnnouncementPagination()
 
         if (selectedType == 0) {
             loadNotices(reset = true)

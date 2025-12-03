@@ -25,6 +25,20 @@ class MessageViewModel : ViewModel() {
     private val _unreadAnnouncementCount = MutableStateFlow(0)
     val unreadAnnouncementCount: StateFlow<Int> = _unreadAnnouncementCount.asStateFlow()
 
+    // Pagination state for notices
+    private val _noticeCurrentPage = MutableStateFlow(1)
+    val noticeCurrentPage: StateFlow<Int> = _noticeCurrentPage.asStateFlow()
+
+    private val _noticeHasMore = MutableStateFlow(true)
+    val noticeHasMore: StateFlow<Boolean> = _noticeHasMore.asStateFlow()
+
+    // Pagination state for announcements
+    private val _announcementCurrentPage = MutableStateFlow(1)
+    val announcementCurrentPage: StateFlow<Int> = _announcementCurrentPage.asStateFlow()
+
+    private val _announcementHasMore = MutableStateFlow(true)
+    val announcementHasMore: StateFlow<Boolean> = _announcementHasMore.asStateFlow()
+
     init {
         viewModelScope.launch {
             // 当登录状态变化时触发
@@ -63,5 +77,25 @@ class MessageViewModel : ViewModel() {
         _unreadNoticeCount.value = noticeCount
         _unreadAnnouncementCount.value = announcementCount
         _hasUnreadMessages.value = noticeCount > 0 || announcementCount > 0
+    }
+
+    fun updateNoticePagination(currentPage: Int, hasMore: Boolean) {
+        _noticeCurrentPage.value = currentPage
+        _noticeHasMore.value = hasMore
+    }
+
+    fun updateAnnouncementPagination(currentPage: Int, hasMore: Boolean) {
+        _announcementCurrentPage.value = currentPage
+        _announcementHasMore.value = hasMore
+    }
+
+    fun resetNoticePagination() {
+        _noticeCurrentPage.value = 1
+        _noticeHasMore.value = true
+    }
+
+    fun resetAnnouncementPagination() {
+        _announcementCurrentPage.value = 1
+        _announcementHasMore.value = true
     }
 }

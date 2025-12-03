@@ -207,16 +207,6 @@ private fun MainWithBottomBar(
     val currentDestination = navBackStackEntry?.destination
     val hasUnreadMessages by messageViewModel.hasUnreadMessages.collectAsState()
 
-    // 监听登录状态变化，当退出登录时自动导航到登录页面
-    LaunchedEffect(authViewModel.isLoggedIn.collectAsState().value, currentDestination) {
-        // 确保currentDestination不为null，并且导航控制器已设置导航图
-        if (!authViewModel.isLoggedIn.value && currentDestination != null && currentDestination.route != "login") {
-            innerNavController.navigate("login") {
-                popUpTo(0)
-            }
-        }
-    }
-
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             listOf(
@@ -244,9 +234,17 @@ private fun MainWithBottomBar(
                         if (it.route == BottomNavItem.Messages.route) {
                             messageViewModel.cleanUnreadBadge()
                         }
-                        innerNavController.navigate(it.route) {
-                            popUpTo(innerNavController.graph.findStartDestination().id) {
-                                inclusive = false
+                        
+                        // Check if clicking on currently selected Home tab to trigger refresh
+                        if (it.route == BottomNavItem.Home.route && 
+                            currentDestination?.route?.startsWith(it.route) == true) {
+                            // Trigger post list refresh when re-clicking Home tab
+                            AppModule.postListViewModel.refresh()
+                        } else {
+                            innerNavController.navigate(it.route) {
+                                popUpTo(innerNavController.graph.findStartDestination().id) {
+                                    inclusive = false
+                                }
                             }
                         }
                     }
@@ -256,7 +254,7 @@ private fun MainWithBottomBar(
         content = {
             NavHost(
                 navController = innerNavController,
-                startDestination = "login",
+                startDestination = BottomNavItem.Home.route,
             ) {
                 composable(
                     BottomNavItem.Home.route,
@@ -331,22 +329,6 @@ private fun MainWithBottomBar(
                             }
                         )
                     }
-                }
-
-
-                // 其他页面路由
-                composable(
-                    "login",
-                    enterTransition = { fadeInTransition },
-                    exitTransition = { fadeOutTransition }
-                ) {
-                    LoginScreen(
-                        onLoginSuccess = {
-                            innerNavController.navigate(BottomNavItem.Home.route) {
-                                popUpTo("login") { inclusive = true }
-                            }
-                        }
-                    )
                 }
 
                 // 帖子详情页
@@ -470,6 +452,9 @@ fun MainNavigation(
     val scope = rememberCoroutineScope()
     val updateChecker = remember { UpdateChecker() }
 
+    // Track login state
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+
     // 在组件初始化时检查用户登录状态和自动检查更新
     LaunchedEffect(Unit) {
         authViewModel.checkAuthStatus()
@@ -484,11 +469,42 @@ fun MainNavigation(
         }
     }
 
+    // Navigate based on login state
+    LaunchedEffect(isLoggedIn) {
+        val currentRoute = outerNavController.currentBackStackEntry?.destination?.route
+        if (isLoggedIn && currentRoute == "login") {
+            // After login, navigate to main and trigger post list refresh
+            outerNavController.navigate("main") {
+                popUpTo("login") { inclusive = true }
+            }
+            // Refresh post list immediately after login
+            AppModule.postListViewModel.refresh()
+        } else if (!isLoggedIn && currentRoute != "login") {
+            // When logged out, navigate to login
+            outerNavController.navigate("login") {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
+
     // Outer NavHost for all pages
     NavHost(
         navController = outerNavController,
-        startDestination = "main"
+        startDestination = if (isLoggedIn) "main" else "login"
     ) {
+        // Login screen (without bottom bar)
+        composable(
+            "login",
+            enterTransition = { fadeInTransition },
+            exitTransition = { fadeOutTransition }
+        ) {
+            LoginScreen(
+                onLoginSuccess = {
+                    // Navigation handled by LaunchedEffect above
+                }
+            )
+        }
+
         // Main screen with bottom bar
         composable(
             "main",
