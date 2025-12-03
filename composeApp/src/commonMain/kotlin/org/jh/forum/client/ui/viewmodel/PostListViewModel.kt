@@ -34,10 +34,6 @@ class PostListViewModel : ViewModel() {
     private val _sortType = MutableStateFlow(SortType.NEWEST)
     val sortType: StateFlow<SortType> = _sortType.asStateFlow()
 
-    init {
-        refresh()
-    }
-
     fun loadPosts(
         category: String? = null,
         sortType: String? = null,

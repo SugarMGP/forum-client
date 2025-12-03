@@ -233,18 +233,20 @@ private fun MainWithBottomBar(
                     onClick = {
                         if (it.route == BottomNavItem.Messages.route) {
                             messageViewModel.cleanUnreadBadge()
+                            if (currentDestination?.route?.startsWith(it.route) == true) {
+                                AppModule.messageViewModel.retry()
+                            }
                         }
-                        
-                        // Check if clicking on currently selected Home tab to trigger refresh
-                        if (it.route == BottomNavItem.Home.route && 
-                            currentDestination?.route?.startsWith(it.route) == true) {
-                            // Trigger post list refresh when re-clicking Home tab
+
+                        if (it.route == BottomNavItem.Home.route &&
+                            currentDestination?.route?.startsWith(it.route) == true
+                        ) {
                             AppModule.postListViewModel.refresh()
-                        } else {
-                            innerNavController.navigate(it.route) {
-                                popUpTo(innerNavController.graph.findStartDestination().id) {
-                                    inclusive = false
-                                }
+                        }
+
+                        innerNavController.navigate(it.route) {
+                            popUpTo(innerNavController.graph.findStartDestination().id) {
+                                inclusive = false
                             }
                         }
                     }
@@ -473,14 +475,11 @@ fun MainNavigation(
     LaunchedEffect(isLoggedIn) {
         val currentRoute = outerNavController.currentBackStackEntry?.destination?.route
         if (isLoggedIn && currentRoute == "login") {
-            // After login, navigate to main and trigger post list refresh
             outerNavController.navigate("main") {
                 popUpTo("login") { inclusive = true }
             }
-            // Refresh post list immediately after login
             AppModule.postListViewModel.refresh()
         } else if (!isLoggedIn && currentRoute != "login") {
-            // When logged out, navigate to login
             outerNavController.navigate("login") {
                 popUpTo(0) { inclusive = true }
             }

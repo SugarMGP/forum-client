@@ -66,12 +66,9 @@ class MessageViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            // 当登录状态变化时触发
             authViewModel.isLoggedIn.collectLatest { loggedIn ->
                 if (loggedIn) {
-                    // 立刻检查一次
                     checkUnreadMessages()
-                    // Load initial messages
                     loadNotices(reset = true)
                     while (isActive && authViewModel.isLoggedIn.value) {
                         delay(60_000)
