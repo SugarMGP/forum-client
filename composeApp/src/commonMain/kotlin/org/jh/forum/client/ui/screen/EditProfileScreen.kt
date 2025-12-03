@@ -14,22 +14,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jh.forum.client.data.model.UpdateUserProfileRequest
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.component.ImagePicker
 import org.jh.forum.client.ui.component.LocalImagePickerClick
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
-import org.jh.forum.client.ui.viewmodel.AuthViewModel
 import org.jh.forum.client.util.getAvatarOrDefault
 import org.jh.forum.client.util.rememberDebouncedClick
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
 @Composable
 fun EditProfileScreen(
-    authViewModel: AuthViewModel,
     onNavigateBack: () -> Unit = {}
 ) {
+    val authViewModel = AppModule.authViewModel
     val userProfile by authViewModel.userProfile.collectAsState()
     val isLoading by authViewModel.isLoading.collectAsState()
     val errorMessage by authViewModel.errorMessage.collectAsState()
@@ -625,8 +628,7 @@ fun EditProfileScreen(
                             selectedMonth = parts[1].toInt()
                             selectedDay = parts[2].toInt()
                         }
-                    } catch (e: Exception) {
-                        // Use defaults if parsing fails
+                    } catch (_: Exception) {
                     }
                 }
             }
@@ -639,8 +641,9 @@ fun EditProfileScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(Dimensions.spaceSmall)
                     ) {
-                        // Year selector (1900 to current year)
-                        val currentYear = java.time.LocalDate.now().year
+                        val currentYear = Clock.System.now()
+                            .toLocalDateTime(TimeZone.currentSystemDefault())
+                            .year
                         OutlinedTextField(
                             value = selectedYear.toString(),
                             onValueChange = {

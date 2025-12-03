@@ -31,8 +31,6 @@ import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.*
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
-import org.jh.forum.client.ui.viewmodel.AuthViewModel
-import org.jh.forum.client.ui.viewmodel.MessageViewModel
 import org.jh.forum.client.util.UpdateChecker
 import org.jh.forum.client.util.UpdateInfo
 import org.jh.forum.client.util.openUrl
@@ -197,25 +195,14 @@ private fun UpdateDialog(
 )
 @Composable
 private fun MainWithBottomBar(
-    repository: ForumRepository,
-    authViewModel: AuthViewModel,
-    messageViewModel: MessageViewModel,
     outerNavController: NavHostController,
 ) {
+    val authViewModel = AppModule.authViewModel
+    val messageViewModel = AppModule.messageViewModel
     val innerNavController = rememberNavController()
     val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val hasUnreadMessages by messageViewModel.hasUnreadMessages.collectAsState()
-
-    // 监听登录状态变化，当退出登录时自动导航到登录页面
-    LaunchedEffect(authViewModel.isLoggedIn.collectAsState().value, currentDestination) {
-        // 确保currentDestination不为null，并且导航控制器已设置导航图
-        if (!authViewModel.isLoggedIn.value && currentDestination != null && currentDestination.route != "login") {
-            innerNavController.navigate("login") {
-                popUpTo(0)
-            }
-        }
-    }
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -243,7 +230,17 @@ private fun MainWithBottomBar(
                     onClick = {
                         if (it.route == BottomNavItem.Messages.route) {
                             messageViewModel.cleanUnreadBadge()
+                            if (currentDestination?.route?.startsWith(it.route) == true) {
+                                AppModule.messageViewModel.retry()
+                            }
                         }
+
+                        if (it.route == BottomNavItem.Home.route &&
+                            currentDestination?.route?.startsWith(it.route) == true
+                        ) {
+                            AppModule.postListViewModel.refresh()
+                        }
+
                         innerNavController.navigate(it.route) {
                             popUpTo(innerNavController.graph.findStartDestination().id) {
                                 inclusive = false
@@ -256,7 +253,7 @@ private fun MainWithBottomBar(
         content = {
             NavHost(
                 navController = innerNavController,
-                startDestination = "login",
+                startDestination = BottomNavItem.Home.route,
             ) {
                 composable(
                     BottomNavItem.Home.route,
@@ -265,15 +262,12 @@ private fun MainWithBottomBar(
                 ) {
                     PostListScreen(
                         onPostClick = { postId: Long ->
-                            // 导航到帖子详情页
                             innerNavController.navigate("post_detail/$postId")
                         },
                         onNavigateToCreatePost = {
-                            // 导航到发帖页面 - 使用外层导航控制器
                             outerNavController.navigate("create_post")
                         },
                         onUserClick = { userId: Long ->
-                            // 导航到用户主页
                             innerNavController.navigate("user_profile/$userId")
                         }
                     )
@@ -285,7 +279,6 @@ private fun MainWithBottomBar(
                     exitTransition = { fadeOutTransition }
                 ) {
                     MessagesScreen(
-                        repository = repository,
                         onUserClick = { userId ->
                             innerNavController.navigate("user_profile/$userId")
                         },
@@ -311,14 +304,11 @@ private fun MainWithBottomBar(
                     if (isLoggedIn && currentUserId != null) {
                         UserProfileScreen(
                             userId = currentUserId,
-                            authViewModel = authViewModel,
-                            repository = repository,
                             onPostClick = { postId ->
                                 innerNavController.navigate("post_detail/$postId")
                             },
-                            onNavigateBack = null, // No back button for bottom nav
+                            onNavigateBack = null,
                             onNavigateToSettings = {
-                                // 导航到设置页面 - 使用外层导航控制器
                                 outerNavController.navigate("settings")
                             },
                             onNavigateToPost = { postId, highlightCommentId ->
@@ -333,23 +323,6 @@ private fun MainWithBottomBar(
                     }
                 }
 
-
-                // 其他页面路由
-                composable(
-                    "login",
-                    enterTransition = { fadeInTransition },
-                    exitTransition = { fadeOutTransition }
-                ) {
-                    LoginScreen(
-                        onLoginSuccess = {
-                            innerNavController.navigate(BottomNavItem.Home.route) {
-                                popUpTo("login") { inclusive = true }
-                            }
-                        }
-                    )
-                }
-
-                // 帖子详情页
                 composable(
                     "post_detail/{postId}?highlightCommentId={highlightCommentId}",
                     enterTransition = { slideInTransition + fadeInTransition },
@@ -373,17 +346,14 @@ private fun MainWithBottomBar(
                             innerNavController.navigate("comment_replies/$commentId")
                         },
                         onPostUpdated = { postId, isLiked, likeCount ->
-                            // Update the post in the list when like status changes
                             AppModule.postListViewModel.updatePostLikeStatus(postId, isLiked, likeCount)
                         },
                         onPostDeleted = { postId ->
-                            // Remove the post from the list when it's deleted
                             AppModule.postListViewModel.removePost(postId)
                         }
                     )
                 }
 
-                // 评论回复页面
                 composable(
                     "comment_replies/{commentId}?highlightReplyId={highlightReplyId}",
                     enterTransition = { slideInTransition + fadeInTransition },
@@ -405,7 +375,6 @@ private fun MainWithBottomBar(
                     )
                 }
 
-                // 用户主页 - 查看其他用户
                 composable(
                     "user_profile/{userId}",
                     enterTransition = { slideInTransition + fadeInTransition },
@@ -417,8 +386,6 @@ private fun MainWithBottomBar(
                     val userId = userIdStr.toLongOrNull() ?: 0L
                     UserProfileScreen(
                         userId = userId,
-                        authViewModel = authViewModel,
-                        repository = repository,
                         onPostClick = { postId ->
                             innerNavController.navigate("post_detail/$postId")
                         },
@@ -426,7 +393,6 @@ private fun MainWithBottomBar(
                             innerNavController.popBackStack()
                         },
                         onNavigateToSettings = {
-                            // 导航到设置页面 - 使用外层导航控制器
                             outerNavController.navigate("settings")
                         },
                         onNavigateToPost = { postId, highlightCommentId ->
@@ -461,20 +427,18 @@ fun MainNavigation(
     currentPaletteStyle: PaletteStyle = PaletteStyle.TonalSpot
 ) {
     val authViewModel = AppModule.authViewModel
-    val messageViewModel = AppModule.messageViewModel
     val outerNavController = rememberNavController()
 
-    // Global state for update checking (used by both auto-check and manual check)
     var showUpdateDialog by remember { mutableStateOf(false) }
     var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
     val scope = rememberCoroutineScope()
     val updateChecker = remember { UpdateChecker() }
 
-    // 在组件初始化时检查用户登录状态和自动检查更新
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+
     LaunchedEffect(Unit) {
         authViewModel.checkAuthStatus()
 
-        // Automatically check for updates on app startup
         scope.launch {
             val info = updateChecker.checkForUpdates()
             if (info != null && info.hasUpdate) {
@@ -484,26 +448,44 @@ fun MainNavigation(
         }
     }
 
-    // Outer NavHost for all pages
+    LaunchedEffect(isLoggedIn) {
+        val currentRoute = outerNavController.currentBackStackEntry?.destination?.route
+        if (isLoggedIn && currentRoute == "login") {
+            outerNavController.navigate("main") {
+                popUpTo("login") { inclusive = true }
+            }
+            AppModule.postListViewModel.refresh()
+        } else if (!isLoggedIn && currentRoute != "login") {
+            outerNavController.navigate("login") {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
+
     NavHost(
         navController = outerNavController,
-        startDestination = "main"
+        startDestination = "login"
     ) {
-        // Main screen with bottom bar
+        composable(
+            "login",
+            enterTransition = { fadeInTransition },
+            exitTransition = { fadeOutTransition }
+        ) {
+            LoginScreen(
+                onLoginSuccess = { }
+            )
+        }
+
         composable(
             "main",
             enterTransition = { fadeInTransition },
             exitTransition = { fadeOutTransition }
         ) {
             MainWithBottomBar(
-                repository = repository,
-                authViewModel = authViewModel,
-                messageViewModel = messageViewModel,
                 outerNavController = outerNavController
             )
         }
 
-        // 发帖页面
         composable(
             "create_post",
             enterTransition = { slideInTransition + fadeInTransition },
@@ -522,7 +504,6 @@ fun MainNavigation(
             )
         }
 
-        // Settings screens
         composable(
             "settings",
             enterTransition = { slideInTransition + fadeInTransition },
@@ -531,7 +512,6 @@ fun MainNavigation(
             popExitTransition = { slideOutPopTransition + fadeOutTransition }
         ) {
             SettingsScreen(
-                authViewModel = authViewModel,
                 onNavigateBack = {
                     outerNavController.popBackStack()
                 },
@@ -567,7 +547,6 @@ fun MainNavigation(
             popExitTransition = { slideOutPopTransition + fadeOutTransition }
         ) {
             EditProfileScreen(
-                authViewModel = authViewModel,
                 onNavigateBack = {
                     outerNavController.popBackStack()
                 }

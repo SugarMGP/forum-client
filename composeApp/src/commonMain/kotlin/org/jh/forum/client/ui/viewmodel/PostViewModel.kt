@@ -56,7 +56,7 @@ class PostViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val result = repository.deletePost(postId)
-                if (result.code != 0) {
+                if (result.code != 200) {
                     _errorMessage.value = result.msg ?: "删除失败"
                 }
             } catch (e: Exception) {

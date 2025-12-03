@@ -24,7 +24,7 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import org.jh.forum.client.data.model.GetAnnouncementListElement
 import org.jh.forum.client.data.model.GetNoticeListElement
-import org.jh.forum.client.data.repository.ForumRepository
+import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.util.TimeUtils
@@ -35,30 +35,21 @@ import kotlin.time.ExperimentalTime
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MessagesScreen(
-    repository: ForumRepository,
     onUserClick: (Long) -> Unit = {},
     onNavigateToPost: (postId: Long, highlightCommentId: Long) -> Unit = { _, _ -> },
     onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    val messageViewModel = AppModule.messageViewModel
 
-    // 消息相关状态
-    var messages by remember { mutableStateOf<List<GetNoticeListElement>>(emptyList()) }
-    var announcements by remember { mutableStateOf<List<GetAnnouncementListElement>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var retryTrigger by remember { mutableStateOf(0) }
-
-    // Pagination state
-    var noticeCurrentPage by remember { mutableStateOf(1) }
-    var noticeHasMore by remember { mutableStateOf(true) }
-    var announcementCurrentPage by remember { mutableStateOf(1) }
-    var announcementHasMore by remember { mutableStateOf(true) }
-
-    // UI状态
-    var selectedNoticeType by remember { mutableStateOf(0) } // 0:全部, 1:点赞, 2:收藏, 3:评论和@
-    var selectedType by remember { mutableStateOf(0) } // 0:互动, 1:公告
-    var selectedAnnouncementType by remember { mutableStateOf(0) } // 0:全部, 1:学校公告, 2:系统公告
+    val messages by messageViewModel.messages.collectAsState()
+    val announcements by messageViewModel.announcements.collectAsState()
+    val isLoading by messageViewModel.isLoading.collectAsState()
+    val errorMessage by messageViewModel.errorMessage.collectAsState()
+    val noticeHasMore by messageViewModel.noticeHasMore.collectAsState()
+    val announcementHasMore by messageViewModel.announcementHasMore.collectAsState()
+    val selectedNoticeType by messageViewModel.selectedNoticeType.collectAsState()
+    val selectedType by messageViewModel.selectedType.collectAsState()
+    val selectedAnnouncementType by messageViewModel.selectedAnnouncementType.collectAsState()
 
     // List states - hoist outside when branches to preserve scroll position
     val noticeListState = rememberLazyListState()
@@ -77,109 +68,8 @@ fun MessagesScreen(
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             if (selectedType != page) {
-                selectedType = page
-                // Reset sub-type when switching main type
-                if (page == 0) selectedNoticeType = 0
+                messageViewModel.setSelectedType(page)
             }
-        }
-    }
-
-    // 加载互动消息
-    suspend fun loadNotices(reset: Boolean = false) {
-        if (!reset && !noticeHasMore) return // Don't load if no more data
-
-        isLoading = true
-        errorMessage = null
-        try {
-            val page = if (reset) 1 else noticeCurrentPage
-            // 请求通知列表
-            val noticeResponse =
-                repository.getNoticeList(page = page, pageSize = 20, type = selectedNoticeType)
-            if (noticeResponse.code == 200 && noticeResponse.data != null) {
-                val response = noticeResponse.data
-                val newNotices = response.list
-
-                messages = if (reset) {
-                    // Reset: replace with new data
-                    noticeCurrentPage = 1
-                    newNotices
-                } else {
-                    // Append: merge with deduplication across pages
-                    val existingIds = messages.map { it.id }.toSet()
-                    val uniqueNewNotices = newNotices.filter { it.id !in existingIds }
-                    messages + uniqueNewNotices
-                }
-
-                // Update pagination state
-                noticeHasMore = page * response.pageSize < response.total
-                if (noticeHasMore) noticeCurrentPage++
-            } else {
-                errorMessage = "加载通知失败"
-            }
-            isLoading = false
-        } catch (e: Exception) {
-            errorMessage = "加载通知失败"
-            e.printStackTrace()
-            isLoading = false
-        }
-    }
-
-    // 加载公告列表
-    suspend fun loadAnnouncements(reset: Boolean = false) {
-        if (!reset && !announcementHasMore) return // Don't load if no more data
-
-        isLoading = true
-        errorMessage = null
-        try {
-            val page = if (reset) 1 else announcementCurrentPage
-            // 请求公告列表，根据选择的类型传递参数
-            val type = when (selectedAnnouncementType) {
-                1 -> "scholastic"
-                2 -> "systematic"
-                else -> ""
-            }
-            val announcementResponse =
-                repository.getAnnouncementList(page = page, pageSize = 20, type = type)
-            if (announcementResponse.code == 200 && announcementResponse.data != null) {
-                val response = announcementResponse.data
-                val newAnnouncements = response.list
-
-                announcements = if (reset) {
-                    // Reset: replace with new data
-                    announcementCurrentPage = 1
-                    newAnnouncements
-                } else {
-                    // Append: merge with deduplication across pages
-                    val existingIds = announcements.map { it.id }.toSet()
-                    val uniqueNewAnnouncements = newAnnouncements.filter { it.id !in existingIds }
-                    announcements + uniqueNewAnnouncements
-                }
-
-                // Update pagination state
-                announcementHasMore = page * response.pageSize < response.total
-                if (announcementHasMore) announcementCurrentPage++
-            } else {
-                errorMessage = "加载公告失败"
-            }
-            isLoading = false
-        } catch (e: Exception) {
-            errorMessage = "加载公告失败"
-            e.printStackTrace()
-            isLoading = false
-        }
-    }
-
-    // 初始加载和重试加载（在 LaunchedEffect 中启动 suspend 加载）
-    LaunchedEffect(Unit, retryTrigger, selectedNoticeType, selectedType, selectedAnnouncementType) {
-        noticeCurrentPage = 1
-        noticeHasMore = true
-        announcementCurrentPage = 1
-        announcementHasMore = true
-
-        if (selectedType == 0) {
-            loadNotices(reset = true)
-        } else {
-            loadAnnouncements(reset = true)
         }
     }
 
@@ -212,8 +102,6 @@ fun MessagesScreen(
                                         scope.launch {
                                             pagerState.animateScrollToPage(index)
                                         }
-                                        // 切换时重置选中的子类型
-                                        if (index == 0) selectedNoticeType = 0
                                     },
                                     text = { Text(title) }
                                 )
@@ -238,7 +126,7 @@ fun MessagesScreen(
                                 ).forEachIndexed { index, title ->
                                     Tab(
                                         selected = selectedNoticeType == index,
-                                        onClick = { selectedNoticeType = index },
+                                        onClick = { messageViewModel.setSelectedNoticeType(index) },
                                         text = { Text(title) }
                                     )
                                 }
@@ -256,7 +144,7 @@ fun MessagesScreen(
                                 ).forEachIndexed { index, title ->
                                     Tab(
                                         selected = selectedAnnouncementType == index,
-                                        onClick = { selectedAnnouncementType = index },
+                                        onClick = { messageViewModel.setSelectedAnnouncementType(index) },
                                         text = { Text(title) }
                                     )
                                 }
@@ -307,7 +195,7 @@ fun MessagesScreen(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Spacer(modifier = Modifier.height(16.dp))
-                                    Button(onClick = { retryTrigger++ }) {
+                                    Button(onClick = { messageViewModel.retry() }) {
                                         Text("重试")
                                     }
                                 }
@@ -365,9 +253,7 @@ fun MessagesScreen(
                                             noticeHasMore &&
                                             !isLoading
                                         ) {
-                                            coroutineScope.launch {
-                                                loadNotices(reset = false)
-                                            }
+                                            messageViewModel.loadNotices(reset = false)
                                         }
                                     }
                             }
@@ -435,7 +321,7 @@ fun MessagesScreen(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Spacer(modifier = Modifier.height(16.dp))
-                                    Button(onClick = { retryTrigger++ }) {
+                                    Button(onClick = { messageViewModel.retry() }) {
                                         Text("重试")
                                     }
                                 }
@@ -493,9 +379,7 @@ fun MessagesScreen(
                                             announcementHasMore &&
                                             !isLoading
                                         ) {
-                                            coroutineScope.launch {
-                                                loadAnnouncements(reset = false)
-                                            }
+                                            messageViewModel.loadAnnouncements(reset = false)
                                         }
                                     }
                             }
