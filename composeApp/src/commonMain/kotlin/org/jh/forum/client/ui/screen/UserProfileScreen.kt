@@ -37,21 +37,19 @@ import org.jh.forum.client.util.rememberDebouncedClick
 @Composable
 fun UserProfileScreen(
     userId: Long,
-    authViewModel: AuthViewModel,
-    repository: ForumRepository,
     onPostClick: (Long) -> Unit = {},
     onNavigateBack: (() -> Unit)? = null,
     onNavigateToSettings: () -> Unit = {},
     onNavigateToPost: (postId: Long, highlightCommentId: Long) -> Unit = { _, _ -> },
     onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
+    val authViewModel = AppModule.authViewModel
+    val repository = AppModule.forumRepository
+    val userProfileViewModel = AppModule.userProfileViewModel
+    
     var selectedTab by remember { mutableStateOf(0) }
     val isCurrentUser = authViewModel.userProfile.collectAsState().value?.userId == userId
-    var userProfile by remember {
-        mutableStateOf<GetUserProfileResponse?>(
-            null
-        )
-    }
+    var userProfile by remember { mutableStateOf<GetUserProfileResponse?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var showImageViewer by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
@@ -59,19 +57,14 @@ fun UserProfileScreen(
     var galleryImages by remember { mutableStateOf<List<String>>(emptyList()) }
     var galleryInitialIndex by remember { mutableStateOf(0) }
 
-    val userProfileViewModel = AppModule.userProfileViewModel
-
-    // Pager state for swipe navigation (only if current user)
     val tabCount = if (isCurrentUser) 2 else 1
     val pagerState = rememberPagerState(
         initialPage = selectedTab,
         pageCount = { tabCount }
     )
 
-    // Coroutine scope for programmatic scrolling
     val scope = rememberCoroutineScope()
 
-    // Sync pager state with selectedTab - one direction only
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             if (selectedTab != page) {
@@ -80,7 +73,6 @@ fun UserProfileScreen(
         }
     }
 
-    // Load user profile
     LaunchedEffect(userId) {
         userProfileViewModel.setUserId(userId)
         try {

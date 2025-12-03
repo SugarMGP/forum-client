@@ -13,14 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
-import org.jh.forum.client.ui.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    authViewModel: AuthViewModel,
     onNavigateBack: () -> Unit = {},
     onNavigateToThemeSettings: () -> Unit = {},
     onNavigateToNotificationSettings: () -> Unit = {},
@@ -28,6 +27,7 @@ fun SettingsScreen(
     onNavigateToAbout: () -> Unit = {},
     onCheckForUpdates: () -> Unit = {}
 ) {
+    val authViewModel = AppModule.authViewModel
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
 
     Scaffold(

@@ -27,9 +27,9 @@ import org.jh.forum.client.util.rememberDebouncedClick
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
-    authViewModel: AuthViewModel,
     onNavigateBack: () -> Unit = {}
 ) {
+    val authViewModel = AppModule.authViewModel
     val userProfile by authViewModel.userProfile.collectAsState()
     val isLoading by authViewModel.isLoading.collectAsState()
     val errorMessage by authViewModel.errorMessage.collectAsState()

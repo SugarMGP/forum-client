@@ -36,14 +36,12 @@ import kotlin.time.ExperimentalTime
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MessagesScreen(
-    repository: ForumRepository,
     onUserClick: (Long) -> Unit = {},
     onNavigateToPost: (postId: Long, highlightCommentId: Long) -> Unit = { _, _ -> },
     onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
     val messageViewModel = AppModule.messageViewModel
 
-    // Get state from ViewModel
     val messages by messageViewModel.messages.collectAsState()
     val announcements by messageViewModel.announcements.collectAsState()
     val isLoading by messageViewModel.isLoading.collectAsState()
