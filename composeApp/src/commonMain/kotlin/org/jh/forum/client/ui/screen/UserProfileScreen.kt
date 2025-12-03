@@ -23,12 +23,12 @@ import org.jh.forum.client.data.model.GetPersonalPostListElement
 import org.jh.forum.client.data.model.GetUserProfileResponse
 import org.jh.forum.client.data.model.PersonalCommentListElement
 import org.jh.forum.client.data.repository.ForumRepository
+import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.component.ClickableImage
 import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
-import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.util.TimeUtils
 import org.jh.forum.client.util.getAvatarOrDefault
 import org.jh.forum.client.util.rememberDebouncedClick
@@ -59,6 +59,8 @@ fun UserProfileScreen(
     var galleryImages by remember { mutableStateOf<List<String>>(emptyList()) }
     var galleryInitialIndex by remember { mutableStateOf(0) }
 
+    val userProfileViewModel = AppModule.userProfileViewModel
+
     // Pager state for swipe navigation (only if current user)
     val tabCount = if (isCurrentUser) 2 else 1
     val pagerState = rememberPagerState(
@@ -80,6 +82,7 @@ fun UserProfileScreen(
 
     // Load user profile
     LaunchedEffect(userId) {
+        userProfileViewModel.setUserId(userId)
         try {
             isLoading = true
             val result = repository.getProfile(userId)
@@ -178,8 +181,6 @@ fun UserProfileScreen(
                     ) { page ->
                         when (page) {
                             0 -> UserPostsTab(
-                                userId = userId,
-                                repository = repository,
                                 onPostClick = onPostClick,
                                 onImageClick = { images, index ->
                                     galleryImages = images
@@ -191,8 +192,6 @@ fun UserProfileScreen(
                             1 -> {
                                 if (isCurrentUser) {
                                     UserCommentsTab(
-                                        userId = userId,
-                                        repository = repository,
                                         onNavigateToPost = onNavigateToPost,
                                         onNavigateToComment = onNavigateToComment
                                     )
@@ -226,8 +225,6 @@ fun UserProfileScreen(
 
 @Composable
 fun UserPostsTab(
-    userId: Long,
-    repository: ForumRepository,
     onPostClick: (Long) -> Unit,
     onImageClick: (List<String>, Int) -> Unit = { _, _ -> }
 ) {
@@ -237,10 +234,12 @@ fun UserPostsTab(
     val hasMore by viewModel.postsHasMore.collectAsState()
     val listState = rememberLazyListState()
 
-    // Set user ID and load posts when userId changes
-    LaunchedEffect(userId) {
-        viewModel.setUserId(userId)
-        viewModel.loadPosts(reset = true)
+    val currentUserId by viewModel.currentUserId.collectAsState()
+
+    LaunchedEffect(currentUserId) {
+        if (currentUserId != null && posts.isEmpty()) {
+            viewModel.loadPosts(reset = true)
+        }
     }
 
     LazyColumn(
@@ -480,8 +479,6 @@ fun PostStatChip(
 
 @Composable
 fun UserCommentsTab(
-    userId: Long,
-    repository: ForumRepository,
     onNavigateToPost: (postId: Long, highlightCommentId: Long) -> Unit = { _, _ -> },
     onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {

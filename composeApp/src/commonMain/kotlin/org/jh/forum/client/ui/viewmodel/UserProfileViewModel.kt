@@ -47,7 +47,6 @@ class UserProfileViewModel : ViewModel() {
     fun setUserId(userId: Long) {
         if (_currentUserId.value != userId) {
             _currentUserId.value = userId
-            // Reset state for new user
             resetPostsState()
             resetCommentsState()
         }
@@ -116,7 +115,8 @@ class UserProfileViewModel : ViewModel() {
                             if (it.replyId != 0L) "reply_${it.replyId}" else "comment_${it.commentId}"
                         }.toSet()
                         val uniqueNewComments = commentList.list.filter { comment ->
-                            val key = if (comment.replyId != 0L) "reply_${comment.replyId}" else "comment_${comment.commentId}"
+                            val key =
+                                if (comment.replyId != 0L) "reply_${comment.replyId}" else "comment_${comment.commentId}"
                             key !in existingKeys
                         }
                         _comments.value + uniqueNewComments
