@@ -49,13 +49,15 @@ class UserProfileViewModel : ViewModel() {
             // Reset and load data for new user
             resetPostsState()
             resetCommentsState()
-            loadPosts(userId, reset = true)
+            loadPosts(reset = true)
         }
     }
 
-    fun loadPosts(userId: Long, reset: Boolean = false) {
+    fun loadPosts(reset: Boolean = false) {
         viewModelScope.launch {
             if (!reset && !_postsHasMore.value) return@launch
+
+            val userId = _currentUserId.value ?: return@launch
 
             _postsLoading.value = true
             try {

@@ -296,7 +296,7 @@ fun UserPostsTab(
                     !isLoading &&
                     hasMore
                 ) {
-                    viewModel.loadPosts(userId, reset = false)
+                    viewModel.loadPosts(reset = false)
                 }
             }
     }
