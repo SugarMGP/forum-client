@@ -240,6 +240,7 @@ fun UserPostsTab(
     // Set user ID and load posts when userId changes
     LaunchedEffect(userId) {
         viewModel.setUserId(userId)
+        viewModel.loadPosts(reset = true)
     }
 
     LazyColumn(
@@ -489,10 +490,11 @@ fun UserCommentsTab(
     val isLoading by viewModel.commentsLoading.collectAsState()
     val hasMore by viewModel.commentsHasMore.collectAsState()
     val listState = rememberLazyListState()
+    val currentUserId by viewModel.currentUserId.collectAsState()
 
-    // Load comments when first displayed
-    LaunchedEffect(Unit) {
-        if (comments.isEmpty()) {
+    // Load comments when tab is first displayed or when userId changes
+    LaunchedEffect(currentUserId) {
+        if (currentUserId != null && comments.isEmpty()) {
             viewModel.loadComments(reset = true)
         }
     }

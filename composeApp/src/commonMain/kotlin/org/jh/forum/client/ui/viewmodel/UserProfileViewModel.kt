@@ -42,14 +42,14 @@ class UserProfileViewModel : ViewModel() {
 
     // Current user ID being viewed
     private val _currentUserId = MutableStateFlow<Long?>(null)
+    val currentUserId: StateFlow<Long?> = _currentUserId.asStateFlow()
 
     fun setUserId(userId: Long) {
         if (_currentUserId.value != userId) {
             _currentUserId.value = userId
-            // Reset and load data for new user
+            // Reset state for new user
             resetPostsState()
             resetCommentsState()
-            loadPosts(reset = true)
         }
     }
 
