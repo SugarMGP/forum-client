@@ -85,4 +85,9 @@ object AppModule {
     val messageViewModel: MessageViewModel by lazy {
         MessageViewModel()
     }
+
+    // UserProfileViewModel 单例，用于管理用户主页的帖子和评论列表
+    val userProfileViewModel: UserProfileViewModel by lazy {
+        UserProfileViewModel()
+    }
 }

@@ -28,6 +28,7 @@ import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
 import org.jh.forum.client.ui.viewmodel.AuthViewModel
+import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.util.TimeUtils
 import org.jh.forum.client.util.getAvatarOrDefault
 import org.jh.forum.client.util.rememberDebouncedClick
@@ -230,34 +231,15 @@ fun UserPostsTab(
     onPostClick: (Long) -> Unit,
     onImageClick: (List<String>, Int) -> Unit = { _, _ -> }
 ) {
-    var posts by remember { mutableStateOf<List<GetPersonalPostListElement>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var hasMore by remember { mutableStateOf(true) }
-    var currentPage by remember { mutableStateOf(1) }
+    val viewModel = AppModule.userProfileViewModel
+    val posts by viewModel.posts.collectAsState()
+    val isLoading by viewModel.postsLoading.collectAsState()
+    val hasMore by viewModel.postsHasMore.collectAsState()
     val listState = rememberLazyListState()
 
-    // Load posts
-    LaunchedEffect(currentPage, userId) {
-        try {
-            isLoading = true
-            val result =
-                repository.getPersonalPostList(page = currentPage, pageSize = 20, userId = userId)
-            if (result.code == 200 && result.data != null) {
-                val postList = result.data
-                posts = if (currentPage == 1) {
-                    postList.list
-                } else {
-                    // Merge new posts with existing ones, filtering out duplicates
-                    val existingIds = posts.map { it.id }.toSet()
-                    val uniqueNewPosts = postList.list.filter { it.id !in existingIds }
-                    posts + uniqueNewPosts
-                }
-                hasMore = postList.page * postList.pageSize < postList.total
-            }
-            isLoading = false
-        } catch (_: Exception) {
-            isLoading = false
-        }
+    // Set user ID and load posts when userId changes
+    LaunchedEffect(userId) {
+        viewModel.setUserId(userId)
     }
 
     LazyColumn(
@@ -306,7 +288,7 @@ fun UserPostsTab(
     }
 
     // Load more when scrolled to bottom
-    LaunchedEffect(listState) {
+    LaunchedEffect(listState, hasMore, isLoading) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
             .collect { lastVisibleIndex ->
                 if (lastVisibleIndex != null &&
@@ -314,7 +296,7 @@ fun UserPostsTab(
                     !isLoading &&
                     hasMore
                 ) {
-                    currentPage++
+                    viewModel.loadPosts(userId, reset = false)
                 }
             }
     }
@@ -502,45 +484,16 @@ fun UserCommentsTab(
     onNavigateToPost: (postId: Long, highlightCommentId: Long) -> Unit = { _, _ -> },
     onNavigateToComment: (commentId: Long, highlightReplyId: Long) -> Unit = { _, _ -> }
 ) {
-    var comments by remember {
-        mutableStateOf<List<PersonalCommentListElement>>(
-            emptyList()
-        )
-    }
-    var isLoading by remember { mutableStateOf(true) }
-    var hasMore by remember { mutableStateOf(true) }
-    var currentPage by remember { mutableStateOf(1) }
+    val viewModel = AppModule.userProfileViewModel
+    val comments by viewModel.comments.collectAsState()
+    val isLoading by viewModel.commentsLoading.collectAsState()
+    val hasMore by viewModel.commentsHasMore.collectAsState()
     val listState = rememberLazyListState()
 
-    // Load comments
-    LaunchedEffect(currentPage, userId) {
-        if (!hasMore && currentPage > 1) return@LaunchedEffect  // Don't load if no more data
-
-        try {
-            isLoading = true
-            val result = repository.getPersonalComment(page = currentPage, pageSize = 20)
-            if (result.code == 200 && result.data != null) {
-                val commentList = result.data
-                comments = if (currentPage == 1) {
-                    commentList.list
-                } else {
-                    // Merge new comments with existing ones, filtering out duplicates
-                    // Use combination of commentId and replyId for unique identification
-                    val existingKeys = comments.map {
-                        if (it.replyId != 0L) "reply_${it.replyId}" else "comment_${it.commentId}"
-                    }.toSet()
-                    val uniqueNewComments = commentList.list.filter { comment ->
-                        val key =
-                            if (comment.replyId != 0L) "reply_${comment.replyId}" else "comment_${comment.commentId}"
-                        key !in existingKeys
-                    }
-                    comments + uniqueNewComments
-                }
-                hasMore = commentList.page * commentList.pageSize < commentList.total
-            }
-            isLoading = false
-        } catch (_: Exception) {
-            isLoading = false
+    // Load comments when first displayed
+    LaunchedEffect(Unit) {
+        if (comments.isEmpty()) {
+            viewModel.loadComments(reset = true)
         }
     }
 
@@ -608,7 +561,7 @@ fun UserCommentsTab(
                     hasMore &&
                     comments.isNotEmpty()
                 ) {
-                    currentPage++
+                    viewModel.loadComments(reset = false)
                 }
             }
     }
