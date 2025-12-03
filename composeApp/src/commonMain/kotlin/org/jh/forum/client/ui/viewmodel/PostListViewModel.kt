@@ -28,12 +28,22 @@ class PostListViewModel : ViewModel() {
     private val _hasMore = MutableStateFlow(true)
     val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
 
+    private val _selectedCategory = MutableStateFlow<String?>(null)
+    val selectedCategory: StateFlow<String?> = _selectedCategory.asStateFlow()
+
+    private val _sortType = MutableStateFlow(SortType.NEWEST)
+    val sortType: StateFlow<SortType> = _sortType.asStateFlow()
+
+    init {
+        refresh()
+    }
+
     fun loadPosts(
         category: String? = null,
-        sortType: SortType = SortType.NEWEST,
+        sortType: String? = null,
         reset: Boolean = false
     ) {
-        val actualSortType = sortType.name.lowercase()
+        val actualSortType = sortType ?: this._sortType.value.name.lowercase()
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
@@ -113,10 +123,10 @@ class PostListViewModel : ViewModel() {
         }
     }
 
-    fun refresh(category: String?, sortType: SortType) {
+    fun refresh() {
         loadPosts(
-            category = category,
-            sortType = sortType,
+            category = _selectedCategory.value,
+            sortType = _sortType.value.name.lowercase(),
             reset = true
         )
     }
@@ -132,6 +142,28 @@ class PostListViewModel : ViewModel() {
             } else {
                 post
             }
+        }
+    }
+
+    fun selectCategory(category: String?) {
+        if (_selectedCategory.value != category) {
+            _selectedCategory.value = category
+            loadPosts(
+                category = category,
+                sortType = _sortType.value.name.lowercase(),
+                reset = true
+            )
+        }
+    }
+
+    fun setSortType(sortType: SortType) {
+        if (_sortType.value != sortType) {
+            _sortType.value = sortType
+            loadPosts(
+                category = _selectedCategory.value,
+                sortType = sortType.name.lowercase(),
+                reset = true
+            )
         }
     }
 

@@ -186,9 +186,8 @@ fun PostListScreen(
 
     val listState = rememberLazyListState()
     var showTabs by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf<String?>(null) }
-    var sortType by remember { mutableStateOf(SortType.NEWEST) }
-    var retryTrigger by remember { mutableStateOf(0) }
+    val selectedCategory by viewModel.selectedCategory.collectAsState()
+    val sortType by viewModel.sortType.collectAsState()
 
     // Image gallery state
     var showImageGallery by remember { mutableStateOf(false) }
@@ -206,15 +205,6 @@ fun PostListScreen(
         if (!isLoading && isRefreshing) {
             isRefreshing = false
         }
-    }
-
-    // Retry loading posts when filters change or user retries
-    LaunchedEffect(Unit, retryTrigger, selectedCategory, sortType) {
-        viewModel.loadPosts(
-            category = selectedCategory,
-            sortType = sortType,
-            reset = true
-        )
     }
 
     // Snackbar state for error messages
@@ -279,14 +269,14 @@ fun PostListScreen(
                                     Tab(
                                         selected = sortType == SortType.NEWEST,
                                         onClick = {
-                                            sortType = SortType.NEWEST
+                                            viewModel.setSortType(SortType.NEWEST)
                                         },
                                         text = { Text("最新") }
                                     )
                                     Tab(
                                         selected = sortType == SortType.HOT,
                                         onClick = {
-                                            sortType = SortType.HOT
+                                            viewModel.setSortType(SortType.HOT)
                                         },
                                         text = { Text("最热") }
                                     )
@@ -314,7 +304,7 @@ fun PostListScreen(
                                     Tab(
                                         selected = selectedCategory == null,
                                         onClick = {
-                                            selectedCategory = null
+                                            viewModel.selectCategory(null)
                                         },
                                         text = { Text("全部") }
                                     )
@@ -324,7 +314,7 @@ fun PostListScreen(
                                         Tab(
                                             selected = selectedCategory == category.value,
                                             onClick = {
-                                                selectedCategory = category.value
+                                                viewModel.selectCategory(category.value)
                                             },
                                             text = { Text(category.displayName) },
                                         )
@@ -345,7 +335,7 @@ fun PostListScreen(
                 isRefreshing = isRefreshing,
                 onRefresh = {
                     isRefreshing = true
-                    viewModel.refresh(selectedCategory, sortType)
+                    viewModel.refresh()
                 },
                 state = pullRefreshState,
                 modifier = Modifier.fillMaxSize().padding(paddingValues)
@@ -369,7 +359,7 @@ fun PostListScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(Dimensions.spaceMedium))
-                        Button(onClick = { retryTrigger++ }) {
+                        Button(onClick = { viewModel.refresh() }) {
                             Text("重试")
                         }
                     }
@@ -378,15 +368,10 @@ fun PostListScreen(
                     LaunchedEffect(listState) {
                         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
                             .collect { lastVisibleIndex ->
-                                if (
-                                    lastVisibleIndex != null &&
-                                    lastVisibleIndex >= posts.size - 3 &&
-                                    hasMore &&
-                                    !isLoading
-                                ) {
+                                if (lastVisibleIndex != null && lastVisibleIndex >= posts.size - 3 && hasMore && !isLoading) {
                                     viewModel.loadPosts(
                                         category = selectedCategory,
-                                        sortType = sortType
+                                        sortType = sortType.name.lowercase()
                                     )
                                 }
                             }
