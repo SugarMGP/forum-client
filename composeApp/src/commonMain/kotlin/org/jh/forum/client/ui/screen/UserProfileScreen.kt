@@ -22,13 +22,11 @@ import kotlinx.coroutines.launch
 import org.jh.forum.client.data.model.GetPersonalPostListElement
 import org.jh.forum.client.data.model.GetUserProfileResponse
 import org.jh.forum.client.data.model.PersonalCommentListElement
-import org.jh.forum.client.data.repository.ForumRepository
 import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.component.ClickableImage
 import org.jh.forum.client.ui.component.ImageGalleryDialog
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
-import org.jh.forum.client.ui.viewmodel.AuthViewModel
 import org.jh.forum.client.util.TimeUtils
 import org.jh.forum.client.util.getAvatarOrDefault
 import org.jh.forum.client.util.rememberDebouncedClick
@@ -46,7 +44,7 @@ fun UserProfileScreen(
     val authViewModel = AppModule.authViewModel
     val repository = AppModule.forumRepository
     val userProfileViewModel = AppModule.userProfileViewModel
-    
+
     var selectedTab by remember { mutableStateOf(0) }
     val isCurrentUser = authViewModel.userProfile.collectAsState().value?.userId == userId
     var userProfile by remember { mutableStateOf<GetUserProfileResponse?>(null) }

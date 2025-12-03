@@ -31,8 +31,6 @@ import org.jh.forum.client.di.AppModule
 import org.jh.forum.client.ui.screen.*
 import org.jh.forum.client.ui.theme.AppIcons
 import org.jh.forum.client.ui.theme.Dimensions
-import org.jh.forum.client.ui.viewmodel.AuthViewModel
-import org.jh.forum.client.ui.viewmodel.MessageViewModel
 import org.jh.forum.client.util.UpdateChecker
 import org.jh.forum.client.util.UpdateInfo
 import org.jh.forum.client.util.openUrl
