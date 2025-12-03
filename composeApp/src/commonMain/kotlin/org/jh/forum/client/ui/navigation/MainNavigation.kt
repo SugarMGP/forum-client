@@ -490,7 +490,7 @@ fun MainNavigation(
     // Outer NavHost for all pages
     NavHost(
         navController = outerNavController,
-        startDestination = if (isLoggedIn) "main" else "login"
+        startDestination = "login"
     ) {
         // Login screen (without bottom bar)
         composable(
@@ -500,7 +500,8 @@ fun MainNavigation(
         ) {
             LoginScreen(
                 onLoginSuccess = {
-                    // Navigation handled by LaunchedEffect above
+                    // Navigation is automatically handled by the LaunchedEffect that observes isLoggedIn state
+                    // Post list refresh is also triggered there
                 }
             )
         }
