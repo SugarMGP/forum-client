@@ -6,3 +6,12 @@ class JVMPlatform : Platform {
 }
 
 actual fun getPlatform(): Platform = JVMPlatform()
+
+actual fun getInstallerSuffix(): String {
+    val os = System.getProperty("os.name").lowercase()
+    return when {
+        "mac" in os || "darwin" in os -> ".dmg"
+        "win" in os -> ".msi"
+        else -> ".deb"
+    }
+}

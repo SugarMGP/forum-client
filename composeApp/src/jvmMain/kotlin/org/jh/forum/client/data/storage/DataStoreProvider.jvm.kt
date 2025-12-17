@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import okio.Path.Companion.toOkioPath
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
@@ -34,25 +35,21 @@ actual fun createDataStore(fileName: String): DataStore<Preferences> {
 /**
  * Get platform-specific data directory following OS conventions
  */
-private fun getDataStoreDirectory(): java.nio.file.Path {
+private fun getDataStoreDirectory(): Path {
     val appName = "ForumClient"
     val userHome = System.getProperty("user.home")
-    val osName = System.getProperty("os.name").lowercase()
+    val os = System.getProperty("os.name").lowercase()
 
     return when {
-        osName.contains("mac") || osName.contains("darwin") -> {
-            // macOS: ~/Library/Application Support/ForumClient/
+        "mac" in os || "darwin" in os ->
             Paths.get(userHome, "Library", "Application Support", appName)
-        }
 
-        osName.contains("win") -> {
-            // Windows: %APPDATA%/ForumClient/
+        "win" in os -> {
             val appData = System.getenv("APPDATA") ?: Paths.get(userHome, "AppData", "Roaming").toString()
             Paths.get(appData, appName)
         }
 
         else -> {
-            // Linux and others: ~/.local/share/ForumClient/
             val xdgDataHome = System.getenv("XDG_DATA_HOME") ?: Paths.get(userHome, ".local", "share").toString()
             Paths.get(xdgDataHome, appName)
         }

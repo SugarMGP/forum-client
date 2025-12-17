@@ -10,6 +10,13 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.jh.forum.client.BuildKonfig
+import org.jh.forum.client.getInstallerSuffix
+
+@Serializable
+data class GithubAsset(
+    @SerialName("name") val name: String,
+    @SerialName("browser_download_url") val browserDownloadUrl: String
+)
 
 @Serializable
 data class GithubRelease(
@@ -17,22 +24,22 @@ data class GithubRelease(
     @SerialName("name") val name: String?,
     @SerialName("published_at") val publishedAt: String,
     @SerialName("html_url") val htmlUrl: String,
-    @SerialName("body") val body: String?
+    @SerialName("assets") val assets: List<GithubAsset> = emptyList()
 )
 
 data class UpdateInfo(
     val hasUpdate: Boolean,
     val latestVersion: String,
     val publishedAt: String,
-    val releaseUrl: String
+    val releaseUrl: String,
+    val downloadUrl: String? = null
 )
 
 class UpdateChecker {
     companion object {
         private const val GITHUB_API_URL =
-            "https://ghproxy.vip/https://api.github.com/repos/SugarMGP/forum-client/releases/latest"
+            "https://gh-proxy.org/https://api.github.com/repos/SugarMGP/forum-client/releases/latest"
 
-        // Create a dedicated HttpClient with JSON support for GitHub API
         private val httpClient: HttpClient by lazy {
             HttpClient {
                 install(ContentNegotiation) {
@@ -55,11 +62,15 @@ class UpdateChecker {
             val latestVersion = release.tagName.removePrefix("v")
             val hasUpdate = compareVersions(latestVersion, BuildKonfig.APP_VERSION) > 0
 
+            val installerSuffix = getInstallerSuffix()
+            val matchingAsset = release.assets.find { it.name.endsWith(installerSuffix) }
+
             UpdateInfo(
                 hasUpdate = hasUpdate,
                 latestVersion = latestVersion,
                 publishedAt = release.publishedAt,
-                releaseUrl = release.htmlUrl
+                releaseUrl = release.htmlUrl,
+                downloadUrl = matchingAsset?.browserDownloadUrl
             )
         } catch (e: Exception) {
             e.printStackTrace()

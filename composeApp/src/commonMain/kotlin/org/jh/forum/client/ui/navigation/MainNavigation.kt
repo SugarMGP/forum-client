@@ -96,7 +96,7 @@ private fun UpdateDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clickable(true) { onDismiss() },
+                .clickable {},
             contentAlignment = Alignment.Center
         ) {
             Card(
@@ -169,7 +169,9 @@ private fun UpdateDialog(
                         FilledTonalButton(
                             onClick = {
                                 onDismiss()
-                                updateInfo?.let { onDownload(it.releaseUrl) }
+                                updateInfo?.let {
+                                    onDownload(it.downloadUrl ?: it.releaseUrl)
+                                }
                             },
                             shape = MaterialTheme.shapes.medium
                         ) {
